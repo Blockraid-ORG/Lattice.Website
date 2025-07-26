@@ -32,7 +32,19 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'red-careful-koala-550.mypinata.cloud',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'api-dev.e-wow.my.id',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.terravest.capital',
         port: '',
         pathname: '/**',
       },
