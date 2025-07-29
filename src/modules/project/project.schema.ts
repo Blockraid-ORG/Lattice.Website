@@ -27,7 +27,7 @@ export const formCreateProjectSchema = z.object({
   ticker: z.string().min(1),
   decimals: z.coerce.number().min(10),
   totalSupply: z.coerce.number().min(1),
-  status: z.enum(['PENDING', 'APPROVED', 'REJECTED']),
+  status: z.enum(['PENDING', 'APPROVED', 'REJECTED','DEPLOYED']),
   detail: z.string().min(1),
   categoryId: z.string().uuid(),
   chainId: z.string().uuid(),

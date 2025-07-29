@@ -2,6 +2,7 @@
 
 import { Icon } from "@/components/icon"
 import { toUrlAsset } from "@/lib/utils"
+import { useProjectDetail } from "@/modules/project/project.query"
 import dayjs from "dayjs"
 import Image from "next/image"
 import Link from "next/link"
@@ -10,11 +11,12 @@ import Allocations from "./allocations"
 import ChartAllocations from "./chart-allocations"
 import { ReviewLog } from "./review-log"
 import RowItem from "./row-item"
-import { useProjectDetail } from "@/modules/project/project.query"
+import { ConfirmDeployToken } from "../../deploy/confirm-deploy-token"
 
 export default function ProjectContent() {
   const { projectId } = useParams()
   const { data, isLoading } = useProjectDetail(projectId.toString())
+  console.log({ data })
   return (
     <>
       {
@@ -29,6 +31,8 @@ export default function ProjectContent() {
                   <h2 className="text-lg font-semibold">Project Info</h2>
                   <div className="flex items-center justify-center md:justify-end gap-2 px-3">
                     <ReviewLog data={data.reviewLogs} />
+                    {/* <BtnDeploy data={data} /> */}
+                    <ConfirmDeployToken data={data} />
                   </div>
                 </div>
                 <div className="grid lg:grid-cols-2">
