@@ -11,6 +11,7 @@ const nextConfig = {
     PINATA_GATEWAY_URL: process.env.PINATA_GATEWAY_URL,
     W3AUTH_CLIENT_ID: process.env.W3AUTH_CLIENT_ID,
     BASE_URL: process.env.BASE_URL,
+    BLOCKSCOUT_API: process.env.BLOCKSCOUT_API,
   },
   images: {
     remotePatterns: [

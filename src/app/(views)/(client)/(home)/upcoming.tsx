@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 export default function Upcoming() {
-  const { data: upcoming, isLoading } = usePublicProject({ status: 'PENDING' })
+  const { data: upcoming, isLoading } = usePublicProject()
   return (
     <section className='py-12 md:py-24 bg-primary-foreground/10'>
       <div className="container">
@@ -23,7 +23,7 @@ export default function Upcoming() {
             isLoading ? (
               <div>Loading...</div>
             ) : (
-              <>
+                <>
                 {
 
                   upcoming?.data && upcoming?.data?.map((item, index) => (
@@ -63,7 +63,7 @@ export default function Upcoming() {
                                   height={100}
                                   alt='aset'
                                   className='w-6 h-6 object-cover rounded-full'
-                                  src={`${item.chain.logo ?? '/icons/networks/3.png'}`}
+                                  src={`${toUrlAsset(item.chain.logo) ?? '/icons/networks/3.png'}`}
                                 />
                               ))
                             }
