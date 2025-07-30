@@ -60,16 +60,35 @@ export const useProjectDetail = (id?: string) => {
     enabled: !!id,
   });
 };
-export const useUpdateProject = (id:string) => {
+export const useUpdateProject = (id: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: TFormProject) => projectService.UPDATE(id,data),
+    mutationFn: (data: TFormProject) => projectService.UPDATE(id, data),
     onSuccess: () => {
       toast.success('Success', {
         description: "Success update project, waiting for review team!"
       })
       queryClient.invalidateQueries({
         queryKey: ["get_project"]
+      });
+    },
+    onError: () => {
+      toast.error('Error', {
+        description: "Fail to update data!"
+      })
+    }
+  });
+};
+export const useUpdateAllocation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { projectId: string, id: string, contractAddress: string }) => projectService.UPDATE_ALLOCATION({
+      id:data.id,
+      contractAddress: data.contractAddress,
+    }),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["get_project_by_id", variables.projectId]
       });
     },
     onError: () => {

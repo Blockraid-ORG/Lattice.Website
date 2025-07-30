@@ -31,6 +31,7 @@ export default function BtnDeploy({ data }: { data: TProject }) {
         data.totalSupply
       ]
     ).slice(2);
+    // krmh74u38ieg92ivmykv8bsgjgcmiuqvnwhxuk4pn1l12kebps
     const sourceCode = `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 

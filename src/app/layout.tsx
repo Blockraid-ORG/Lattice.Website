@@ -39,10 +39,15 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <ReactQueryProvider web3authInitialState={web3authInitialState}>
-              {children}
+            {children}
           </ReactQueryProvider>
 
-          <Toaster richColors />
+          <Toaster
+            expand={true}
+            closeButton
+            gap={4}
+            richColors
+          />
         </ThemeProvider>
       </body>
     </html>

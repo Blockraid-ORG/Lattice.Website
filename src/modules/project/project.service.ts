@@ -14,6 +14,14 @@ class ProjectService extends BaseService<TProject, TFormProject> {
     })
     return response.data.data
   }
+  async UPDATE_ALLOCATION(data: { id: string, contractAddress: string }){
+    const response = await axiosInstance({
+      method: 'POST',
+      url: this.endpoint + '/update-allocation',
+      data,
+    })
+    return response.data.data
+  }
 }
 
 const projectService = new ProjectService()

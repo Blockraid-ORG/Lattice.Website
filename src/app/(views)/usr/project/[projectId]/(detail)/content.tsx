@@ -1,22 +1,22 @@
 'use client'
 
 import { Icon } from "@/components/icon"
-import { toUrlAsset } from "@/lib/utils"
+import { NumberComma, toUrlAsset } from "@/lib/utils"
 import { useProjectDetail } from "@/modules/project/project.query"
 import dayjs from "dayjs"
 import Image from "next/image"
 import Link from "next/link"
 import { useParams } from "next/navigation"
+import { ConfirmDeployToken } from "../../deploy/confirm-deploy-token"
 import Allocations from "./allocations"
 import ChartAllocations from "./chart-allocations"
 import { ReviewLog } from "./review-log"
 import RowItem from "./row-item"
-import { ConfirmDeployToken } from "../../deploy/confirm-deploy-token"
 
 export default function ProjectContent() {
   const { projectId } = useParams()
   const { data, isLoading } = useProjectDetail(projectId.toString())
-  console.log({ data })
+
   return (
     <>
       {
@@ -33,6 +33,10 @@ export default function ProjectContent() {
                     <ReviewLog data={data.reviewLogs} />
                     {/* <BtnDeploy data={data} /> */}
                     <ConfirmDeployToken data={data} />
+                    {/* <Button onClick={handleDeploy}>
+                      {loading && <Icon name="mingcute:loading-fill" className="animate-spin" />}
+                      Test Deploy Locker
+                    </Button> */}
                   </div>
                 </div>
                 <div className="grid lg:grid-cols-2">
@@ -99,7 +103,7 @@ export default function ProjectContent() {
                   </div>
                 </div>
                 <div className="my-2 pt-4">
-                  <RowItem labelWidth="w-1/3" label="Total Supply" value={data.totalSupply} />
+                  <RowItem labelWidth="w-1/3" label="Total Supply" value={NumberComma(+data.totalSupply)} />
                   <RowItem labelWidth="w-1/3" label="Status" value={data.status} />
                   <RowItem labelWidth="w-1/3" label="Category" value={data.category.name} />
                 </div>
@@ -115,7 +119,7 @@ export default function ProjectContent() {
               </div>
               <div className="pt-3 border-t">
                 <div className="grid gap-3 lg:grid-cols-2 items-center">
-                  <Allocations data={data.allocations} />
+                  <Allocations data={data.allocations} totalSupply={data.totalSupply} />
                   {
                     data.allocations && <ChartAllocations data={data.allocations} />
                   }

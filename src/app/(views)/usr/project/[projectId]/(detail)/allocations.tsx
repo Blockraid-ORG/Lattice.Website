@@ -8,7 +8,9 @@ import {
 } from "@/components/ui/table"
 import dayjs from 'dayjs';
 import { TAllocation } from '@/types/project'
-export default function Allocations({ data }: { data: TAllocation[] }) {
+import { Icon } from "@/components/icon";
+import { NumberComma } from "@/lib/utils";
+export default function Allocations({ data, totalSupply }: { data: TAllocation[], totalSupply?: string }) {
   return (
     <div>
       <h2 className="mb-2 text-lg font-semibold">Allocation Info</h2>
@@ -16,6 +18,7 @@ export default function Allocations({ data }: { data: TAllocation[] }) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>#</TableHead>
               <TableHead>NAME</TableHead>
               <TableHead>AMOUNT</TableHead>
               <TableHead>VESTING</TableHead>
@@ -26,8 +29,15 @@ export default function Allocations({ data }: { data: TAllocation[] }) {
             {
               data.map(item => (
                 <TableRow key={item.id}>
+                  <TableCell>
+                    {
+                      item.contractAddress ?
+                        <Icon className="text-green-600" name="material-symbols:check-rounded" /> :
+                        <Icon className="text-orange-600" name="material-symbols-light:stop-rounded" />
+                    }
+                  </TableCell>
                   <TableCell className="font-medium">{item.name}</TableCell>
-                  <TableCell>{item.supply}</TableCell>
+                  <TableCell>{NumberComma(Number(totalSupply) * (item.supply/100))}</TableCell>
                   <TableCell>{item.vesting} Month</TableCell>
                   <TableCell className="text-right">{dayjs(item.startDate).format('MMM DD, YYYY')}</TableCell>
                 </TableRow>
@@ -37,6 +47,6 @@ export default function Allocations({ data }: { data: TAllocation[] }) {
         </Table>
       </div>
     </div>
-    
+
   )
 }

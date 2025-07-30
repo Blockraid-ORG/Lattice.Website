@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import deployService from "./deploy.service";
 
 
-export const useDeployProject = (id: string) => {
+export const useDeployProject = (id?: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: TFormVerifyProject) => deployService.DEPLOY(data),
