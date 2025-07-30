@@ -22,6 +22,7 @@ type TAllocation = {
   vesting: number
   startDate: string
   isPresale: boolean,
+  contractAddress?:string
 }
 export type TPresale = {
   id: string
@@ -57,6 +58,7 @@ export type TProject = {
   detail: string
   status: "PENDING" | "APPROVED" | "REJECTED" | "DEPLOYED",
   allocations: TAllocation[]
+  contractAddress?: string
   socials: {
     url: string,
     social: TSocial

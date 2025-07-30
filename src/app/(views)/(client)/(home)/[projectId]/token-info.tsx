@@ -27,7 +27,7 @@ export default function TokenInfo({ data }: { data: TProject }) {
 
             </div>
             <div className='mt-6'>
-              {data?.allocations && <Allocations data={data?.allocations} />}
+              {data?.allocations && <Allocations totalSupply={data?.totalSupply} data={data?.allocations} />}
             </div>
           </div>
           <div>

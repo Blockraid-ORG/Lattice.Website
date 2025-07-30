@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger
 } from "@/components/ui/dialog"
-import { toUrlAsset } from "@/lib/utils"
+import { NumberComma, toUrlAsset } from "@/lib/utils"
 import { useDeployToken } from "@/modules/deploy/deploy.hook"
 import { useDeployProject } from "@/modules/deploy/deploy.query"
 import { useStateModal } from "@/store/useStateModal"
@@ -23,14 +23,12 @@ export function ConfirmDeployToken({ data }: { data: TProject }) {
   const [loading, setLoading] = useState(false)
   const { mutate: deployProject } = useDeployProject(data.id)
   const { open, setOpen } = useStateModal()
-  const { deploy } = useDeployToken()
+  const { deploy, locker } = useDeployToken()
   const { address } = useAccount()
   const { data: balance } = useBalance({ address })
   async function handleChangeOpen(state: boolean) {
     setOpen(state);
   }
-
-  console.log({ data })
 
   async function handleDeploy() {
     setLoading(true)
@@ -41,8 +39,10 @@ export function ConfirmDeployToken({ data }: { data: TProject }) {
           status: 'DEPLOYED',
           note: 'Deployed by project owner',
           contractAddress: response
+        }, {
+          onSuccess: () => locker(data)
         })
-        toast.success('Success Deploy', {
+        toast.success('Deploy Token Success', {
           description: response
         })
       })
@@ -91,7 +91,11 @@ export function ConfirmDeployToken({ data }: { data: TProject }) {
             <div className='w-3 shrink-0'>:</div>
             <div className="flex-1 font-semibold">{data.ticker}</div>
           </div>
-
+          <div className="flex text-sm">
+            <div className="w-32">Total Supply</div>
+            <div className='w-3 shrink-0'>:</div>
+            <div className="flex-1 font-semibold">{NumberComma(+data.totalSupply)}</div>
+          </div>
           <div>
             {balance?.value && balance?.value <= 0 && <>Balance Kothong</>}
           </div>
