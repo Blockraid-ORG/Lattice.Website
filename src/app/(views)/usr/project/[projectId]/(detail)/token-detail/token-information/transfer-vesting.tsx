@@ -62,6 +62,10 @@ export function TransferVesting({ data }: { data: TProject }) {
           return
         }
       }
+      toast.success('Done!', {
+        description: `Transfer to each vesting has been done`,
+        position: `top-center`,
+      })
       setIsSubmitting(false)
       setOpen(false)
     }
