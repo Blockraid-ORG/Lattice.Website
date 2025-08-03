@@ -1,3 +1,5 @@
+import { formUpdateWhitelistSchema } from "@/modules/deploy/deploy.schema"
+
 export type TBalance = {
   decimals: number
   formatted: string
@@ -21,3 +23,5 @@ export type TSetPresale = {
   whitelistContract: string
   contractAddress: string
 }
+
+export type TFormUpdateWhitelist = z.infer<typeof formUpdateWhitelistSchema>

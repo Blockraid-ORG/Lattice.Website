@@ -17,7 +17,8 @@ type FormInputProps<T extends FieldValues> = {
   name: FieldPath<T>
   label: string
   placeholder?: string
-  type?: string
+  type?: string,
+  rows?: number
 } & { isLongText?: boolean }
 
 export function FormInput<T extends FieldValues>({
@@ -26,7 +27,8 @@ export function FormInput<T extends FieldValues>({
   label,
   placeholder,
   type = 'text',
-  isLongText
+  isLongText,
+  rows
 }: FormInputProps<T>) {
   return (
     <FormField
@@ -39,7 +41,7 @@ export function FormInput<T extends FieldValues>({
             {
               isLongText ? (
                 <Textarea
-                  rows={5}
+                  rows={rows ?? 5}
                   className={cn(
                     'focus-visible:ring-blue-200/50 focus-visible:border-blue-200/50',
                     fieldState.error ? 'bg-red-200/10 ring-1 ring-red-300' : 'bg-blue-100/30 dark:bg-primary-foreground'
