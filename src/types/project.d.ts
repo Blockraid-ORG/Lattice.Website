@@ -15,6 +15,11 @@ export type TFormProjectPresale = z.infer<typeof presalesSchema>
 export type TFormFilterProject = z.infer<typeof formFilterProjectSchema>
 export type TFormBuyPresale = z.infer<typeof formBuyPresale>
 
+type TAddressWhitelist = {
+  id: string
+  walletAddress: string
+}
+
 type TAllocation = {
   id: string
   name: string
@@ -23,6 +28,7 @@ type TAllocation = {
   startDate: string
   isPresale: boolean,
   contractAddress?:string
+  isDeploying?:boolean
 }
 export type TPresale = {
   id: string
@@ -31,6 +37,11 @@ export type TPresale = {
   maxContribution: string
   duration: string
   unit: string
+  claimTime: number,
+  startDate: string,
+  contractAddress: string | null,
+  whitelistContract:string | null,
+  whitelists: TAddressWhitelist[] | []
 }
 type TProjectOwner = {
   id: string

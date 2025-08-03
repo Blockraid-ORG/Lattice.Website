@@ -12,7 +12,9 @@ export const presalesSchema = z.object({
   price: z.coerce.number().min(0.00000001, "Price must be greater than 0"),
   unit: z.string().min(1, "Unit is required"),
   maxContribution: z.coerce.number().min(0, "Max contribution required"),
-  duration: z.string().min(1, "Duration is required")
+  duration: z.coerce.number().min(1, "Duration is required"),
+  startDate: z.coerce.date(),
+  claimTime: z.coerce.number().min(0),
 })
 export const socialSchema = z.object({
   socialId: z.string().uuid(),
@@ -27,7 +29,7 @@ export const formCreateProjectSchema = z.object({
   ticker: z.string().min(1),
   decimals: z.coerce.number().min(10),
   totalSupply: z.coerce.number().min(1),
-  status: z.enum(['PENDING', 'APPROVED', 'REJECTED','DEPLOYED']),
+  status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'DEPLOYED']),
   detail: z.string().min(1),
   categoryId: z.string().uuid(),
   chainId: z.string().uuid(),
@@ -43,7 +45,7 @@ export const formCreateProjectSchema = z.object({
 })
 
 export const formFilterProjectSchema = z.object({
-  status: z.enum(['PENDING', 'APPROVED', 'REJECTED','DEPLOYED']),
+  status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'DEPLOYED']),
 })
 
 export const formBuyPresale = (max: number) => z.object({

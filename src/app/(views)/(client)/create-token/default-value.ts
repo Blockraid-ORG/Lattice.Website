@@ -29,10 +29,7 @@ export const defaultValues = {
       hardcap: '',
       price: '',
       maxContribution: '',
-      startDate: new Date().toISOString(),
-      duration: 0,
-      whitelistDuration: 0,
-      claimTime: 0,
+      duration: new Date().toISOString(),
       unit: '',
     }
   ],

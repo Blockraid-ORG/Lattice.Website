@@ -13,7 +13,7 @@ import { NumberComma } from "@/lib/utils";
 export default function Allocations({ data, totalSupply }: { data: TAllocation[], totalSupply?: string }) {
   return (
     <div>
-      <h2 className="mb-2 text-lg font-semibold">Allocation Info</h2>
+      <h2 className="mb-2 text-lg font-semibold">Allocation Info x</h2>
       <div className="w-full">
         <Table>
           <TableHeader>
@@ -30,14 +30,25 @@ export default function Allocations({ data, totalSupply }: { data: TAllocation[]
               data.map(item => (
                 <TableRow key={item.id}>
                   <TableCell>
+                    {/* {item.contractAddress} */}
                     {
-                      item.contractAddress ?
-                        <Icon className="text-green-600" name="material-symbols:check-rounded" /> :
-                        <Icon className="text-orange-600" name="material-symbols-light:stop-rounded" />
+                      item.contractAddress ? (
+                        <Icon className="text-lg text-blue-500" name="lets-icons:check-fill" />
+                      ) : (
+                        <>
+                          {
+                            item.isDeploying ? (
+                              <Icon className="text-sm animate-spin" name="streamline-ultimate:loading-bold" />
+                            ) : (
+                              <Icon className="text-lg" name="fluent:circle-hint-24-filled" />
+                            )
+                          }
+                        </>
+                      )
                     }
                   </TableCell>
                   <TableCell className="font-medium">{item.name}</TableCell>
-                  <TableCell>{NumberComma(Number(totalSupply) * (item.supply/100))}</TableCell>
+                  <TableCell>{NumberComma(Number(totalSupply) * (item.supply / 100))}</TableCell>
                   <TableCell>{item.vesting} Month</TableCell>
                   <TableCell className="text-right">{dayjs(item.startDate).format('MMM DD, YYYY')}</TableCell>
                 </TableRow>

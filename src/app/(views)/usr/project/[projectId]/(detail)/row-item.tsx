@@ -3,7 +3,7 @@ import React from 'react'
 
 type RowItemProps = {
   label: string
-  value: string
+  value: string | React.ReactNode
   labelWidth?: string
 }
 export default function RowItem(props: RowItemProps) {
@@ -14,7 +14,7 @@ export default function RowItem(props: RowItemProps) {
         props.labelWidth ? props.labelWidth : "w-32"
       )}>{props.label}</div>
       <div className='w-3 shrink-0'>:</div>
-      <div className="flex-1">{props.value}</div>
+      <div className="flex-1 break-all">{props.value}</div>
     </div>
   )
 }

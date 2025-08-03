@@ -7,8 +7,27 @@ import { TProject } from "@/types/project";
 import { ColumnDef } from "@tanstack/react-table";
 import Image from "next/image";
 import Link from "next/link";
-import { FormDeploy } from "../form-deploy";
+
+import BadgeProjectStatus from "@/components/badges/badge-project-status";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 export const columns: ColumnDef<TProject>[] = [
+  {
+    accessorKey: 'category',
+    header: 'Category',
+    cell: ({ row }) => {
+      return (
+        <div>{row.original.category.name}</div>
+      )
+    }
+  },
   {
     accessorKey: 'chain',
     header: 'Chain',
@@ -37,16 +56,7 @@ export const columns: ColumnDef<TProject>[] = [
     header: 'Banner',
     cell: ({ row }) => {
       return (
-        <ImagePopover className="border h-8 w-8" src={toUrlAsset(row.original.banner)} />
-      )
-    }
-  },
-  {
-    accessorKey: 'category',
-    header: 'Category',
-    cell: ({ row }) => {
-      return (
-        <div>{row.original.category.name}</div>
+        <ImagePopover className="border h-8 w-auto" src={toUrlAsset(row.original.banner)} />
       )
     }
   },
@@ -61,6 +71,7 @@ export const columns: ColumnDef<TProject>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
+    cell: ({ row }) => <BadgeProjectStatus status={row.original.status} />
   },
   {
     id: "actions",
@@ -68,17 +79,49 @@ export const columns: ColumnDef<TProject>[] = [
     cell: ({ row }) => {
       return (
         <div className="flex items-center justify-end gap-1">
-          <Button asChild variant={'outline'} size={"icon"}>
-            <Link href={`/usr/project/${row.original.id}/edit`}>
-              <Icon className="text-sm" name="akar-icons:pencil" />
-            </Link>
-          </Button>
-          <Button asChild size={"icon"} variant={'outline'}>
-            <Link href={`/usr/project/${row.original.id}`}>
-              <Icon className="text-lg" name="entypo:info" />
-            </Link>
-          </Button>
-          <FormDeploy status={row.original.status} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size={'icon'} variant={'outline'}>
+                <Icon name="pepicons-pop:dots-x" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-52" align="start" side="left">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href={`/usr/project/${row.original.id}`}>
+                  <Icon className="text-lg" name="mage:box-3d-upload-fill" /> Deploy
+                </Link>
+              </DropdownMenuItem>
+
+
+              <DropdownMenuItem asChild>
+                <Link href={`/usr/project/${row.original.id}/whitelist`}>
+                  <Icon className="text-lg" name="stash:list-add" /> Whitelist
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                {
+                  row.original.status === 'DEPLOYED' || row.original.status === 'APPROVED' ? (
+                    <div className="cursor-not-allowed">
+                      <Icon className="text-sm" name="akar-icons:pencil" /> Edit
+                    </div>
+                  ) : (
+                    <Link href={`/usr/project/${row.original.id}/edit`}>
+                      <Icon className="text-sm" name="akar-icons:pencil" /> Edit
+                    </Link>
+
+                  )
+                }
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/usr/project/${row.original.id}`}>
+                  <Icon className="text-lg" name="entypo:info" /> Detail
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )
     }

@@ -1,12 +1,12 @@
 import React from 'react'
+import FormCreate from './form-create'
 import Header from './header'
-import FormToken from './form'
 
-export default function CreateToken() {
+export default function CreateProjectPage() {
   return (
     <>
       <Header />
-      <FormToken />
+      <FormCreate />
     </>
   )
 }

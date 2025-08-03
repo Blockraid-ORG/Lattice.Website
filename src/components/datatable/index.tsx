@@ -105,7 +105,7 @@ export default function DataTable<TData>({
   return (
     <>
       {isLoading ? <TableLoader /> : (
-        <div className='bg-white dark:bg-neutral-900/5 p-3 rounded-xl'>
+        <div className='bg-white dark:bg-primary-foreground/50 p-4 rounded-lg'>
           <div className='flex flex-col md:flex-row items-center gap-2'>
             <div className='w-full mb-2 flex justify-end gap-2'>
               <DropdownMenu>

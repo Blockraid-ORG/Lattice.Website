@@ -1,3 +1,4 @@
+'use client'
 import axiosInstance from "@/lib/axios"
 import { BaseService } from "@/services/base.service"
 import { TFormVerifyProject } from "@/types/deploy"

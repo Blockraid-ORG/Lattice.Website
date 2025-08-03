@@ -14,10 +14,40 @@ class ProjectService extends BaseService<TProject, TFormProject> {
     })
     return response.data.data
   }
-  async UPDATE_ALLOCATION(data: { id: string, contractAddress: string }){
+  async UPDATE_ALLOCATION(data: { id: string, contractAddress: string }) {
     const response = await axiosInstance({
       method: 'POST',
       url: this.endpoint + '/update-allocation',
+      data,
+    })
+    return response.data.data
+  }
+  async SET_ALLOCATION_DEPLOY(data: { id: string }[]) {
+    const response = await axiosInstance({
+      method: 'POST',
+      url: this.endpoint + '/set-allocation-deploy',
+      data,
+    })
+    return response.data.data
+  }
+  async SET_CONTRACT_WHITELIST(data: {
+    id: string,
+    whitelistContract: string
+  }) {
+    const response = await axiosInstance({
+      method: 'POST',
+      url: this.endpoint + '/set-contract-whitelist',
+      data,
+    })
+    return response.data.data
+  }
+  async SET_CONTRACT_PRESALE(data: {
+    id: string,
+    whitelistContract: string
+  }) {
+    const response = await axiosInstance({
+      method: 'POST',
+      url: this.endpoint + '/set-contract-presale',
       data,
     })
     return response.data.data
