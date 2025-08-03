@@ -21,7 +21,6 @@ import { useState } from "react"
 import { useFieldArray, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { defaultValues } from "./default-value"
-
 type TTokenUnit = {
   value: string
   label: string
@@ -151,7 +150,7 @@ export default function FormCreate() {
         label: `USDT`,
         value: `USDT`
       },
-
+      
     ])
   }
   return (
@@ -328,6 +327,13 @@ export default function FormCreate() {
                         />
                       </div>
                       <div className="flex-1">
+                        {/* <FormInput
+                          control={form.control}
+                          name={`allocations.${index}.vesting`}
+                          label="Vesting (mo)"
+                          placeholder="e.g. 6"
+                          type="number"
+                        /> */}
                         <FormSelect
                           control={form.control}
                           name={`allocations.${index}.vesting`}
@@ -372,66 +378,51 @@ export default function FormCreate() {
                 <h3 className="text-lg font-semibold">Presales Info</h3>
                 <div>
                   {presalesFields.map((field, index) => (
-                    <div key={field.id} className="grid gap-6">
-                      <div className="grid lg:grid-cols-4 gap-3">
-                        <FormSelect
-                          control={form.control}
-                          name={`presales.${index}.unit`}
-                          label="Unit"
-                          placeholder="e.g.USDT"
-                          groups={tokenUnits ? [{
-                            label: 'Unit',
-                            options: tokenUnits ?? []
-                          }] : []}
-                        />
-                        <FormInput
-                          control={form.control}
-                          name={`presales.${index}.hardcap`}
-                          label="Hard Cap"
-                          placeholder="e.g. 100000"
-                        />
-                        <FormInput
-                          control={form.control}
-                          name={`presales.${index}.price`}
-                          label="Price Per Token"
-                          placeholder="e.g. 0.01"
-                        />
-                        <FormInput
-                          control={form.control}
-                          name={`presales.${index}.maxContribution`}
-                          label="Max Contribution"
-                          type="number"
-                          placeholder="e.g. 500"
-                        />
-                      </div>
-                      <div className="grid lg:grid-cols-3 gap-3">
-                        <FormInput
-                          control={form.control}
-                          name={`presales.${index}.startDate`}
-                          label="Start Date" type="date"
-                        />
-                        <FormSelect
-                          control={form.control}
-                          name={`presales.${index}.duration`}
-                          label="Duration"
-                          placeholder="select duration"
-                          groups={presalesDurations ? [{
-                            label: 'Duration',
-                            options: presalesDurations ?? []
-                          }] : []}
-                        />
-                        <FormSelect
-                          control={form.control}
-                          name={`presales.${index}.claimTime`}
-                          label="Claim Available After"
-                          placeholder="select duration"
-                          groups={presalesDurations ? [{
-                            label: 'Duration',
-                            options: presalesDurations ?? []
-                          }] : []}
-                        />
-                      </div>
-
+                    <div key={field.id} className="grid grid-cols-3 gap-3">
+                      <FormInput
+                        control={form.control}
+                        name={`presales.${index}.hardcap`}
+                        label="Hard Cap"
+                        placeholder="e.g. 100000"
+                      />
+                      <FormInput
+                        control={form.control}
+                        name={`presales.${index}.price`}
+                        label="Price Per Token"
+                        placeholder="e.g. 0.01"
+                      />
+                      <FormSelect
+                        control={form.control}
+                        name={`presales.${index}.unit`}
+                        label="Unit"
+                        placeholder="e.g.USDT"
+                        groups={tokenUnits ? [{
+                          label: 'Unit',
+                          options: tokenUnits ?? []
+                        }] : []}
+                      />
+                      <FormInput
+                        control={form.control}
+                        name={`presales.${index}.maxContribution`}
+                        label="Max Contribution"
+                        type="number"
+                        placeholder="e.g. 500"
+                      />
+                      {/* <FormInput
+                        control={form.control}
+                        name={`presales.${index}.duration`}
+                        label="Duration" type="datetime-local"
+                      /> */}
+                      <FormSelect
+                        control={form.control}
+                        name={`presales.${index}.duration`}
+                        label="Claim Available After"
+                        placeholder="select duration"
+                        groups={presalesDurations ? [{
+                          label: 'Duration',
+                          options: presalesDurations ?? []
+                        }] : []}
+                      />
                     </div>
                   ))}
                 </div>

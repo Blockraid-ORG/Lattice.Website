@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import projectService from "./project.service";
 import { useSearchParams } from "next/navigation";
 import { toObjectQuery } from "@/lib/param";
+import { useVestingStore } from "@/store/useVestingStore";
+import { useEffect } from "react";
 
 
 export const useCreateProject = () => {
@@ -54,11 +56,18 @@ export const usePublicProject = (filters?: { status?: string }) => {
 }
 
 export const useProjectDetail = (id?: string) => {
-  return useQuery({
+  const setVestingData = useVestingStore((state) => state.setData);
+  const query =  useQuery({
     queryKey: ["get_project_by_id", id],
     queryFn: () => projectService.DETAIL(id!),
     enabled: !!id,
   });
+  useEffect(() => {
+    if (query.data?.allocations) {
+      setVestingData(query.data.allocations);
+    }
+  }, [query.data, setVestingData]);
+  return query;
 };
 export const useUpdateProject = (id: string) => {
   const queryClient = useQueryClient();
@@ -83,9 +92,25 @@ export const useUpdateAllocation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: { projectId: string, id: string, contractAddress: string }) => projectService.UPDATE_ALLOCATION({
-      id:data.id,
+      id: data.id,
       contractAddress: data.contractAddress,
     }),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["get_project_by_id", variables.projectId]
+      });
+    },
+    onError: () => {
+      toast.error('Error', {
+        description: "Fail to update data!"
+      })
+    }
+  });
+};
+export const useSetAllocationDeploy = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { projectId: string, allocations: { id: string }[] }) => projectService.SET_ALLOCATION_DEPLOY(data.allocations),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["get_project_by_id", variables.projectId]

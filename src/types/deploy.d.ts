@@ -11,3 +11,13 @@ export type TFormVerifyProject = {
   note: string
   contractAddress?: string
 }
+
+export type TSetWhitelist = {
+  id: string
+  whitelistContract: string
+}
+export type TSetPresale = {
+  id: string
+  whitelistContract: string
+  contractAddress: string
+}

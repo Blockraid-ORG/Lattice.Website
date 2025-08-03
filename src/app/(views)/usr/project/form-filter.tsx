@@ -59,7 +59,7 @@ export function FormFilter() {
                 ]}
               />
               <div className="mt-5 flex justify-end">
-                <Button type="submit">Save changes</Button>
+                <Button type="submit">Filter</Button>
               </div>
             </form>
           </Form>

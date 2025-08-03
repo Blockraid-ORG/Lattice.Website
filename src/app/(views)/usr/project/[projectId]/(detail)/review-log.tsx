@@ -16,7 +16,7 @@ export function ReviewLog({ data }: { data: TProjectReviewLog[] }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant={'secondary'}>Review Log</Button>
+        <Button variant={'outline'}>History Deployment</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
