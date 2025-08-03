@@ -13,7 +13,7 @@ import { NumberComma } from "@/lib/utils";
 export default function Allocations({ data, totalSupply }: { data: TAllocation[], totalSupply?: string }) {
   return (
     <div>
-      <h2 className="mb-2 text-lg font-semibold">Allocation Info x</h2>
+      <h2 className="mb-2 text-lg font-semibold">Allocation Info</h2>
       <div className="w-full">
         <Table>
           <TableHeader>

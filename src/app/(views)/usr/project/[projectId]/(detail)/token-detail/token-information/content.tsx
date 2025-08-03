@@ -13,6 +13,7 @@ import { ReviewLog } from '../../review-log'
 import RowItem from '../../row-item'
 import LoadingTokenInformation from './loading'
 import BadgeProjectStatus from '@/components/badges/badge-project-status'
+import { TransferVesting } from './transfer-vesting'
 
 export default function TokenInformation() {
   const { projectId } = useParams()
@@ -129,6 +130,7 @@ export default function TokenInformation() {
               </div>
             </div >
             <div className="sticky bottom-0 flex justify-end gap-2 py-4 mt-2 backdrop-blur-lg">
+              <TransferVesting data={data} />
               <DeployTokenVesting data={data} />
             </div>
           </div>
