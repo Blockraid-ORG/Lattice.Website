@@ -1,35 +1,42 @@
 "use client";
 
-import { Web3AuthProvider, type Web3AuthContextConfig } from "@web3auth/modal/react";
+import {
+  Web3AuthProvider,
+  type Web3AuthContextConfig,
+} from "@web3auth/modal/react";
 import { IWeb3AuthState, WEB3AUTH_NETWORK } from "@web3auth/modal";
 
 import { WagmiProvider } from "@web3auth/modal/react/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 
-const clientId = process.env.W3AUTH_CLIENT_ID ?? ""
+const clientId = process.env.W3AUTH_CLIENT_ID ?? "";
 
 const queryClient = new QueryClient();
 const web3AuthContextConfig: Web3AuthContextConfig = {
   web3AuthOptions: {
     clientId,
-    web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
-    // web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
+    // web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
+    web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
     ssr: true,
-  }
+  },
 };
 
-export default function ReactQueryProvider({ children, web3authInitialState }:
-  { children: React.ReactNode, web3authInitialState: IWeb3AuthState | undefined }) {
+export default function ReactQueryProvider({
+  children,
+  web3authInitialState,
+}: {
+  children: React.ReactNode;
+  web3authInitialState: IWeb3AuthState | undefined;
+}) {
   return (
-
-    <Web3AuthProvider config={web3AuthContextConfig} initialState={web3authInitialState}>
+    <Web3AuthProvider
+      config={web3AuthContextConfig}
+      initialState={web3authInitialState}
+    >
       <QueryClientProvider client={queryClient}>
-        <WagmiProvider>
-          {children}
-        </WagmiProvider>
+        <WagmiProvider>{children}</WagmiProvider>
       </QueryClientProvider>
     </Web3AuthProvider>
-
   );
 }
