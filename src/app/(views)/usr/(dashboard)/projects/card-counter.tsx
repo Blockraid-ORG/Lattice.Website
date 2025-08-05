@@ -1,11 +1,9 @@
 'use client'
-import React from 'react'
-import CardCounterItem from './card-counter-item'
-import { useCounterProject } from '@/modules/project-stats/project-stats.query'
-import CardLoader from './card-loader'
-import Link from 'next/link'
 import { Icon } from '@/components/icon'
-
+import { useCounterProject } from '@/modules/project-stats/project-stats.query'
+import Link from 'next/link'
+import CardCounterItem from './card-counter-item'
+import CardLoader from './card-loader'
 export default function CardCounter() {
   const { data, isLoading } = useCounterProject()
   return (

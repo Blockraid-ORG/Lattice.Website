@@ -11,7 +11,8 @@ export default function ChartCounterProject({ data }: { data: TProjectCounter[] 
     chart: {
       id: 'chart-counter-project',
       type: 'pie',
-      width: '100%'
+      // width: '100%'
+      width:100
     },
     labels,
     stroke: {
@@ -30,7 +31,7 @@ export default function ChartCounterProject({ data }: { data: TProjectCounter[] 
     },
   }
   return (
-    <div className='md:w-full mx-auto'>
+    <div className='md:w-full'>
       <ApexChart type="pie"
         options={options}
         series={series} />
