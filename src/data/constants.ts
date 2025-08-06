@@ -3,10 +3,10 @@ export const detailProjectTabs = [
     value: 0,
     label: 'Detail'
   },
-  // {
-  //   value: 1,
-  //   label: 'Token Unlocks'
-  // }
+  {
+    value: 1,
+    label: 'Token Unlocks'
+  }
 ]
 
 export const vestingCounts = [
