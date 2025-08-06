@@ -1,19 +1,31 @@
 'use client'
 
-import { useState } from "react"
-import TokenInformation from "./token-detail/token-information/content"
 import { detailProjectTabs } from "@/data/constants"
 import { cn } from "@/lib/utils"
+import { useProjectDetail } from "@/modules/project/project.query"
+import { useParams } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useSwitchChain } from "wagmi"
+import TokenInformation from "./token-detail/token-information/content"
+import LoadingTokenInformation from "./token-detail/token-information/loading"
 import TokenSats from "./token-stats/token-information/content"
 
 
-
 export default function ProjectContent() {
+  const { projectId } = useParams()
+  const { data: project, isLoading } = useProjectDetail(projectId.toString())
+  const { switchChain } = useSwitchChain()
   const [tabActive, setTabActive] = useState(0)
 
   function handleChangeTab(value: number) {
     setTabActive(value)
   }
+  useEffect(() => {
+    switchChain({
+      chainId: 1
+    })
+  }, [switchChain])
+
   return (
     <>
       <div className="flex sticky top-[70px] backdrop-blur border-b mb-3 z-20">
@@ -33,10 +45,22 @@ export default function ProjectContent() {
         }
       </div>
       {
-        tabActive === 0 && <TokenInformation />
-      }
-      {
-        tabActive === 1 && <TokenSats />
+        isLoading ? <LoadingTokenInformation /> : (
+          <>
+            {
+              tabActive === 0 && project && (
+                <TokenInformation
+                  data={project}
+                />
+              )
+            }
+            {
+              tabActive === 1 && project && <TokenSats
+                data={project}
+              />
+            }
+          </>
+        )
       }
     </>
   )

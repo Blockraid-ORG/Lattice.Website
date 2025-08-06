@@ -1,27 +1,23 @@
 'use client'
 import { Icon } from '@/components/icon'
 import { NumberComma, toUrlAsset } from '@/lib/utils'
-import { useProjectDetail } from '@/modules/project/project.query'
 
+import BadgeProjectStatus from '@/components/badges/badge-project-status'
+import { TProject } from '@/types/project'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
 import { DeployTokenVesting } from '../../../../deploy/deploy-token-vesting'
 import Allocations from '../../allocations'
 import ChartAllocations from '../../chart-allocations'
 import { ReviewLog } from '../../review-log'
 import RowItem from '../../row-item'
-import LoadingTokenInformation from './loading'
-import BadgeProjectStatus from '@/components/badges/badge-project-status'
 import { TransferVesting } from './transfer-vesting'
 
-export default function TokenInformation() {
-  const { projectId } = useParams()
-  const { data, isLoading } = useProjectDetail(projectId.toString())
+export default function TokenInformation({ data }: { data: TProject }) {
   return (
     <>
       {
-        data && !isLoading ? (
+        data && (
           <div className="relative pb-8">
             <div>
               <div className="w-full h-[30vh] border border-dashed p-2 bg-slate-500/5 rounded-xl">
@@ -134,7 +130,7 @@ export default function TokenInformation() {
               <DeployTokenVesting data={data} />
             </div>
           </div>
-        ) : <LoadingTokenInformation />
+        )
       }
     </>
   )
