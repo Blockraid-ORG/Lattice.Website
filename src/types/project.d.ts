@@ -3,22 +3,22 @@ import {
   formBuyPresale,
   formCreateProjectSchema,
   formFilterProjectSchema,
-  presalesSchema
+  presalesSchema,
 } from "@/modules/project/project.schema";
 import { TCategory } from "./category";
 import { TSocial } from "./social";
 import { TChain } from "./chain";
 
-export type TFormProject = z.infer<typeof formCreateProjectSchema>
-export type TFormProjectAllocation = z.infer<typeof allocationSchema>
-export type TFormProjectPresale = z.infer<typeof presalesSchema>
-export type TFormFilterProject = z.infer<typeof formFilterProjectSchema>
-export type TFormBuyPresale = z.infer<typeof formBuyPresale>
+export type TFormProject = z.infer<typeof formCreateProjectSchema>;
+export type TFormProjectAllocation = z.infer<typeof allocationSchema>;
+export type TFormProjectPresale = z.infer<typeof presalesSchema>;
+export type TFormFilterProject = z.infer<typeof formFilterProjectSchema>;
+export type TFormBuyPresale = z.infer<typeof formBuyPresale>;
 
 type TAddressWhitelist = {
-  id: string
-  walletAddress: string
-}
+  id: string;
+  walletAddress: string;
+};
 
 type TAllocation = {
   id: string
@@ -46,19 +46,19 @@ export type TPresale = {
   sweepDuration?: number
 }
 type TProjectOwner = {
-  id: string
-  fullname: string
-  walletAddress: string | null,
-  verifications: { status: string }[]
-}
+  id: string;
+  fullname: string;
+  walletAddress: string | null;
+  verifications: { status: string }[];
+};
 
 export type TProjectReviewLog = {
-  id: string
-  status: string
-  note?: string
-  createdAt: string
-  createdBy: string
-}
+  id: string;
+  status: string;
+  note?: string;
+  createdAt: string;
+  createdBy: string;
+};
 export type TProject = {
   id: string
   name: string
@@ -76,20 +76,20 @@ export type TProject = {
   lockerDistributed?: boolean,
   lockerDistributeHash?: string,
   socials: {
-    url: string,
-    social: TSocial
-  }[],
-  presales: TPresale,
-  category: TCategory
+    url: string;
+    social: TSocial;
+  }[];
+  presales: TPresale;
+  category: TCategory;
   chains: {
-    chain: TChain
-  }[]
-  Presales: TPresale[]
-  user: TProjectOwner
-  reviewLogs: TReviewLog[]
-}
+    chain: TChain;
+  }[];
+  Presales: TPresale[];
+  user: TProjectOwner;
+  reviewLogs: TReviewLog[];
+};
 
 export type TProjectCounter = {
-  status: "PENDING" | "APPROVED" | "REJECTED" | "DEPLOYED",
-  count: number
-}
+  status: "PENDING" | "APPROVED" | "REJECTED" | "DEPLOYED";
+  count: number;
+};
