@@ -52,6 +52,17 @@ class ProjectService extends BaseService<TProject, TFormProject> {
     })
     return response.data.data
   }
+  async SET_DISTRIBUTED_LOCKER(data: {
+    id: string,
+    lockerDistributeHash: string
+  }) {
+    const response = await axiosInstance({
+      method: 'POST',
+      url: this.endpoint + '/set-distributed-locker',
+      data,
+    })
+    return response.data.data
+  }
 }
 
 const projectService = new ProjectService()

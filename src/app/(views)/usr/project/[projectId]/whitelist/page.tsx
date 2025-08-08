@@ -1,5 +1,5 @@
 import PageContainer from '@/components/containers/page-container'
-import FormWhitelist from './form-whitelist'
+import ContentWhitelist from './content'
 
 export default function WhitelistPage() {
   return (
@@ -7,7 +7,7 @@ export default function WhitelistPage() {
       title='Whitelist'
       subtitle='Project Presale Address Whitelist'
     >
-      <FormWhitelist />
+      <ContentWhitelist />
     </PageContainer>
   )
 }

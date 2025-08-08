@@ -57,7 +57,7 @@ export const usePublicProject = (filters?: { status?: string }) => {
 
 export const useProjectDetail = (id?: string) => {
   const setVestingData = useVestingStore((state) => state.setData);
-  const query =  useQuery({
+  const query = useQuery({
     queryKey: ["get_project_by_id", id],
     queryFn: () => projectService.DETAIL(id!),
     enabled: !!id,
@@ -91,10 +91,14 @@ export const useUpdateProject = (id: string) => {
 export const useUpdateAllocation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { projectId: string, id: string, contractAddress: string }) => projectService.UPDATE_ALLOCATION({
-      id: data.id,
-      contractAddress: data.contractAddress,
-    }),
+    mutationFn: (data:
+      {
+        projectId: string,
+        id: string, contractAddress: string
+      }) => projectService.UPDATE_ALLOCATION({
+        id: data.id,
+        contractAddress: data.contractAddress,
+      }),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["get_project_by_id", variables.projectId]
@@ -112,6 +116,31 @@ export const useSetAllocationDeploy = () => {
   return useMutation({
     mutationFn: (data: { projectId: string, allocations: { id: string }[] }) => projectService.SET_ALLOCATION_DEPLOY(data.allocations),
     onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["get_project_by_id", variables.projectId]
+      });
+    },
+    onError: () => {
+      toast.error('Error', {
+        description: "Fail to update data!"
+      })
+    }
+  });
+};
+export const useSetDistributedLocker = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      projectId: string,
+      lockerDistribution: {
+        id: string,
+        lockerDistributeHash: string
+      }
+    }) => projectService.SET_DISTRIBUTED_LOCKER(data.lockerDistribution),
+    onSuccess: (_data, variables) => {
+      toast.success('Success', {
+        description: `Locker has been disributed!`
+      })
       queryClient.invalidateQueries({
         queryKey: ["get_project_by_id", variables.projectId]
       });

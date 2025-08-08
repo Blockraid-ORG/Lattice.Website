@@ -11,4 +11,5 @@ export type TChain = {
   logo: string
   urlScanner: string
   type: string
+  chainid: number
 }

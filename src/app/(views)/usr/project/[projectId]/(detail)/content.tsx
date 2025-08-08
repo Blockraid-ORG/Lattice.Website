@@ -21,11 +21,12 @@ export default function ProjectContent() {
     setTabActive(value)
   }
   useEffect(() => {
-    switchChain({
-      chainId: 1
-    })
-  }, [switchChain])
-
+    if (project && project.chains.length > 0) {
+      switchChain({
+        chainId: project?.chains[0].chain.chainid
+      })
+    }
+  }, [project, switchChain])
   return (
     <>
       <div className="flex sticky top-[70px] backdrop-blur border-b mb-3 z-20">

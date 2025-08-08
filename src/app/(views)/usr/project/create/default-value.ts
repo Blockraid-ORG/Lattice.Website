@@ -30,8 +30,9 @@ export const defaultValues = {
       price: '',
       maxContribution: '',
       startDate: new Date().toISOString(),
-      duration: 0,
       whitelistDuration: 0,
+      sweepDuration: 0,
+      duration: 0,
       claimTime: 0,
       unit: '',
     }

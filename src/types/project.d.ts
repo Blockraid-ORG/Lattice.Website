@@ -27,8 +27,8 @@ type TAllocation = {
   vesting: number
   startDate: string
   isPresale: boolean,
-  contractAddress?:string
-  isDeploying?:boolean
+  contractAddress?: string
+  isDeploying?: boolean
 }
 export type TPresale = {
   id: string
@@ -40,8 +40,10 @@ export type TPresale = {
   claimTime: number,
   startDate: string,
   contractAddress: string | null,
-  whitelistContract:string | null,
+  whitelistContract: string | null,
   whitelists: TAddressWhitelist[] | []
+  whitelistDuration?: number
+  sweepDuration?: number
 }
 type TProjectOwner = {
   id: string
@@ -70,6 +72,9 @@ export type TProject = {
   status: "PENDING" | "APPROVED" | "REJECTED" | "DEPLOYED",
   allocations: TAllocation[]
   contractAddress?: string
+  factoryAddress?: string
+  lockerDistributed?: boolean,
+  lockerDistributeHash?: string,
   socials: {
     url: string,
     social: TSocial

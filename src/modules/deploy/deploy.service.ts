@@ -7,7 +7,7 @@ import { TProject } from "@/types/project"
 class DeployService extends BaseService<TProject, TFormVerifyProject> {
   protected endpoint = 'project-verifications'
   async DEPLOY(data: {
-    projectId: string
+    projectId: string,
     status: string,
     note: string
   }) {
