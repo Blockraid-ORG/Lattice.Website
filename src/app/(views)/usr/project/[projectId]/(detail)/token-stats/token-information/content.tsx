@@ -3,38 +3,33 @@ import React, { useEffect, useMemo } from "react";
 import ChartVestingPeriod from "./chart-vesting-priod";
 
 export default function TokenSats({ data }: { data: TProject }) {
-  console.log({ data });
-
-  // Color palette for allocations (memoized to prevent re-creation)
   const allocationColors = useMemo(
     () => [
-      "rgba(34,197,94,0.7)", // Green
-      "rgba(168,85,247,0.7)", // Purple
-      "rgba(239,68,68,0.7)", // Red
-      "rgba(59,130,246,0.7)", // Blue
-      "rgba(251,191,36,0.7)", // Yellow
-      "rgba(236,72,153,0.7)", // Pink
-      "rgba(20,184,166,0.7)", // Teal
-      "rgba(245,158,11,0.7)", // Amber
-      "rgba(139,69,19,0.7)", // Brown
-      "rgba(75,85,99,0.7)", // Gray
+      "rgba(34,197,94,1)", // Green
+      "rgba(168,85,247,1)", // Purple
+      "rgba(239,68,68,1)", // Red
+      "rgba(59,130,246,1)", // Blue
+      "rgba(251,191,36,1)", // Yellow
+      "rgba(236,72,153,1)", // Pink
+      "rgba(20,184,166,1)", // Teal
+      "rgba(245,158,11,1)", // Amber
+      "rgba(139,69,19,1)", // Brown
+      "rgba(75,85,99,1)", // Gray
     ],
     []
   );
 
-  // Function to get color for allocation
   const getAllocationColor = React.useCallback(
     (index: number, name: string): string => {
-      // You can customize color assignment based on allocation name
       const colorMap: Record<string, string> = {
-        team: "rgba(34,197,94,0.7)", // Green for team
-        advisor: "rgba(168,85,247,0.7)", // Purple for advisor
-        presale: "rgba(239,68,68,0.7)", // Red for presale
-        community: "rgba(59,130,246,0.7)", // Blue for community
-        reward: "rgba(251,191,36,0.7)", // Yellow for reward
-        marketing: "rgba(236,72,153,0.7)", // Pink for marketing
-        treasury: "rgba(20,184,166,0.7)", // Teal for treasury
-        liquidity: "rgba(245,158,11,0.7)", // Amber for liquidity
+        team: "rgba(34,197,94,1)", // Green for team
+        advisor: "rgba(168,85,247,1)", // Purple for advisor
+        presale: "rgba(239,68,68,1)", // Red for presale
+        community: "rgba(59,130,246,1)", // Blue for community
+        reward: "rgba(251,191,36,1)", // Yellow for reward
+        marketing: "rgba(236,72,153,1)", // Pink for marketing
+        treasury: "rgba(20,184,166,1)", // Teal for treasury
+        liquidity: "rgba(245,158,11,1)", // Amber for liquidity
       };
 
       const nameLower = name.toLowerCase();

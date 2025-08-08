@@ -1,7 +1,7 @@
 "use client";
-import React from "react";
-import dynamic from "next/dynamic";
+import dayjs from "dayjs";
 import { useTheme } from "next-themes";
+import dynamic from "next/dynamic";
 const ApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 interface TVestingData {
@@ -17,7 +17,6 @@ export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
 
   if (!data || data.length === 0) return <p>No data</p>;
 
-  // Generate monthly labels starting from August 2025 for 49 months
   const generateMonthlyLabels = (start: string, months: number): string[] => {
     const labels: string[] = [];
     const [year, month] = start.split("-").map(Number);
@@ -31,15 +30,12 @@ export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
     }
     return labels;
   };
-
-  // Get month offset between two dates
   const getMonthOffset = (base: string, target: string): number => {
     const [baseY, baseM] = base.split("-").map(Number);
     const [targetY, targetM] = target.split("-").map(Number);
     return (targetY - baseY) * 12 + (targetM - baseM);
   };
 
-  // Accumulate data for cumulative chart
   const accumulate = (data: number[]): number[] => {
     const result: number[] = [];
     let sum = 0;
@@ -50,16 +46,13 @@ export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
     return result;
   };
 
-  // Create vesting dataset for each category
   const createVestingDataset = (item: TVestingData, maxVesting: number) => {
     const startIdx = getMonthOffset("2025-08", item.startDate);
     const dataArray = Array(maxVesting).fill(0);
 
     if (item.vestingMonths === 0) {
-      // Immediate unlock
       dataArray[startIdx] = item.total;
     } else {
-      // Gradual vesting
       const monthlyUnlock = item.total / item.vestingMonths;
       for (let i = 0; i < item.vestingMonths; i++) {
         if (startIdx + i < maxVesting) {
@@ -74,7 +67,6 @@ export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
     };
   };
 
-  // Generate series data
   const maxVesting = Math.max(...data.map((item) => item.vestingMonths));
   const series = data.map((item) => createVestingDataset(item, maxVesting));
   const categories = generateMonthlyLabels("2025-08", maxVesting);
@@ -87,8 +79,11 @@ export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
       width: "100%",
       background: "transparent",
       stacked: true,
+      toolbar: {
+        show:false
+      },
       zoom: {
-        enabled: true,
+        enabled: false,
       },
     },
     colors: colors,
@@ -110,7 +105,8 @@ export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
       enabled: false,
     },
     xaxis: {
-      categories: categories,
+      type:"category",
+      categories: categories.map(i=>dayjs(i).format('YYYY-MM-DD')),
       title: {
         text: "Time",
       },

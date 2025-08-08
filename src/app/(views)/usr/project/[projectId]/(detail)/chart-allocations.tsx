@@ -24,11 +24,12 @@ export default function ChartAllocations({ data }: { data: TAllocation[] }) {
       enabled: true,
     },
     legend: {
+      show:false,
       position: 'bottom',
     },
   }
   return (
-    <div className='md:w-1/2 mx-auto'>
+    <div className='md:w-1/1 mx-auto'>
       <ApexChart type="pie"
         options={options}
         series={series} />

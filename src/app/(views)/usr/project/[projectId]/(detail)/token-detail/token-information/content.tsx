@@ -12,6 +12,7 @@ import ChartAllocations from '../../chart-allocations'
 import { ReviewLog } from '../../review-log'
 import RowItem from '../../row-item'
 import { ConfirmDistributeLocker } from '../../../confirm-distribute-locker'
+import TokenSats from '../../token-stats/token-information/content'
 
 export default function TokenInformation({ data }: { data: TProject }) {
   return (
@@ -117,8 +118,17 @@ export default function TokenInformation({ data }: { data: TProject }) {
                 </div>
               </div>
               <div className="mt-6 bg-white border dark:bg-primary-foreground/50 p-4 rounded-lg">
-                <div className="grid gap-3 lg:grid-cols-2 items-center">
-                  <Allocations data={data.allocations} totalSupply={data.totalSupply} />
+                <div className="grid gap-3 lg:grid-cols-1 items-center">
+                  <Allocations
+                    data={data.allocations}
+                    totalSupply={data.totalSupply}
+                    contract={`${data.chains[0].chain.urlScanner}/address/${data.contractAddress}`}
+                  />
+                </div>
+              </div>
+              <div className="mt-6 bg-white border dark:bg-primary-foreground/50 p-4 rounded-lg">
+                <div className="grid gap-3 lg:grid-cols-3 items-center">
+                  <div className="lg:col-span-2"><TokenSats data={data} /></div>
                   {
                     data.allocations && <ChartAllocations data={data.allocations} />
                   }
