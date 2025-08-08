@@ -12,9 +12,9 @@ import { Icon } from "@/components/icon";
 import { NumberComma } from "@/lib/utils";
 export default function Allocations({ data, totalSupply }: { data: TAllocation[], totalSupply?: string }) {
   return (
-    <div>
+    <>
       <h2 className="mb-2 text-lg font-semibold">Allocation Info</h2>
-      <div className="w-full">
+      <div className="w-full overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -30,7 +30,6 @@ export default function Allocations({ data, totalSupply }: { data: TAllocation[]
               data.map(item => (
                 <TableRow key={item.id}>
                   <TableCell>
-                    {/* {item.contractAddress} */}
                     {
                       item.contractAddress ? (
                         <Icon className="text-lg text-blue-500" name="lets-icons:check-fill" />
@@ -57,7 +56,7 @@ export default function Allocations({ data, totalSupply }: { data: TAllocation[]
           </TableBody>
         </Table>
       </div>
-    </div>
+    </>
 
   )
 }

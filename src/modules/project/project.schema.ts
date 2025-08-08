@@ -15,6 +15,8 @@ export const presalesSchema = z.object({
   duration: z.coerce.number().min(1, "Duration is required"),
   startDate: z.coerce.date(),
   claimTime: z.coerce.number().min(0),
+  whitelistDuration: z.coerce.number().optional(),
+  sweepDuration: z.coerce.number().min(0).optional(),
 })
 export const socialSchema = z.object({
   socialId: z.string().uuid(),
@@ -25,6 +27,7 @@ export const formCreateProjectSchema = z.object({
   name: z.string().min(1),
   logo: z.string().min(1),
   slug: z.string().optional(),
+  whitelistAddress: z.string().optional(),
   banner: z.string().min(1),
   ticker: z.string().min(1),
   decimals: z.coerce.number().min(10),

@@ -6,12 +6,12 @@ import BadgeProjectStatus from '@/components/badges/badge-project-status'
 import { TProject } from '@/types/project'
 import Image from 'next/image'
 import Link from 'next/link'
-import { DeployTokenVesting } from '../../../../deploy/deploy-token-vesting'
+import { DeployFactoryToken } from '../../../../deploy/deploy-factory-token'
 import Allocations from '../../allocations'
 import ChartAllocations from '../../chart-allocations'
 import { ReviewLog } from '../../review-log'
 import RowItem from '../../row-item'
-import { TransferVesting } from './transfer-vesting'
+import { ConfirmDistributeLocker } from '../../../confirm-distribute-locker'
 
 export default function TokenInformation({ data }: { data: TProject }) {
   return (
@@ -125,9 +125,9 @@ export default function TokenInformation({ data }: { data: TProject }) {
                 </div>
               </div>
             </div >
-            <div className="sticky bottom-0 flex justify-end gap-2 py-4 mt-2 backdrop-blur-lg">
-              <TransferVesting data={data} />
-              <DeployTokenVesting data={data} />
+            <div className="sticky bottom-0 flex justify-center md:justify-end flex-wrap gap-2 py-4 mt-2 backdrop-blur-lg">
+              <DeployFactoryToken data={data} />
+              <ConfirmDistributeLocker data={data} />
             </div>
           </div>
         )

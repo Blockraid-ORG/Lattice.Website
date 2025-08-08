@@ -21,28 +21,30 @@ type TAddressWhitelist = {
 };
 
 type TAllocation = {
-  id: string;
-  name: string;
-  supply: number;
-  vesting: number;
-  startDate: string;
-  isPresale: boolean;
-  contractAddress?: string;
-  isDeploying?: boolean;
-};
+  id: string
+  name: string
+  supply: number,
+  vesting: number
+  startDate: string
+  isPresale: boolean,
+  contractAddress?: string
+  isDeploying?: boolean
+}
 export type TPresale = {
-  id: string;
-  hardcap: string;
-  price: string;
-  maxContribution: string;
-  duration: string;
-  unit: string;
-  claimTime: number;
-  startDate: string;
-  contractAddress: string | null;
-  whitelistContract: string | null;
-  whitelists: TAddressWhitelist[] | [];
-};
+  id: string
+  hardcap: string
+  price: string
+  maxContribution: string
+  duration: string
+  unit: string
+  claimTime: number,
+  startDate: string,
+  contractAddress: string | null,
+  whitelistContract: string | null,
+  whitelists: TAddressWhitelist[] | []
+  whitelistDuration?: number
+  sweepDuration?: number
+}
 type TProjectOwner = {
   id: string;
   fullname: string;
@@ -58,18 +60,21 @@ export type TProjectReviewLog = {
   createdBy: string;
 };
 export type TProject = {
-  id: string;
-  name: string;
-  slug: string;
-  logo: string;
-  banner: string;
-  ticker: string;
-  decimals: number;
-  totalSupply: string;
-  detail: string;
-  status: "PENDING" | "APPROVED" | "REJECTED" | "DEPLOYED";
-  allocations: TAllocation[];
-  contractAddress?: string;
+  id: string
+  name: string
+  slug: string
+  logo: string
+  banner: string
+  ticker: string
+  decimals: number
+  totalSupply: string
+  detail: string
+  status: "PENDING" | "APPROVED" | "REJECTED" | "DEPLOYED",
+  allocations: TAllocation[]
+  contractAddress?: string
+  factoryAddress?: string
+  lockerDistributed?: boolean,
+  lockerDistributeHash?: string,
   socials: {
     url: string;
     social: TSocial;

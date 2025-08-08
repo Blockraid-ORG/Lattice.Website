@@ -18,7 +18,7 @@ export default function AdminLayout({
       <main className="flex-1 w-full z-10">
         <ScrollArea className="h-screen">
           <NavbarAdmin />
-          <div className="container px-4">
+          <div className="container md:px-4">
             {children}
           </div>
         </ScrollArea>

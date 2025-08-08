@@ -6,18 +6,22 @@ import { Icon } from "@/components/icon"
 import { ImageDropzone } from "@/components/image-dropzone"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import { presalesDurations, vestingCounts } from "@/data/constants"
 import { converToIpfs, pinata } from "@/lib/pinata"
 import { toUrlAsset } from "@/lib/utils"
 import { useCategoryList } from "@/modules/category/category.query"
 import { useChainList } from "@/modules/chain/chain.query"
+import { useUpdatePresaleWhitelist } from "@/modules/presales/presale.query"
 import { useCreateProject } from "@/modules/project/project.query"
 import { formCreateProjectSchema } from "@/modules/project/project.schema"
 import { useSocialList } from "@/modules/social/chain.query"
+import { useUserVerified } from "@/modules/user-verified/user-verified.query"
 import { TFormProject, TFormProjectAllocation, TFormProjectPresale } from "@/types/project"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { Fragment, useRef, useState } from "react"
 import { useFieldArray, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { defaultValues } from "./default-value"
@@ -27,6 +31,10 @@ type TTokenUnit = {
   label: string
 }
 export default function FormCreate() {
+  const { mutate: updatePresaleWhitelist } = useUpdatePresaleWhitelist()
+  const { data: verifiedAddress } = useUserVerified()
+  const whitelistRef = useRef<HTMLDivElement>(null)
+  const [showInputWL, setShowInputWL] = useState(false)
   const [tokenUnits, setTokenUtits] = useState<TTokenUnit[]>([])
   const { mutate: createProject } = useCreateProject()
   const [logo, setLogo] = useState<File | null>(null)
@@ -86,6 +94,31 @@ export default function FormCreate() {
     return url;
   }
   async function onSubmit(values: TFormProject) {
+    const arrayAddress = values.whitelistAddress.split(',')
+      .map((addr: string) => addr.trim())
+      .filter((addr: string) => addr !== '');
+    const verifiedAddressArray = verifiedAddress?.map(i => i.walletAddress)
+    const anyErrorAddr = arrayAddress?.filter((i: string) => !verifiedAddressArray?.includes(i))
+    if (anyErrorAddr.length > 0) {
+      toast.error('Ups!', {
+        description: `${anyErrorAddr} \nis not verified address`
+      })
+      return
+    }
+    // const newValues = {
+    //   ...values,
+    //   walletAddress: arrayAddress
+    // }
+    // console.log({
+    //   anyErrorAddr,
+    //   verifiedAddressArray,
+    //   arrayAddress,
+    //   values
+    // })
+    // updatePresaleWhitelist({
+    //   presaleId: 
+    // })
+    // return;
     setLoading(true)
     try {
       let logoUrl, bannerUrl;
@@ -103,6 +136,8 @@ export default function FormCreate() {
           hardcap: String(item.hardcap),
           price: String(item.price),
           maxContribution: String(item.maxContribution),
+          whitelistDuration: item.whitelistDuration || 0,
+          sweepDuration: item.sweepDuration || 0,
           chainId: chainIds,
         }
       })
@@ -114,6 +149,9 @@ export default function FormCreate() {
       })
       const newValues = {
         ...values,
+        whitelistAddress: undefined,
+        whitelistDuration: undefined,
+        sweepDuration: undefined,
         totalSupply: String(values.totalSupply),
         slug: Date.now().toString(),
         logo: logoUrl,
@@ -124,7 +162,11 @@ export default function FormCreate() {
         allocations
       }
       createProject(newValues, {
-        onSuccess: () => {
+        onSuccess: (res) => {
+          updatePresaleWhitelist({
+            presaleId: res.presales.id,
+            walletAddress: arrayAddress
+          })
           router.push('/usr/project')
         }
       })
@@ -154,107 +196,126 @@ export default function FormCreate() {
 
     ])
   }
+
+  function onCheckedChange(state: boolean) {
+    setShowInputWL(state)
+    if (state) {
+      setTimeout(() => {
+        whitelistRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
+      }, 100)
+    }
+  }
   return (
     <div>
-      <div className='max-w-4xl mx-auto py-12 px-3'>
+      <div className='max-w-5xl mx-auto py-12 px-3'>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <div className="text-sm mb-1">Banner</div>
-              <ImageDropzone
-                className='aspect-[12/4]'
-                onChange={(file) => setBanner(file)}
-              />
-            </div>
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="w-44 h-44 shrink-0 mx-auto md:mx-0">
+            <div className="bg-form-token-gradient p-4 md:p-8 rounded-2xl">
+              <div className="mb-4">
+                <h2>Complete Your Project</h2>
+              </div>
+              <div className="mb-6">
                 <ImageDropzone
-                  className='aspect-square'
-                  onChange={(file) => setLogo(file)}
+                  className='aspect-[12/4] bg-white dark:bg-slate-900'
+                  onChange={(file) => setBanner(file)}
                 />
               </div>
-              <div className='flex-1 space-y-4'>
-                <FormInput
-                  control={form.control}
-                  name="name"
-                  label="Name"
-                  placeholder="Enter name"
-                />
-                <div className="grid md:grid-cols-2 gap-4">
-                  <FormInput
-                    control={form.control}
-                    name="ticker"
-                    label="Ticker"
-                    placeholder="Enter ticker"
-                  />
-                  <FormInput
-                    control={form.control}
-                    name="decimals"
-                    label="Decimal"
-                    placeholder="Decimal"
-                    type="number"
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="w-44 h-44 shrink-0 mx-auto md:mx-0">
+                  <ImageDropzone
+                    className='aspect-square bg-white dark:bg-slate-900'
+                    onChange={(file) => setLogo(file)}
                   />
                 </div>
+                <div className='flex-1 space-y-4'>
+                  <FormInput
+                    control={form.control}
+                    name="name"
+                    label="Name"
+                    placeholder="Enter name"
+                  />
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <FormInput
+                      control={form.control}
+                      name="ticker"
+                      label="Ticker"
+                      placeholder="Enter ticker"
+                    />
+                    <FormInput
+                      control={form.control}
+                      name="decimals"
+                      label="Decimal"
+                      placeholder="Decimal"
+                      type="number"
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
 
-            {
-              chains && (
-                <FormSelect
-                  control={form.control}
-                  name="chainId"
-                  label="Select Chain"
-                  placeholder="select chain"
-                  onChangeValue={(val) => onChangeValue(val)}
-                  groups={[
-                    {
-                      label: "Network",
-                      options: chains.map(i => {
-                        return {
-                          ...i,
-                          iconUrl: i.logo && toUrlAsset(i.logo)
+              <div className="grid lg:grid-cols-3 gap-3">
+                {
+                  chains && (
+                    <FormSelect
+                      control={form.control}
+                      name="chainId"
+                      label="Select Chain"
+                      placeholder="select chain"
+                      onChangeValue={(val) => onChangeValue(val)}
+                      groups={[
+                        {
+                          label: "Network",
+                          options: chains.map(i => {
+                            return {
+                              ...i,
+                              iconUrl: i.logo && toUrlAsset(i.logo)
+                            }
+                          })
                         }
-                      })
-                    }
-                  ]}
-                />
+                      ]}
+                    />
 
-              )
-            }
-            {
-              categories && (
-                <FormSelect
+                  )
+                }
+                {
+                  categories && (
+                    <FormSelect
+                      control={form.control}
+                      name="categoryId"
+                      label="Select Category"
+                      placeholder="select category"
+                      groups={[{
+                        label: 'Category',
+                        options: categories.map(i => {
+                          return {
+                            ...i,
+                            iconName: i.icon
+                          }
+                        })
+                      }]}
+                    />
+
+                  )
+                }
+                <FormInput
                   control={form.control}
-                  name="categoryId"
-                  label="Select Category"
-                  placeholder="select category"
-                  groups={[{
-                    label: 'Category',
-                    options: categories.map(i => {
-                      return {
-                        ...i,
-                        iconName: i.icon
-                      }
-                    })
-                  }]}
+                  name="totalSupply"
+                  label="Total Supply"
+                  placeholder="Enter Supply"
                 />
-
-              )
-            }
-            <FormInput
-              control={form.control}
-              name="totalSupply"
-              label="Total Supply"
-              placeholder="Enter Supply"
-            />
-            <FormInput
-              control={form.control}
-              name="detail"
-              isLongText
-              label="Description"
-              placeholder="Enter Description"
-            />
-            <div className='bg-white border dark:bg-primary-foreground/50 p-4 rounded-lg mb-12'>
+              </div>
+              <FormInput
+                control={form.control}
+                name="detail"
+                isLongText
+                label="Description"
+                placeholder="Enter Description"
+              />
+            </div>
+            {/* bg-white border dark:bg-primary-foreground/50
+            bg-white border dark:bg-primary-foreground/50
+            bg-white border dark:bg-primary-foreground/50  */}
+            <div className='bg-form-token-gradient p-4 md:p-8 rounded-2xl'>
               <div className="space-y-3">
                 <h3 className="text-lg font-semibold">Website / Social Media</h3>
                 {socialFields.map((field, index) => (
@@ -304,7 +365,7 @@ export default function FormCreate() {
                 </div>
               </div>
             </div>
-            <div className='bg-white border dark:bg-primary-foreground/50 p-4 rounded-lg'>
+            <div className='bg-form-token-gradient p-4 md:p-8 rounded-2xl'>
               <div className="space-y-3">
                 <h3 className="text-lg font-semibold">Allocations</h3>
                 <div>
@@ -367,77 +428,108 @@ export default function FormCreate() {
                 </Button>
               </div>
             </div>
-            <div className='bg-white border dark:bg-primary-foreground/50 p-4 rounded-lg'>
+            <div className='bg-form-token-gradient p-4 md:p-8 rounded-2xl'>
               <div className="space-y-3">
                 <h3 className="text-lg font-semibold">Presales Info</h3>
                 <div>
                   {presalesFields.map((field, index) => (
-                    <div key={field.id} className="grid gap-6">
-                      <div className="grid lg:grid-cols-4 gap-3">
-                        <FormSelect
-                          control={form.control}
-                          name={`presales.${index}.unit`}
-                          label="Unit"
-                          placeholder="e.g.USDT"
-                          groups={tokenUnits ? [{
-                            label: 'Unit',
-                            options: tokenUnits ?? []
-                          }] : []}
-                        />
-                        <FormInput
-                          control={form.control}
-                          name={`presales.${index}.hardcap`}
-                          label="Hard Cap"
-                          placeholder="e.g. 100000"
-                        />
-                        <FormInput
-                          control={form.control}
-                          name={`presales.${index}.price`}
-                          label="Price Per Token"
-                          placeholder="e.g. 0.01"
-                        />
-                        <FormInput
-                          control={form.control}
-                          name={`presales.${index}.maxContribution`}
-                          label="Max Contribution"
-                          type="number"
-                          placeholder="e.g. 500"
-                        />
+                    <Fragment key={field.id}>
+                      <div className="grid gap-6">
+                        <div className="grid lg:grid-cols-4 gap-3">
+                          <FormSelect
+                            control={form.control}
+                            name={`presales.${index}.unit`}
+                            label="Unit"
+                            placeholder="e.g.USDT"
+                            groups={tokenUnits ? [{
+                              label: 'Unit',
+                              options: tokenUnits ?? []
+                            }] : []}
+                          />
+                          <FormInput
+                            control={form.control}
+                            name={`presales.${index}.hardcap`}
+                            label="Hard Cap"
+                            placeholder="e.g. 100000"
+                          />
+                          <FormInput
+                            control={form.control}
+                            name={`presales.${index}.price`}
+                            label="Price Per Token"
+                            placeholder="e.g. 0.01"
+                          />
+                          <FormInput
+                            control={form.control}
+                            name={`presales.${index}.maxContribution`}
+                            label="Max Contribution"
+                            type="number"
+                            placeholder="e.g. 500"
+                          />
+                        </div>
+                        <div className="grid lg:grid-cols-3 gap-3">
+                          <FormInput
+                            control={form.control}
+                            name={`presales.${index}.startDate`}
+                            label="Start Date" type="date"
+                          />
+                          <FormSelect
+                            control={form.control}
+                            name={`presales.${index}.duration`}
+                            label="Duration"
+                            placeholder="select duration"
+                            groups={presalesDurations ? [{
+                              label: 'Duration',
+                              options: presalesDurations ?? []
+                            }] : []}
+                          />
+                          <FormSelect
+                            control={form.control}
+                            name={`presales.${index}.claimTime`}
+                            label="Claim Available After"
+                            placeholder="select duration"
+                            groups={presalesDurations ? [{
+                              label: 'Duration',
+                              options: presalesDurations ?? []
+                            }] : []}
+                          />
+                        </div>
                       </div>
-                      <div className="grid lg:grid-cols-3 gap-3">
-                        <FormInput
-                          control={form.control}
-                          name={`presales.${index}.startDate`}
-                          label="Start Date" type="date"
-                        />
-                        <FormSelect
-                          control={form.control}
-                          name={`presales.${index}.duration`}
-                          label="Duration"
-                          placeholder="select duration"
-                          groups={presalesDurations ? [{
-                            label: 'Duration',
-                            options: presalesDurations ?? []
-                          }] : []}
-                        />
-                        <FormSelect
-                          control={form.control}
-                          name={`presales.${index}.claimTime`}
-                          label="Claim Available After"
-                          placeholder="select duration"
-                          groups={presalesDurations ? [{
-                            label: 'Duration',
-                            options: presalesDurations ?? []
-                          }] : []}
-                        />
-                      </div>
+                      <div ref={whitelistRef} className="mt-6">
+                        <div className="flex items-center space-x-2">
+                          <Switch onCheckedChange={onCheckedChange} id="enable-whitelist" />
+                          <Label htmlFor="enable-whitelist">Enable Whitelist</Label>
+                        </div>
 
-                    </div>
+                        {
+                          showInputWL && (
+                            <div className="mt-4 pt-4 border-t space-y-3">
+                              <div className="flex items-end gap-1">
+                                <FormInput
+                                  control={form.control}
+                                  name={`presales.${index}.whitelistDuration`}
+                                  label="Duration (Days)"
+                                  placeholder="Enter Dutaion"
+                                  type="number"
+                                />
+                                <div className="mb-2"> Days </div>
+                              </div>
+                              <FormInput
+                                control={form.control}
+                                name={`whitelistAddress`}
+                                label="Address"
+                                isLongText
+                                rows={10}
+                              />
+                            </div>
+                          )
+                        }
+                      </div>
+                    </Fragment>
                   ))}
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 justify-end sticky bottom-0 py-3 z-20 backdrop-blur border-t">
+            <div className="flex items-center gap-2 justify-end sticky bottom-0 py-3 z-20 backdrop-blur">
               <Button onClick={() => router.back()} variant={"outline"} size={"lg"} type="button">Cancel</Button>
               <Button disabled={
                 totalPercent !== 100 || loading
