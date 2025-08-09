@@ -73,6 +73,7 @@ export function useDeployToken() {
           const schedule = Array(i.vesting).fill(valueScedule);
           return schedule
         })
+
         let presaleParams;
         if (presaleAllocation) {
           const originalDate = new Date(project.presales.startDate);
@@ -97,6 +98,7 @@ export function useDeployToken() {
           newDate.setDate(newDate.getDate() + (Number(i.vesting) * 30));
           return Math.floor(newDate.getTime() / 1000);
         })
+
         const tx = await factory.deployAll(
           tokenName,
           symbol,
@@ -140,7 +142,6 @@ export function useDeployToken() {
             // Ignore logs that don’t match ABI
           }
         }
-        console.log({ xxx: factoryContract?.target })
         deployProject({
           projectId: project.id,
           status: 'DEPLOYED',
