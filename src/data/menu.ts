@@ -34,12 +34,12 @@ export const sidemenus = [
       {
         label:'My Projects',
         icon:'hugeicons:blockchain-03',
-        path:'/usr/project'
+        path:'/usr/my-project'
       },
       {
         label:'Create Project',
         icon:'hugeicons:blockchain-02',
-        path:'/usr/project/create'
+        path:'/usr/my-project/create'
       },
     ]
   },
@@ -48,9 +48,9 @@ export const sidemenus = [
     path: "#",
     children: [
       {
-        label:'Token',
-        icon:'fa-solid:coins',
-        path:'/usr/tokens'
+        label:'Projects',
+        icon:'bxs:collection',
+        path:'/usr/my-projects'
       },
       {
         label:'Presale',

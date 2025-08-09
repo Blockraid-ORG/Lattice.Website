@@ -27,6 +27,7 @@ type Option = {
   value: string
   iconUrl?: string
   iconName?: string
+  disabled?: boolean
 }
 
 type Group = {
@@ -41,7 +42,8 @@ type SelectInputProps<T extends FieldValues> = {
   groups: Group[]
   className?: string,
   control: Control<T>,
-  onChangeValue?: (value: string) => void
+  onChangeValue?: (value: string) => void,
+  disabled?: boolean
 }
 
 export function FormSelect<T extends FieldValues>({
@@ -82,7 +84,11 @@ export function FormSelect<T extends FieldValues>({
                   <SelectGroup key={i}>
                     <SelectLabel>{group.label}</SelectLabel>
                     {group.options.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
+                      <SelectItem
+                        key={opt.value}
+                        value={opt.value}
+                        disabled={opt.disabled}
+                      >
                         <div className="flex items-center gap-2">
                           {opt.iconUrl ? (
                             <Image

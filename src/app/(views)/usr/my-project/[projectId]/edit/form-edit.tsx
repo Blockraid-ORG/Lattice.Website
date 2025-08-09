@@ -126,7 +126,7 @@ export default function FormEdit() {
       }
       updateProject(newValues, {
         onSuccess: () => {
-          router.push('/usr/project')
+          router.push('/usr/my-project')
         }
       })
     } catch (error: any) {

@@ -27,7 +27,7 @@ import { useAccount, useWalletClient } from "wagmi"
 export default function FormWhitelistAddress({
   formType,
   data,
-  verifiedAddress
+  // verifiedAddress
 }: {
   formType: 'REMOVE' | 'ADD',
   data: TProject
@@ -50,14 +50,14 @@ export default function FormWhitelistAddress({
     const arrayAddress = values.walletAddress.split(',')
       .map((addr: string) => addr.trim())
       .filter((addr: string) => addr !== '');
-    const verifiedAddressArray = verifiedAddress?.map(i => i.walletAddress)
-    const anyErrorAddr = arrayAddress?.filter((i: string) => !verifiedAddressArray?.includes(i))
-    if (anyErrorAddr.length > 0) {
-      toast.error('Ups!', {
-        description: `${anyErrorAddr} is not verified address`
-      })
-      return
-    }
+    // const verifiedAddressArray = verifiedAddress?.map(i => i.walletAddress)
+    // const anyErrorAddr = arrayAddress?.filter((i: string) => !verifiedAddressArray?.includes(i))
+    // if (anyErrorAddr.length > 0) {
+    //   toast.error('Ups!', {
+    //     description: `${anyErrorAddr} is not verified address`
+    //   })
+    //   return
+    // }
     const newValues = {
       ...values,
       walletAddress: arrayAddress

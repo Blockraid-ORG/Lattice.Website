@@ -17,7 +17,7 @@ import { useUpdatePresaleWhitelist } from "@/modules/presales/presale.query"
 import { useCreateProject } from "@/modules/project/project.query"
 import { formCreateProjectSchema } from "@/modules/project/project.schema"
 import { useSocialList } from "@/modules/social/chain.query"
-import { useUserVerified } from "@/modules/user-verified/user-verified.query"
+// import { useUserVerified } from "@/modules/user-verified/user-verified.query"
 import { TFormProject, TFormProjectAllocation, TFormProjectPresale } from "@/types/project"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
@@ -28,11 +28,12 @@ import { defaultValues } from "./default-value"
 
 type TTokenUnit = {
   value: string
-  label: string
+  label: string,
+  disabled?: boolean
 }
 export default function FormCreate() {
   const { mutate: updatePresaleWhitelist } = useUpdatePresaleWhitelist()
-  const { data: verifiedAddress } = useUserVerified()
+  // const { data: verifiedAddress } = useUserVerified()
   const whitelistRef = useRef<HTMLDivElement>(null)
   const [showInputWL, setShowInputWL] = useState(false)
   const [tokenUnits, setTokenUtits] = useState<TTokenUnit[]>([])
@@ -103,11 +104,13 @@ export default function FormCreate() {
       },
       {
         label: `USDC`,
-        value: `USDC`
+        value: `USDC`,
+        disabled: true,
       },
       {
         label: `USDT`,
-        value: `USDT`
+        value: `USDT`,
+        disabled: true,
       },
 
     ])
@@ -128,14 +131,14 @@ export default function FormCreate() {
         arrayAddress = values.whitelistAddress.split(',')
           .map((addr: string) => addr.trim())
           .filter((addr: string) => addr !== '');
-        const verifiedAddressArray = verifiedAddress?.map(i => i.walletAddress)
-        const anyErrorAddr = arrayAddress?.filter((i: string) => !verifiedAddressArray?.includes(i))
-        if (anyErrorAddr.length > 0) {
-          toast.error('Ups!', {
-            description: `${anyErrorAddr} \nis not verified address`
-          })
-          return
-        }
+        // const verifiedAddressArray = verifiedAddress?.map(i => i.walletAddress)
+        // const anyErrorAddr = arrayAddress?.filter((i: string) => !verifiedAddressArray?.includes(i))
+        // if (anyErrorAddr.length > 0) {
+        //   toast.error('Ups!', {
+        //     description: `${anyErrorAddr} \nis not verified address`
+        //   })
+        //   return
+        // }
       }
 
       setLoading(true)
@@ -187,7 +190,7 @@ export default function FormCreate() {
               walletAddress: arrayAddress
             })
           }
-          router.push('/usr/project')
+          router.push('/usr/my-project')
         }
       })
     } catch (error: any) {
@@ -498,11 +501,10 @@ export default function FormCreate() {
                                 <FormInput
                                   control={form.control}
                                   name={`presales.${index}.whitelistDuration`}
-                                  label="Duration (Days)"
+                                  label="Duration (Hours)"
                                   placeholder="Enter Dutaion"
                                   type="number"
                                 />
-                                <div className="mb-2"> Days </div>
                               </div>
                               <FormInput
                                 control={form.control}

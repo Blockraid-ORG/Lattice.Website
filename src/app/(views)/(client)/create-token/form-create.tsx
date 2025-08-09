@@ -124,7 +124,7 @@ export default function FormCreate() {
       }
       createProject(newValues, {
         onSuccess: () => {
-          router.push('/usr/project')
+          router.push('/usr/my-project')
         }
       })
     } catch (error: any) {

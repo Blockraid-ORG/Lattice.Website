@@ -67,7 +67,8 @@ export function useDeployToken() {
         const initialSupply = ethers.parseEther(project.totalSupply);
 
         const lockerNames = vestings.map(i => i.name);
-        const amounts = vestings.map(i => ethers.parseEther(i.supply.toString()));
+        const amountSupply = Number(project.totalSupply)
+        const amounts = vestings.map(i => ethers.parseEther((amountSupply * i.supply / 100).toString()));
         const schedules = vestings.map(i => {
           const valueScedule = Math.round(100 / i.vesting * 100)
           const schedule = Array(i.vesting).fill(valueScedule);
@@ -86,7 +87,7 @@ export function useDeployToken() {
             ethers.parseEther(project.presales.maxContribution), // maxContribution = 5 ETH
             startTime, // startTime = block.timestamp + 3 days (e.g., 2025-08-08)
             Number(project.presales.duration) * second, // duration = 7 days
-            Number(project.presales.whitelistDuration) * second, // whitelistDuration = 2 days
+            Number(project.presales.whitelistDuration) * 60 * 60, // whitelistDuration = 2 days
             Number(project.presales.claimTime) * second, // claimDelay = 1 day
             Number(project.presales.sweepDuration) * second, // sweepDuration = 14 days
           ]
