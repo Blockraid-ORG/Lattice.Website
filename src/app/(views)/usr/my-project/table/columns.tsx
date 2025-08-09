@@ -89,14 +89,14 @@ export const columns: ColumnDef<TProject>[] = [
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href={`/usr/project/${row.original.id}`}>
+                <Link href={`/usr/my-project/${row.original.id}`}>
                   <Icon className="text-lg" name="mage:box-3d-upload-fill" /> Deploy
                 </Link>
               </DropdownMenuItem>
 
 
               <DropdownMenuItem asChild>
-                <Link href={`/usr/project/${row.original.id}/whitelist`}>
+                <Link href={`/usr/my-project/${row.original.id}/whitelist`}>
                   <Icon className="text-lg" name="stash:list-add" /> Whitelist
                 </Link>
               </DropdownMenuItem>
@@ -108,7 +108,7 @@ export const columns: ColumnDef<TProject>[] = [
                       <Icon className="text-sm" name="akar-icons:pencil" /> Edit
                     </div>
                   ) : (
-                    <Link href={`/usr/project/${row.original.id}/edit`}>
+                    <Link href={`/usr/my-project/${row.original.id}/edit`}>
                       <Icon className="text-sm" name="akar-icons:pencil" /> Edit
                     </Link>
 
@@ -116,7 +116,7 @@ export const columns: ColumnDef<TProject>[] = [
                 }
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href={`/usr/project/${row.original.id}`}>
+                <Link href={`/usr/my-project/${row.original.id}`}>
                   <Icon className="text-lg" name="entypo:info" /> Detail
                 </Link>
               </DropdownMenuItem>

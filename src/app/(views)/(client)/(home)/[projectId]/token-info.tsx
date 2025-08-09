@@ -1,4 +1,4 @@
-import Allocations from '@/app/(views)/usr/project/[projectId]/(detail)/allocations'
+import Allocations from '@/app/(views)/usr/my-project/[projectId]/(detail)/allocations'
 import { NumberComma } from '@/lib/utils'
 import { TProject } from '@/types/project'
 import React from 'react'

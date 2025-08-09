@@ -41,6 +41,18 @@ export const useProject = (filters?: { status?: string }) => {
     enabled: true
   });
 }
+export const useAllProject = (filters?: { status?: string }) => {
+  const searchString = useSearchParams();
+  const query = {
+    ...toObjectQuery(searchString),
+    ...(filters?.status && { status: filters.status })
+  }
+  return useQuery({
+    queryKey: ["get_project", query],
+    queryFn: () => projectService.GET_ALL(query),
+    enabled: true
+  });
+}
 
 export const usePublicProject = (filters?: { status?: string }) => {
   const searchString = useSearchParams();

@@ -6,6 +6,16 @@ import { TQueryParam } from "@/types/query"
 export abstract class BaseService<T, TForm = Partial<T>, TResponse = T> {
   protected abstract endpoint: string;
 
+  async GET_ALL(params?: TQueryParam): Promise<TPagination<T>> {
+    const response = await axiosInstance({
+      method: 'GET',
+      url: this.endpoint,
+      params
+    })
+    return response.data.data
+  }
+
+
   async LISTS(): Promise<TOptionList[]> {
     const response = await axiosInstance({
       method: 'GET',

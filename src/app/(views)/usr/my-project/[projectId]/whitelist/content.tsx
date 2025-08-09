@@ -13,12 +13,12 @@ import {
 } from "@/components/ui/table"
 import FormWhitelistAddress from "./form-whitelist-address"
 import PresaleHeader from "./presale-header"
-import { useUserVerified } from "@/modules/user-verified/user-verified.query"
+// import { useUserVerified } from "@/modules/user-verified/user-verified.query"
 
 export default function ContentWhitelist() {
   const { projectId } = useParams()
   const { data, isLoading } = useProjectDetail(projectId.toString())
-  const { data: verifiedAddress } = useUserVerified()
+  // const { data: verifiedAddress } = useUserVerified()
   return (
     <div>
       {
@@ -26,8 +26,8 @@ export default function ContentWhitelist() {
           <div className="space-y-4">
             <PresaleHeader data={data} />
             <div className="text-end flex gap-2 justify-end flex-wrap my-4">
-              <FormWhitelistAddress verifiedAddress={verifiedAddress} data={data} formType="REMOVE" />
-              <FormWhitelistAddress verifiedAddress={verifiedAddress} data={data} formType="ADD" />
+              <FormWhitelistAddress data={data} formType="REMOVE" />
+              <FormWhitelistAddress data={data} formType="ADD" />
             </div>
             <div className="bg-background p-6 border rounded-2xl">
               <Table>

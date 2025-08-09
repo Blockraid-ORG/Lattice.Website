@@ -28,7 +28,7 @@ export default function CardCounter() {
             </>
           )
         }
-        <Link href={'/usr/project/create'} className='hover:bg-slate-100/50 hover:scale-105 duration-300 border border-dashed p-3 md:p-4 flex items-center justify-center rounded-xl bg-white dark:bg-white/5'>
+        <Link href={'/usr/my-project/create'} className='hover:bg-slate-100/50 hover:scale-105 duration-300 border border-dashed p-3 md:p-4 flex items-center justify-center rounded-xl bg-white dark:bg-white/5'>
           <div className='text-center'>
             <Icon name='tabler:plus' />
             <p className='text-xs font-medium text-slate-400'>Create Project</p>
