@@ -19,7 +19,7 @@ export const useUpdatePresaleWhitelist = (id?: string) => {
     },
     onError: () => {
       toast.error('Error', {
-        description: "Fail to submit data!"
+        description: "Fail to submit data"
       })
     }
   });
