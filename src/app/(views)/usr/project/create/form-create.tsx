@@ -93,34 +93,52 @@ export default function FormCreate() {
     const url = converToIpfs(upload.cid)
     return url;
   }
-  async function onSubmit(values: TFormProject) {
-    const arrayAddress = values.whitelistAddress.split(',')
-      .map((addr: string) => addr.trim())
-      .filter((addr: string) => addr !== '');
-    const verifiedAddressArray = verifiedAddress?.map(i => i.walletAddress)
-    const anyErrorAddr = arrayAddress?.filter((i: string) => !verifiedAddressArray?.includes(i))
-    if (anyErrorAddr.length > 0) {
-      toast.error('Ups!', {
-        description: `${anyErrorAddr} \nis not verified address`
-      })
-      return
+
+  function onChangeValue(chainId: string) {
+    const c = chains?.find(i => i.value === chainId)
+    setTokenUtits([
+      {
+        label: `${c?.ticker}`,
+        value: `${c?.ticker}`
+      },
+      {
+        label: `USDC`,
+        value: `USDC`
+      },
+      {
+        label: `USDT`,
+        value: `USDT`
+      },
+
+    ])
+  }
+
+  function onCheckedChange(state: boolean) {
+    setShowInputWL(state)
+    if (state) {
+      setTimeout(() => {
+        whitelistRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
+      }, 100)
     }
-    // const newValues = {
-    //   ...values,
-    //   walletAddress: arrayAddress
-    // }
-    // console.log({
-    //   anyErrorAddr,
-    //   verifiedAddressArray,
-    //   arrayAddress,
-    //   values
-    // })
-    // updatePresaleWhitelist({
-    //   presaleId: 
-    // })
-    // return;
-    setLoading(true)
+  }
+  async function onSubmit(values: TFormProject) {
     try {
+      let arrayAddress: string[];
+      if (values.whitelistAddress && values.whitelistAddress !== "") {
+        arrayAddress = values.whitelistAddress.split(',')
+          .map((addr: string) => addr.trim())
+          .filter((addr: string) => addr !== '');
+        const verifiedAddressArray = verifiedAddress?.map(i => i.walletAddress)
+        const anyErrorAddr = arrayAddress?.filter((i: string) => !verifiedAddressArray?.includes(i))
+        if (anyErrorAddr.length > 0) {
+          toast.error('Ups!', {
+            description: `${anyErrorAddr} \nis not verified address`
+          })
+          return
+        }
+      }
+
+      setLoading(true)
       let logoUrl, bannerUrl;
       const chainIds = values.chainId;
       if (logo) {
@@ -163,10 +181,12 @@ export default function FormCreate() {
       }
       createProject(newValues, {
         onSuccess: (res) => {
-          updatePresaleWhitelist({
-            presaleId: res.presales.id,
-            walletAddress: arrayAddress
-          })
+          if (arrayAddress && arrayAddress.length > 0) {
+            updatePresaleWhitelist({
+              presaleId: res.presales.id,
+              walletAddress: arrayAddress
+            })
+          }
           router.push('/usr/project')
         }
       })
@@ -177,38 +197,9 @@ export default function FormCreate() {
       setLoading(false)
     }
   }
-
-  function onChangeValue(chainId: string) {
-    const c = chains?.find(i => i.value === chainId)
-    setTokenUtits([
-      {
-        label: `${c?.ticker}`,
-        value: `${c?.ticker}`
-      },
-      {
-        label: `USDC`,
-        value: `USDC`
-      },
-      {
-        label: `USDT`,
-        value: `USDT`
-      },
-
-    ])
-  }
-
-  function onCheckedChange(state: boolean) {
-    setShowInputWL(state)
-    if (state) {
-      setTimeout(() => {
-        whitelistRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
-      }, 100)
-    }
-  }
   return (
     <div>
       <div className='max-w-5xl mx-auto py-12 px-3'>
-
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="bg-form-token-gradient p-4 md:p-8 rounded-2xl">
