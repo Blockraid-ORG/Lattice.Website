@@ -40,6 +40,7 @@ export default function WalletButton({ withText }: { withText?: boolean }) {
               signature,
             }, {
               onSuccess: () => {
+                window.location.href = '/usr'
                 router.push('/usr')
               }
             });

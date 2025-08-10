@@ -8,7 +8,7 @@ import Link from 'next/link'
 export default function Upcoming() {
   const { data: upcoming, isLoading } = usePublicProject()
   return (
-    <section className='py-12 md:py-24 bg-primary-foreground/10'>
+    <section className='py-12 md:py-24 bg-[#D8E9FD]/20 dark:bg-[#001123]'>
       <div className="container">
         <div className='text-center max-w-xl mx-auto mb-12'>
           <h2 className='text-2xl md:text-4xl font-bold max-w-xl'>RWA Token Sale Launchpad</h2>
@@ -18,7 +18,7 @@ export default function Upcoming() {
           <h3 className='text-xl md:text-2xl font-bold'>Upcoming RWA Projects</h3>
           <Link className='text-sm font-semibold text-primary' href={`/`}>Show All</Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-6">
           {
             isLoading ? (
               <div>Loading...</div>
@@ -27,7 +27,7 @@ export default function Upcoming() {
                 {
 
                   upcoming?.data && upcoming?.data?.map((item, index) => (
-                    <div key={index} className='relative bg-blue-500/5 cursor-pointer dark:bg-primary-foreground/50 p-2 rounded-xl hover:scale-105 duration-300'>
+                    <div key={index} className='relative border dark:border-transparent bg-white cursor-pointer dark:bg-[#0A2342] p-2 rounded-xl hover:scale-105 duration-300'>
                       <Link href={item.id} className="absolute top-4 right-4 z-20 py-1 px-2 bg-blue-500/30 text-blue-600 dark:text-white dark:bg-black rounded-full inline-flex gap-2 items-center text-xs font-bold backdrop-blur">
                         Upcoming
                       </Link>

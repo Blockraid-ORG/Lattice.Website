@@ -9,6 +9,7 @@ import React from 'react'
 export default function NavMenu() {
   const pathname = usePathname()
   return (
+    //  from-[#4B2CEB] via-[#1B8DFA] to-[#6C86FF] inline-block text-transparent bg-clip-text
     <div className='flex w-full justify-around items-center'>
       {
         navmenus.map((item, index) => (
@@ -17,11 +18,11 @@ export default function NavMenu() {
           )}>
             <Icon className={cn(
               'text-lg',
-              pathname === item.path && 'text-[#1B8DFA]'
+              pathname === item.path && 'text-[#20C997]'
             )} name={item.icon} />
             <p className={cn(
               'text-sm',
-              pathname === item.path && 'bg-gradient-to-r font-semibold from-[#4B2CEB] via-[#1B8DFA] to-[#6C86FF] inline-block text-transparent bg-clip-text'
+              pathname === item.path && 'bg-gradient-to-r text-[#20C997] font-semibold'
             )}>{item.label}</p>
           </Link>
         ))

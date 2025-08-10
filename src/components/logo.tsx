@@ -1,9 +1,10 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import React from 'react'
 
 export default function MainLogo() {
   return (
-    <div className='flex items-center gap-2'>
+    <Link href={'/'} className='flex items-center gap-2'>
       <div className='h-10 aspect-square'>
         <Image
           className='w-full h-full object-cover dark:hidden'
@@ -20,8 +21,7 @@ export default function MainLogo() {
       </div>
       <div>
         <p className='text-xl leading-none font-semibold'>Terravest</p>
-        <p className='leading-none text-xs'>Capital</p>
       </div>
-    </div>
+    </Link>
   )
 }

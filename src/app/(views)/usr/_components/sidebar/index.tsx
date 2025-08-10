@@ -30,7 +30,7 @@ export default function Sidebar() {
         proximity={20}
         inactiveZone={0.05}
       />
-      <div className='bg-card-gradient p-4 rounded-r-3xl  h-full'>
+      <div className='border-r p-4 rounded-r-3xl  h-full'>
         <div className='h-16 flex items-center'>
           <MainLogo />
         </div>

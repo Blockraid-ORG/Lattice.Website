@@ -1,7 +1,7 @@
 import MainLogo from '@/components/logo'
 import { ModeToggle } from '@/components/mode-toggle'
 import WalletButton from '@/components/wallet-button'
-import NavMenu from './menu'
+// import NavMenu from './menu'
 import { SheetMenu } from './sheet-menu'
 
 export default function MainNavbar() {
@@ -13,9 +13,9 @@ export default function MainNavbar() {
             <MainLogo />
           </div>
           <SheetMenu />
-          <div className="flex-1 hidden md:flex items-center justify-center border py-3 rounded-lg backdrop-blur-lg">
+          {/* <div className="flex-1 hidden md:flex items-center justify-center border py-3 rounded-lg backdrop-blur-lg">
             <NavMenu />
-          </div>
+          </div> */}
           <div className='w-full md:w-1/4 shrink-0 hidden md:flex justify-end gap-2'>
             <WalletButton />
             <ModeToggle />

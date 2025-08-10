@@ -11,7 +11,6 @@ import Allocations from '../../allocations'
 import ChartAllocations from '../../chart-allocations'
 import { ReviewLog } from '../../review-log'
 import RowItem from '../../row-item'
-import { ConfirmDistributeLocker } from '../../../confirm-distribute-locker'
 import TokenSats from '../../token-stats/token-information/content'
 
 export default function TokenInformation({ data }: { data: TProject }) {
@@ -117,6 +116,7 @@ export default function TokenInformation({ data }: { data: TProject }) {
                   <RowItem labelWidth="w-1/3" label="Duration" value={`${data.presales.duration} Month`} />
                 </div>
               </div>
+              
               <div className="mt-6 bg-white border dark:bg-primary-foreground/50 p-4 rounded-lg">
                 <div className="grid gap-3 lg:grid-cols-1 items-center">
                   <Allocations
@@ -125,19 +125,16 @@ export default function TokenInformation({ data }: { data: TProject }) {
                     contract={`${data.chains[0].chain.urlScanner}/address/${data.contractAddress}`}
                   />
                 </div>
+                <div className="max-w-xs mx-auto">
+                  <ChartAllocations data={data.allocations} />
+                </div>
               </div>
               <div className="mt-6 bg-white border dark:bg-primary-foreground/50 p-4 rounded-lg">
-                <div className="grid gap-3 lg:grid-cols-3 items-center">
-                  <div className="lg:col-span-2"><TokenSats data={data} /></div>
-                  {
-                    data.allocations && <ChartAllocations data={data.allocations} />
-                  }
-                </div>
+                <TokenSats data={data} />
               </div>
             </div >
             <div className="sticky bottom-0 flex justify-center md:justify-end flex-wrap gap-2 py-4 mt-2 backdrop-blur-lg">
               <DeployFactoryToken data={data} />
-              <ConfirmDistributeLocker data={data} />
             </div>
           </div>
         )

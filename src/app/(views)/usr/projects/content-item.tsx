@@ -11,7 +11,7 @@ export default function ContentItem({ data }: { data: TProject }) {
   const [isLoaded, setIsLoaded] = useState(false);
   return (
     <div className='rounded-2xl hover:scale-105 duration-200 bg-white dark:bg-white/5 border shadow-md border-slate-300/20 overflow-hidden'>
-      <Link href={`/usr/projects/${data.id}`}>
+      <Link href={`/${data.id}`}>
         <div className='aspect-[4/3] relative p-2 overflow-hidden rounded-xl'>
           {!isLoaded && (
             <Skeleton className="absolute inset-0 flex items-center justify-center bg-neutral-400/20">
