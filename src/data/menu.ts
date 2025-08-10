@@ -50,7 +50,7 @@ export const sidemenus = [
       {
         label:'Projects',
         icon:'bxs:collection',
-        path:'/usr/my-projects'
+        path:'/usr/projects'
       },
       {
         label:'Presale',
