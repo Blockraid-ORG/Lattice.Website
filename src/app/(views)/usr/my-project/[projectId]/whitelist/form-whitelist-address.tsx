@@ -86,6 +86,7 @@ export default function FormWhitelistAddress({
         console.log(error)
       } finally {
         setIsSubmiting(false)
+        setOpen(false)
       }
     }
   }
@@ -107,8 +108,7 @@ export default function FormWhitelistAddress({
         <DialogHeader>
           <DialogTitle>{formType + ' ADDRESS'}</DialogTitle>
           <DialogDescription>
-            Make changes to your whitelist here. Click save when you&apos;re
-            done.
+            Add/remove address can be performed after contract deployed.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -116,7 +116,7 @@ export default function FormWhitelistAddress({
             <FormInput
               control={form.control}
               name="walletAddress"
-              label={`Addresses to ${formType}`}
+              label={`List address to remove to ${formType.toLocaleLowerCase()}`}
               placeholder="0x..1,0x..2"
               isLongText
               rows={10}

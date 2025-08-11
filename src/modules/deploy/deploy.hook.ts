@@ -38,6 +38,7 @@ export function useDeployToken() {
     const contract = await factory.deploy(await signer.getAddress());
     await contract.waitForDeployment();
 
+    console.log("OOKK")
     return contract;
   }, [address, walletClient]);
   const lockAndDistribute = useCallback(async (project: TProject) => {
