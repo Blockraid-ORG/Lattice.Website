@@ -61,10 +61,12 @@ export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
       }
     }
 
-    return {
+    const result = {
       name: item.name,
       data: accumulate(dataArray),
     };
+    console.log("createVestingDataset", result);
+    return result;
   };
 
   const maxVesting = Math.max(...data.map((item) => item.vestingMonths));
@@ -80,7 +82,7 @@ export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
       background: "transparent",
       stacked: true,
       toolbar: {
-        show:false
+        show: false,
       },
       zoom: {
         enabled: false,
@@ -105,14 +107,17 @@ export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
       enabled: false,
     },
     xaxis: {
-      type:"category",
-      categories: categories.map(i=>dayjs(i).format('YYYY-MM-DD')),
+      type: "category",
+      categories: categories.map((i) => dayjs(i).format("YYYY-MM-DD")),
       title: {
         text: "Time",
       },
       labels: {
         rotate: -45,
         maxHeight: 120,
+      },
+      tooltip: {
+        enabled: false,
       },
     },
     yaxis: {
@@ -134,8 +139,18 @@ export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
       shared: true,
       intersect: false,
       y: {
-        formatter: (value: number) => {
-          return value.toLocaleString() + " tokens";
+        formatter: (
+          value: number,
+          { series, seriesIndex }: { series: number[][]; seriesIndex: number }
+        ) => {
+          const total = series[seriesIndex].reduce(
+            (acc: number, curr: number) => acc + curr,
+            0
+          );
+          const percentage = (value / total) * 100;
+          return (
+            value.toLocaleString() + " tokens / " + percentage.toFixed(2) + "%"
+          );
         },
       },
     },
