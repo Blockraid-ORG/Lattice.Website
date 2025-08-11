@@ -1,9 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
-import { Icon } from '@/components/icon'
-import { Button } from '@/components/ui/button'
+import LaunchAppButton from '@/components/launch-app-button'
 import Image from 'next/image'
 import { ChainHero } from './chain-hero'
-import Link from 'next/link'
 export default function NewHero() {
   return (
     <div className='aspect-auto md:aspect-[1440/712] relative'>
@@ -20,18 +18,14 @@ export default function NewHero() {
                 Thrive
               </h1>
               <p className='text-sm sm:text-lg md:text-2xl max-w-lg dark:text-blue-200'>
-                Discovering yield, generating real-world assets - tokenized and trusted.
+                Empowering the future of real-world asset investing, unlocking global access, fractional ownership, and seamless trading.
               </p>
               <div className="absolute h-12 w-2/3 top-3 right-12">
                 <img className='h-full w-full object-contain' alt='star' src={'/ills/vector-1.png'} width={20} height={200} />
               </div>
             </div>
             <div className="mt-6 md:mt-10 flex justify-center md:justify-start">
-              {
-                <Button asChild size={"lg"}>
-                  <Link href={'/usr'}><Icon name='mingcute:rocket-fill' /> Launch App</Link>
-                </Button>
-              }
+              <LaunchAppButton />
             </div>
           </div>
           <div className='order-0 md:order-1 relative mb-4 md:mb-12 md:mt-24'>
