@@ -62,7 +62,7 @@ export default function Allocations({
                     <div className="break-all">
                       {
                         item.contractAddress && (
-                          <a className="text-sm font-semibold underline text-blue-500 block break-all" href={contract} target="_blank" rel="noopener noreferrer">
+                          <a className="text-sm font-semibold underline text-blue-500 block break-all" href={contract + item.contractAddress} target="_blank" rel="noopener noreferrer">
                             {cutString(item.contractAddress, 5)}
                           </a>
                         )

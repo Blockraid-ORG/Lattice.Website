@@ -23,7 +23,7 @@ import { useState } from "react";
 export function DeployFactoryToken({ data }: { data: TProject }) {
   const { deployTokenAll } = useDeployToken()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { data: dataVesting, setData: setDataVesting } = useVestingStore()
+  const { setData: setDataVesting } = useVestingStore()
   const { open, setOpen } = useStateModal()
 
   function handleChangeOpen() {
@@ -48,7 +48,7 @@ export function DeployFactoryToken({ data }: { data: TProject }) {
         <DialogHeader>
           <DialogTitle>Deploy Token</DialogTitle>
           <DialogDescription>
-            You Will Deploy {dataVesting.length + 1} Contract Bellow!
+            Deploying contracts, do not close this window until complete!
           </DialogDescription>
         </DialogHeader>
         <div>

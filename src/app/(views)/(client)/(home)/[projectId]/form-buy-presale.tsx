@@ -25,15 +25,15 @@ export function FormBuyPresale({ data }: { data: TPresale }) {
     }
   })
   async function onSubmit(values: TFormBuyPresale) {
-    toast.info('Under Devvelop!', {
+    toast.info('Under Development!', {
       description: `you will contibute ${values.amount}`
     })
   }
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button size={'lg'} className='w-full md:w-32'>
-          <Icon name="lucide-lab:copy-down" /> Buy Now!
+        <Button size={'lg'} className='w-full md:w-max'>
+          <Icon name="lucide-lab:copy-down" /> Contribute
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
@@ -53,7 +53,7 @@ export function FormBuyPresale({ data }: { data: TPresale }) {
                 placeholder="input amount"
               />
               <div className="mt-5 flex justify-end">
-                <Button type="submit">Save changes</Button>
+                <Button type="submit">Submit</Button>
               </div>
             </form>
           </Form>
