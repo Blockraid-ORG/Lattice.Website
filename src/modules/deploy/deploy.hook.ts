@@ -37,8 +37,6 @@ export function useDeployToken() {
 
     const contract = await factory.deploy(await signer.getAddress());
     await contract.waitForDeployment();
-
-    console.log("OOKK")
     return contract;
   }, [address, walletClient]);
   const lockAndDistribute = useCallback(async (project: TProject) => {
@@ -95,11 +93,12 @@ export function useDeployToken() {
       const factory = new ethers.Contract(factoryContract.target, FactoryAbi.abi, signer);
       const tokenName = project.name;
       const symbol = project.ticker;
-      const initialSupply = ethers.parseEther(project.totalSupply);
+      const initialSupply = project.totalSupply;
+
       const presaleAllocation = project.allocations.find(i => i.isPresale)
       const lockerNames = vestings.map(i => i.name);
-      const amountSupply = Number(project.totalSupply)
-      const amounts = vestings.map(i => ethers.parseEther((amountSupply * i.supply / 100).toString()));
+      const amountSupply = project.totalSupply
+      const amounts = vestings.map(i => ethers.parseUnits((Number(amountSupply) * i.supply / 100).toString(),project.decimals));
       const schedules = vestings.map(i => {
         const valueScedule = Math.round(100 / i.vesting * 100)
         const schedule = Array(i.vesting).fill(valueScedule);

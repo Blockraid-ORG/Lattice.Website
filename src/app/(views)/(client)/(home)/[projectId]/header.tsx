@@ -1,10 +1,8 @@
 import { Icon } from '@/components/icon'
-import { Button } from '@/components/ui/button'
 import { toUrlAsset } from '@/lib/utils'
 import { TProject } from '@/types/project'
 import Image from 'next/image'
 import Link from 'next/link'
-import React from 'react'
 
 export default function DetailHeader({ data }: { data: TProject }) {
   return (
@@ -55,11 +53,6 @@ export default function DetailHeader({ data }: { data: TProject }) {
                 ))
               }
             </div>
-          </div>
-          <div className="mt-4 flex gap-2 flex-wrap">
-            <Button>Buy On {`(Uniswap)`}</Button>
-            <Button>Buy On {`(Binance)`}</Button>
-            <Button>Buy On {`(Where?)`}</Button>
           </div>
         </div>
       </div>
