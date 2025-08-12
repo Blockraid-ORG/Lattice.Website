@@ -1,7 +1,7 @@
 import { TProject } from "@/types/project";
 import React, { useMemo } from "react";
 import ChartVestingPeriod from "./chart-vesting-priod";
-import TableVestingPeriod from "./table-vesting-priod";
+
 export default function TokenSats({ data }: { data: TProject }) {
   const allocationColors = useMemo(
     () => [
@@ -77,7 +77,6 @@ export default function TokenSats({ data }: { data: TProject }) {
             data={mappedAllocations}
             totalSupply={Number(data.totalSupply)}
           />
-          <TableVestingPeriod />
         </>
       ) : (
         <div className="flex items-center justify-center h-96 text-muted-foreground">

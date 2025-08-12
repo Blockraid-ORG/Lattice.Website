@@ -2,6 +2,7 @@
 import { useTheme } from "next-themes";
 import dynamic from "next/dynamic";
 import moment from "moment";
+import TableVestingPeriod from "./table-vesting-priod";
 const ApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 interface TVestingData {
@@ -23,23 +24,7 @@ export default function ChartVestingPeriod({
 
   if (!data || data.length === 0) return <p>No data</p>;
 
-  const generateMonthlyLabels = (start: string, months: number): string[] => {
-    const labels: string[] = [];
-    const [year, month] = start.split("-").map(Number);
-    const date = new Date(year, month - 1);
-
-    for (let i = 0; i < months; i++) {
-      labels.push(moment(date).format("MMM YYYY"));
-      date.setMonth(date.getMonth() + 1);
-    }
-    return labels;
-  };
-
-  const getMonthOffset = (base: string, target: string): number => {
-    const [baseY, baseM] = base.split("-").map(Number);
-    const [targetY, targetM] = target.split("-").map(Number);
-    return (targetY - baseY) * 12 + (targetM - baseM);
-  };
+  // We will generate x-axis categories using actual event dates (YYYY-MM-DD)
 
   const accumulate = (data: number[]): number[] => {
     const result: number[] = [];
@@ -51,41 +36,51 @@ export default function ChartVestingPeriod({
     return result;
   };
 
-  // Find the earliest start date from all data
-  const earliestStartDate = data.reduce((earliest, item) => {
-    return item.startDate < earliest ? item.startDate : earliest;
-  }, data[0].startDate);
+  // Build sorted unique event dates across all allocations
+  const eventDatesSet = new Set<string>();
+  for (const item of data) {
+    let start = moment(item.startDate, ["YYYY-MM-DD", "YYYY-MM"], true);
+    if (!start.isValid()) start = moment(item.startDate);
+    if (!start.isValid()) continue;
 
-  const createVestingDataset = (item: TVestingData, timelineMonths: number) => {
-    const startIdx = getMonthOffset(earliestStartDate, item.startDate);
-    const dataArray = Array(timelineMonths).fill(0);
     if (item.vestingMonths === 0) {
-      if (startIdx < timelineMonths) dataArray[startIdx] = item.total;
+      eventDatesSet.add(start.format("YYYY-MM-DD"));
     } else {
-      const monthlyUnlock = item.total / item.vestingMonths;
       for (let i = 0; i < item.vestingMonths; i++) {
-        if (startIdx + i < timelineMonths) {
-          dataArray[startIdx + i] = monthlyUnlock;
+        eventDatesSet.add(start.clone().add(i, "months").format("YYYY-MM-DD"));
+      }
+    }
+  }
+
+  const eventDates = Array.from(eventDatesSet).sort(); // lexicographic works for YYYY-MM-DD
+
+  const createVestingDataset = (item: TVestingData, dates: string[]) => {
+    // Map increments per date for this allocation
+    const increments = new Map<string, number>();
+    let start = moment(item.startDate, ["YYYY-MM-DD", "YYYY-MM"], true);
+    if (!start.isValid()) start = moment(item.startDate);
+    if (start.isValid()) {
+      if (item.vestingMonths === 0) {
+        const key = start.format("YYYY-MM-DD");
+        increments.set(key, (increments.get(key) || 0) + item.total);
+      } else {
+        const monthlyUnlock = item.total / item.vestingMonths;
+        for (let i = 0; i < item.vestingMonths; i++) {
+          const key = start.clone().add(i, "months").format("YYYY-MM-DD");
+          increments.set(key, (increments.get(key) || 0) + monthlyUnlock);
         }
       }
     }
 
-    const result = {
+    const dataArray = dates.map((d) => increments.get(d) || 0);
+    return {
       name: item.name,
       data: accumulate(dataArray),
     };
-    return result;
   };
 
-  const timelineMonths = Math.max(
-    ...data.map(
-      (item) =>
-        getMonthOffset(earliestStartDate, item.startDate) +
-        (item.vestingMonths === 0 ? 1 : item.vestingMonths)
-    )
-  );
-  const series = data.map((item) => createVestingDataset(item, timelineMonths));
-  const categories = generateMonthlyLabels(earliestStartDate, timelineMonths);
+  const series = data.map((item) => createVestingDataset(item, eventDates));
+  const categories = eventDates.map((d) => moment(d).format("MMM D, YYYY"));
   const colors = data.map((item) => item.color);
 
   const options: ApexCharts.ApexOptions = {
@@ -182,6 +177,7 @@ export default function ChartVestingPeriod({
   return (
     <div className="w-full">
       <ApexChart type="area" options={options} series={series} height={400} />
+      <TableVestingPeriod data={data} totalSupply={totalSupply} />
     </div>
   );
 }
