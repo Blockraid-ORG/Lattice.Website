@@ -41,14 +41,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { buildTableEvents, VestingData as TVestingData } from "./vesting-utils";
 
-type TVestingData = {
-  name: string;
-  total: number;
-  vestingMonths: number;
-  startDate: string; // accepts YYYY-MM-DD or YYYY-MM
-  color: string;
-};
+// TVestingData is imported from vesting-utils
 
 type TUnlockEvent = {
   dateLabel: string;
@@ -75,47 +70,14 @@ export default function TableVestingPeriod({
 
   if (!data || data.length === 0) return null;
 
-  // Build a map of events keyed by exact date (YYYY-MM-DD)
-  const eventsMap = new Map<
-    string,
-    { totalUnlocked: number; contributors: { name: string; amount: number }[] }
-  >();
-
-  for (const item of data) {
-    // parse start date; support YYYY-MM-DD or YYYY-MM (defaults day=01)
-    let start = moment(item.startDate, ["YYYY-MM-DD", "YYYY-MM"], true);
-    if (!start.isValid()) start = moment(item.startDate);
-    if (!start.isValid()) continue;
-
-    if (item.vestingMonths === 0) {
-      const key = start.format("YYYY-MM-DD");
-      const prev = eventsMap.get(key) || { totalUnlocked: 0, contributors: [] };
-      prev.totalUnlocked += item.total;
-      prev.contributors.push({ name: item.name, amount: item.total });
-      eventsMap.set(key, prev);
-    } else {
-      const monthlyUnlock = item.total / item.vestingMonths;
-      for (let i = 0; i < item.vestingMonths; i++) {
-        const dt = start.clone().add(i, "months");
-        const key = dt.format("YYYY-MM-DD");
-        const prev = eventsMap.get(key) || {
-          totalUnlocked: 0,
-          contributors: [],
-        };
-        prev.totalUnlocked += monthlyUnlock;
-        prev.contributors.push({ name: item.name, amount: monthlyUnlock });
-        eventsMap.set(key, prev);
-      }
-    }
-  }
-
-  const events: TUnlockEvent[] = Array.from(eventsMap.entries()).map(
-    ([dateIso, info]) => ({
-      dateIso,
-      dateLabel: moment(dateIso).format("MMM D, YYYY"),
-      totalUnlocked: info.totalUnlocked,
-      percent: (info.totalUnlocked / totalSupply) * 100,
-      contributors: info.contributors,
+  // Build events using shared util for consistency with chart
+  const events: TUnlockEvent[] = buildTableEvents(data, totalSupply).map(
+    (e) => ({
+      dateLabel: moment(e.dateIso).format("MMM D, YYYY"),
+      dateIso: e.dateIso,
+      totalUnlocked: e.totalUnlocked,
+      percent: e.percent,
+      contributors: e.contributors,
     })
   );
 

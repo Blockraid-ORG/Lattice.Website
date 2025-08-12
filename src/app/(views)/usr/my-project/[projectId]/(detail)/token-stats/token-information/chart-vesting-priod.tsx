@@ -3,15 +3,15 @@ import { useTheme } from "next-themes";
 import dynamic from "next/dynamic";
 import moment from "moment";
 import TableVestingPeriod from "./table-vesting-priod";
+import {
+  VestingData as TVestingData,
+  buildAllIncrements,
+  buildDayBuckets,
+  buildSeriesForTimeline,
+} from "./vesting-utils";
 const ApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
-interface TVestingData {
-  name: string;
-  total: number;
-  vestingMonths: number;
-  startDate: string;
-  color: string;
-}
+// TVestingData is imported from vesting-utils
 
 export default function ChartVestingPeriod({
   data,
@@ -24,63 +24,26 @@ export default function ChartVestingPeriod({
 
   if (!data || data.length === 0) return <p>No data</p>;
 
-  // We will generate x-axis categories using actual event dates (YYYY-MM-DD)
+  // Build increments and timeline
+  const { perItemIncrements, allEventDates, minDateIso, maxDateIso } =
+    buildAllIncrements(data);
 
-  const accumulate = (data: number[]): number[] => {
-    const result: number[] = [];
-    let sum = 0;
-    for (let i = 0; i < data.length; i++) {
-      sum += data[i];
-      result.push(sum);
-    }
-    return result;
-  };
+  // You can change stepDays to any interval (e.g., 7 for weekly, 1 for daily, 0 to use exact event dates)
+  const stepDays = 0; // dynamic: 0 means use exact event dates; >0 means bucket by N days
 
-  // Build sorted unique event dates across all allocations
-  const eventDatesSet = new Set<string>();
-  for (const item of data) {
-    let start = moment(item.startDate, ["YYYY-MM-DD", "YYYY-MM"], true);
-    if (!start.isValid()) start = moment(item.startDate);
-    if (!start.isValid()) continue;
+  const timelineDates = (() => {
+    if (!minDateIso || !maxDateIso) return [] as string[];
+    if (stepDays > 0) return buildDayBuckets(minDateIso, maxDateIso, stepDays);
+    return allEventDates;
+  })();
 
-    if (item.vestingMonths === 0) {
-      eventDatesSet.add(start.format("YYYY-MM-DD"));
-    } else {
-      for (let i = 0; i < item.vestingMonths; i++) {
-        eventDatesSet.add(start.clone().add(i, "months").format("YYYY-MM-DD"));
-      }
-    }
-  }
-
-  const eventDates = Array.from(eventDatesSet).sort(); // lexicographic works for YYYY-MM-DD
-
-  const createVestingDataset = (item: TVestingData, dates: string[]) => {
-    // Map increments per date for this allocation
-    const increments = new Map<string, number>();
-    let start = moment(item.startDate, ["YYYY-MM-DD", "YYYY-MM"], true);
-    if (!start.isValid()) start = moment(item.startDate);
-    if (start.isValid()) {
-      if (item.vestingMonths === 0) {
-        const key = start.format("YYYY-MM-DD");
-        increments.set(key, (increments.get(key) || 0) + item.total);
-      } else {
-        const monthlyUnlock = item.total / item.vestingMonths;
-        for (let i = 0; i < item.vestingMonths; i++) {
-          const key = start.clone().add(i, "months").format("YYYY-MM-DD");
-          increments.set(key, (increments.get(key) || 0) + monthlyUnlock);
-        }
-      }
-    }
-
-    const dataArray = dates.map((d) => increments.get(d) || 0);
-    return {
-      name: item.name,
-      data: accumulate(dataArray),
-    };
-  };
-
-  const series = data.map((item) => createVestingDataset(item, eventDates));
-  const categories = eventDates.map((d) => moment(d).format("MMM D, YYYY"));
+  const series = buildSeriesForTimeline(
+    data,
+    perItemIncrements,
+    timelineDates,
+    { stepDays }
+  );
+  const categories = timelineDates.map((d) => moment(d).format("MMM D, YYYY"));
   const colors = data.map((item) => item.color);
 
   const options: ApexCharts.ApexOptions = {
