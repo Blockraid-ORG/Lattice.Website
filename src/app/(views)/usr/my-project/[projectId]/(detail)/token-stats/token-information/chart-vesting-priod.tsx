@@ -1,7 +1,7 @@
 "use client";
-import dayjs from "dayjs";
 import { useTheme } from "next-themes";
 import dynamic from "next/dynamic";
+import moment from "moment";
 const ApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 interface TVestingData {
@@ -12,7 +12,13 @@ interface TVestingData {
   color: string;
 }
 
-export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
+export default function ChartVestingPeriod({
+  data,
+  totalSupply,
+}: {
+  data: TVestingData[];
+  totalSupply: number;
+}) {
   const { theme } = useTheme();
 
   if (!data || data.length === 0) return <p>No data</p>;
@@ -23,13 +29,12 @@ export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
     const date = new Date(year, month - 1);
 
     for (let i = 0; i < months; i++) {
-      labels.push(
-        date.toLocaleDateString("en-GB", { month: "short", year: "numeric" })
-      );
+      labels.push(moment(date).format("MMM YYYY"));
       date.setMonth(date.getMonth() + 1);
     }
     return labels;
   };
+
   const getMonthOffset = (base: string, target: string): number => {
     const [baseY, baseM] = base.split("-").map(Number);
     const [targetY, targetM] = target.split("-").map(Number);
@@ -46,16 +51,20 @@ export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
     return result;
   };
 
-  const createVestingDataset = (item: TVestingData, maxVesting: number) => {
-    const startIdx = getMonthOffset("2025-08", item.startDate);
-    const dataArray = Array(maxVesting).fill(0);
+  // Find the earliest start date from all data
+  const earliestStartDate = data.reduce((earliest, item) => {
+    return item.startDate < earliest ? item.startDate : earliest;
+  }, data[0].startDate);
 
+  const createVestingDataset = (item: TVestingData, timelineMonths: number) => {
+    const startIdx = getMonthOffset(earliestStartDate, item.startDate);
+    const dataArray = Array(timelineMonths).fill(0);
     if (item.vestingMonths === 0) {
-      dataArray[startIdx] = item.total;
+      if (startIdx < timelineMonths) dataArray[startIdx] = item.total;
     } else {
       const monthlyUnlock = item.total / item.vestingMonths;
       for (let i = 0; i < item.vestingMonths; i++) {
-        if (startIdx + i < maxVesting) {
+        if (startIdx + i < timelineMonths) {
           dataArray[startIdx + i] = monthlyUnlock;
         }
       }
@@ -65,13 +74,18 @@ export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
       name: item.name,
       data: accumulate(dataArray),
     };
-    console.log("createVestingDataset", result);
     return result;
   };
 
-  const maxVesting = Math.max(...data.map((item) => item.vestingMonths));
-  const series = data.map((item) => createVestingDataset(item, maxVesting));
-  const categories = generateMonthlyLabels("2025-08", maxVesting);
+  const timelineMonths = Math.max(
+    ...data.map(
+      (item) =>
+        getMonthOffset(earliestStartDate, item.startDate) +
+        (item.vestingMonths === 0 ? 1 : item.vestingMonths)
+    )
+  );
+  const series = data.map((item) => createVestingDataset(item, timelineMonths));
+  const categories = generateMonthlyLabels(earliestStartDate, timelineMonths);
   const colors = data.map((item) => item.color);
 
   const options: ApexCharts.ApexOptions = {
@@ -108,7 +122,7 @@ export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
     },
     xaxis: {
       type: "category",
-      categories: categories.map((i) => dayjs(i).format("YYYY-MM-DD")),
+      categories: categories,
       title: {
         text: "Time",
       },
@@ -139,17 +153,10 @@ export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
       shared: true,
       intersect: false,
       y: {
-        formatter: (
-          value: number,
-          { series, seriesIndex }: { series: number[][]; seriesIndex: number }
-        ) => {
-          const total = series[seriesIndex].reduce(
-            (acc: number, curr: number) => acc + curr,
-            0
-          );
-          const percentage = (value / total) * 100;
+        formatter: (value: number) => {
+          const percentage = (value / totalSupply) * 100;
           return (
-            value.toLocaleString() + " tokens / " + percentage.toFixed(2) + "%"
+            value.toLocaleString() + " tokens / " + percentage.toFixed(1) + "%"
           );
         },
       },
