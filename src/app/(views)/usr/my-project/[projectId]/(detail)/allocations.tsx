@@ -69,7 +69,7 @@ export default function Allocations({
                     {item.contractAddress && (
                       <a
                         className="text-sm font-semibold underline text-blue-500 block break-all"
-                        href={contract}
+                        href={contract + item.contractAddress}
                         target="_blank"
                         rel="noopener noreferrer"
                       >

@@ -232,16 +232,22 @@ export default function TableVestingPeriod({
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
-                onClick={() => handleChangePage(currentPage - 1)}
-                href="#"
+                className="cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault()
+                  handleChangePage(currentPage - 1)
+                }}
               />
             </PaginationItem>
             {[...Array(totalPages)].map((_, idx) => (
               <PaginationItem key={idx}>
                 <PaginationLink
-                  href="#"
+                  className="cursor-pointer"
                   isActive={currentPage === idx + 1}
-                  onClick={() => handleChangePage(idx + 1)}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    handleChangePage(idx + 1)
+                  }}
                 >
                   {idx + 1}
                 </PaginationLink>
@@ -249,8 +255,11 @@ export default function TableVestingPeriod({
             ))}
             <PaginationItem>
               <PaginationNext
-                onClick={() => handleChangePage(currentPage + 1)}
-                href="#"
+                className="cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault()
+                  handleChangePage(currentPage + 1)
+                }}
               />
             </PaginationItem>
           </PaginationContent>

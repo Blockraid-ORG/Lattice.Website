@@ -67,8 +67,6 @@ export default function TokenSats({ data }: { data: TProject }) {
       }));
   }, [data?.allocations, getAllocationColor]);
 
-  console.log("mappedAllocations", mappedAllocations);
-
   return (
     <div>
       {mappedAllocations.length > 0 ? (
