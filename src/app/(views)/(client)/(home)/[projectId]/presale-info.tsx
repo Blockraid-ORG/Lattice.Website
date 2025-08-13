@@ -27,8 +27,8 @@ export default function PresaleInfo({ data }: { data: TProject }) {
             </div>
             <div>
               <p className='text-sm text-neutral-500'>End Date</p>
-              <h2 className='font-bold'>{dayjs(data?.presales.duration).format('DD MMM YYYY')}</h2>
-              <p className='text-sm text-neutral-500'>Ends {dayjs(data?.presales.duration).fromNow()}</p>
+              <h2 className='font-bold'>{dayjs(data?.presales.startDate).format('DD MMM YYYY')}</h2>
+              <p className='text-sm text-neutral-500'>Ends {dayjs(data?.presales.startDate).toNow()}</p>
             </div>
           </div>
           <div className='space-y-1 mt-4'>
@@ -36,9 +36,9 @@ export default function PresaleInfo({ data }: { data: TProject }) {
               <h2>Progress</h2>
               <p className='text-sm font-semibold'>30% form {NumberComma(Number(data.totalSupply) * totalPresale!)}</p>
             </div>
-            <div className='bg-primary h-5 rounded-full relative overflow-hidden'>
+            <div className='bg-primary h-3 rounded-full relative overflow-hidden'>
               <div
-                className='bg-blue-500 dark:bg-blue-500 h-full rounded-full'
+                className='bg-[#20C997] h-full rounded-full'
                 style={{
                   width: '30%',
                 }}

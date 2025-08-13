@@ -31,7 +31,7 @@ export default async function RootLayout({
       <body
         className={`${openSans.className} antialiased`}
       >
-        <NextTopLoader color="#1B8DFA" />
+        <NextTopLoader color="#20C997" />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

@@ -51,10 +51,19 @@ export default function Allocations({
                           name="streamline-ultimate:loading-bold"
                         />
                       ) : (
-                        <Icon
-                          className="text-lg"
-                          name="fluent:circle-hint-24-filled"
-                        />
+                        <>
+                          {item.isDeploying ? (
+                            <Icon
+                              className="text-sm animate-spin"
+                              name="streamline-ultimate:loading-bold"
+                            />
+                          ) : (
+                            <Icon
+                              className="text-lg"
+                              name="fluent:circle-hint-24-filled"
+                            />
+                          )}
+                        </>
                       )}
                     </>
                   )}
@@ -69,7 +78,7 @@ export default function Allocations({
                     {item.contractAddress && (
                       <a
                         className="text-sm font-semibold underline text-blue-500 block break-all"
-                        href={contract}
+                        href={contract + item.contractAddress}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
