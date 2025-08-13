@@ -1,75 +1,49 @@
 "use client";
-import dayjs from "dayjs";
 import { useTheme } from "next-themes";
 import dynamic from "next/dynamic";
+import moment from "moment";
+import TableVestingPeriod from "./table-vesting-priod";
+import {
+  VestingData as TVestingData,
+  buildAllIncrements,
+  buildDayBuckets,
+  buildSeriesForTimeline,
+} from "./vesting-utils";
 const ApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
-interface TVestingData {
-  name: string;
-  total: number;
-  vestingMonths: number;
-  startDate: string;
-  color: string;
-}
+// TVestingData is imported from vesting-utils
 
-export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
+export default function ChartVestingPeriod({
+  data,
+  totalSupply,
+}: {
+  data: TVestingData[];
+  totalSupply: number;
+}) {
   const { theme } = useTheme();
 
   if (!data || data.length === 0) return <p>No data</p>;
 
-  const generateMonthlyLabels = (start: string, months: number): string[] => {
-    const labels: string[] = [];
-    const [year, month] = start.split("-").map(Number);
-    const date = new Date(year, month - 1);
+  // Build increments and timeline
+  const { perItemIncrements, allEventDates, minDateIso, maxDateIso } =
+    buildAllIncrements(data);
 
-    for (let i = 0; i < months; i++) {
-      labels.push(
-        date.toLocaleDateString("en-GB", { month: "short", year: "numeric" })
-      );
-      date.setMonth(date.getMonth() + 1);
-    }
-    return labels;
-  };
-  const getMonthOffset = (base: string, target: string): number => {
-    const [baseY, baseM] = base.split("-").map(Number);
-    const [targetY, targetM] = target.split("-").map(Number);
-    return (targetY - baseY) * 12 + (targetM - baseM);
-  };
+  // You can change stepDays to any interval (e.g., 7 for weekly, 1 for daily, 0 to use exact event dates)
+  const stepDays = 0; // dynamic: 0 means use exact event dates; >0 means bucket by N days
 
-  const accumulate = (data: number[]): number[] => {
-    const result: number[] = [];
-    let sum = 0;
-    for (let i = 0; i < data.length; i++) {
-      sum += data[i];
-      result.push(sum);
-    }
-    return result;
-  };
+  const timelineDates = (() => {
+    if (!minDateIso || !maxDateIso) return [] as string[];
+    if (stepDays > 0) return buildDayBuckets(minDateIso, maxDateIso, stepDays);
+    return allEventDates;
+  })();
 
-  const createVestingDataset = (item: TVestingData, maxVesting: number) => {
-    const startIdx = getMonthOffset("2025-08", item.startDate);
-    const dataArray = Array(maxVesting).fill(0);
-
-    if (item.vestingMonths === 0) {
-      dataArray[startIdx] = item.total;
-    } else {
-      const monthlyUnlock = item.total / item.vestingMonths;
-      for (let i = 0; i < item.vestingMonths; i++) {
-        if (startIdx + i < maxVesting) {
-          dataArray[startIdx + i] = monthlyUnlock;
-        }
-      }
-    }
-
-    return {
-      name: item.name,
-      data: accumulate(dataArray),
-    };
-  };
-
-  const maxVesting = Math.max(...data.map((item) => item.vestingMonths));
-  const series = data.map((item) => createVestingDataset(item, maxVesting));
-  const categories = generateMonthlyLabels("2025-08", maxVesting);
+  const series = buildSeriesForTimeline(
+    data,
+    perItemIncrements,
+    timelineDates,
+    { stepDays }
+  );
+  const categories = timelineDates.map((d) => moment(d).format("MMM D, YYYY"));
   const colors = data.map((item) => item.color);
 
   const options: ApexCharts.ApexOptions = {
@@ -80,7 +54,7 @@ export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
       background: "transparent",
       stacked: true,
       toolbar: {
-        show:false
+        show: false,
       },
       zoom: {
         enabled: false,
@@ -105,14 +79,17 @@ export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
       enabled: false,
     },
     xaxis: {
-      type:"category",
-      categories: categories.map(i=>dayjs(i).format('YYYY-MM-DD')),
+      type: "category",
+      categories: categories,
       title: {
         text: "Time",
       },
       labels: {
         rotate: -45,
         maxHeight: 120,
+      },
+      tooltip: {
+        enabled: false,
       },
     },
     yaxis: {
@@ -135,7 +112,10 @@ export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
       intersect: false,
       y: {
         formatter: (value: number) => {
-          return value.toLocaleString() + " tokens";
+          const percentage = (value / totalSupply) * 100;
+          return (
+            value.toLocaleString() + " tokens / " + percentage.toFixed(1) + "%"
+          );
         },
       },
     },
@@ -160,6 +140,7 @@ export default function ChartVestingPeriod({ data }: { data: TVestingData[] }) {
   return (
     <div className="w-full">
       <ApexChart type="area" options={options} series={series} height={400} />
+      <TableVestingPeriod data={data} totalSupply={totalSupply} />
     </div>
   );
 }

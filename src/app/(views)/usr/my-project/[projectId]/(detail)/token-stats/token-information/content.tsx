@@ -1,5 +1,5 @@
 import { TProject } from "@/types/project";
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import ChartVestingPeriod from "./chart-vesting-priod";
 
 export default function TokenSats({ data }: { data: TProject }) {
@@ -42,6 +42,7 @@ export default function TokenSats({ data }: { data: TProject }) {
 
   // Map allocation data to VestingData format
   const mappedAllocations = useMemo(() => {
+    console.log("data", data);
     // Handle edge cases
     if (!data?.allocations || data.allocations.length === 0) {
       return [];
@@ -59,19 +60,22 @@ export default function TokenSats({ data }: { data: TProject }) {
       )
       .map((allocation, index) => ({
         name: allocation.name,
-        total: allocation.supply,
+        total: Number(data.totalSupply) * (allocation.supply / 100),
         vestingMonths: allocation.vesting,
         startDate: allocation.startDate,
         color: getAllocationColor(index, allocation.name),
       }));
   }, [data?.allocations, getAllocationColor]);
 
-  useEffect(() => {}, []);
-
   return (
     <div>
       {mappedAllocations.length > 0 ? (
-        <ChartVestingPeriod data={mappedAllocations} />
+        <>
+          <ChartVestingPeriod
+            data={mappedAllocations}
+            totalSupply={Number(data.totalSupply)}
+          />
+        </>
       ) : (
         <div className="flex items-center justify-center h-96 text-muted-foreground">
           <p>No allocation data available</p>
