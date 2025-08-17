@@ -27,7 +27,7 @@ export default function UpcomingPresale() {
                       <Link href={item.project.id} className="absolute top-4 right-4 z-20 py-1 px-2 bg-blue-500/30 text-blue-600 dark:text-white dark:bg-black rounded-full inline-flex gap-2 items-center text-xs font-bold backdrop-blur">
                         Upcoming
                       </Link>
-                      <Link href={item.id} className='aspect-square block relative z-10'>
+                      <Link href={item.project.id} className='aspect-square block relative z-10'>
                         {item?.project?.banner && (
                           <Image
                             fill

@@ -26,7 +26,7 @@ export default function ActivePresale() {
                     <Link href={item.project.id} className="absolute top-4 right-4 z-20 py-1 px-2 text-white bg-green-400 rounded-full inline-flex gap-2 items-center text-xs font-bold backdrop-blur">
                       Active
                     </Link>
-                    <Link href={item.id} className='aspect-square block relative z-10'>
+                    <Link href={item.project.id} className='aspect-square block relative z-10'>
                       {item?.project?.banner && (
                         <Image
                           fill
