@@ -13,7 +13,7 @@ export default function SupporChain() {
           <h2 className='text-2xl md:text-4xl font-bold max-w-xl'>Blockchains Supported</h2>
           <p className='text-sm md:text-base'>Discover and invest in top real-world asset (RWA) projects across multiple supported blockchains, all in one platform.</p>
         </div>
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center flex-wrap gap-4">
           {
             data ? (
               <>
