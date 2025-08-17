@@ -39,6 +39,7 @@ export type TPresale = {
   unit: string
   claimTime: number,
   startDate: string,
+  endDate?: string,
   contractAddress: string | null,
   whitelistContract: string | null,
   whitelists: TAddressWhitelist[] | []
@@ -93,3 +94,15 @@ export type TProjectCounter = {
   status: "PENDING" | "APPROVED" | "REJECTED" | "DEPLOYED";
   count: number;
 };
+
+export type TFormContribuePresale = {
+  projectId: string
+  presaleId: string
+  price: string
+  count: number
+  transactionHash: string
+}
+
+export type TResponsePresale = TPresale & {
+  project: TProject
+}
