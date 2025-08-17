@@ -1,8 +1,10 @@
 
+import ActivePresale from './active-presale'
 import Community from './comnunity'
 import NewHero from './new-hero'
 import SupporChain from './suppor-chain'
-import Upcoming from './upcoming'
+// import Upcoming from './upcoming'
+import UpcomingPresale from './upcoming-presale'
 
 export default function Home() {
   return (
@@ -31,7 +33,9 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <Upcoming />
+      <UpcomingPresale />
+      <ActivePresale />
+      {/* <Upcoming /> */}
       <SupporChain />
       <Community />
     </>

@@ -464,7 +464,7 @@ export default function FormCreate() {
                           <FormInput
                             control={form.control}
                             name={`presales.${index}.startDate`}
-                            label="Start Date" type="date"
+                            label="Start Date" type="datetime-local"
                           />
                           <FormSelect
                             control={form.control}
