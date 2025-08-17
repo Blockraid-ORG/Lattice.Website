@@ -52,5 +52,5 @@ export const formFilterProjectSchema = z.object({
 })
 
 export const formBuyPresale = (max: number) => z.object({
-  amount: z.coerce.number().min(1, "Amount required").max(max, `Max contribution ${max}`),
+  amount: z.coerce.number().min(0.001, "Amount required").max(max, `Max contribution ${max}`),
 })

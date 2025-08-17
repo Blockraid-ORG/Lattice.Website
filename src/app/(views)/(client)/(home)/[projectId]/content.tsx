@@ -32,7 +32,7 @@ export default function DetailProjectContent() {
       {
         data && (
           <div className='mt-3 flex justify-end container sticky bottom-0 z-30 pb-6 px-4 md:px-0'>
-            <FormBuyPresale data={data?.presales} />
+            <FormBuyPresale data={data} />
           </div>
         )
       }

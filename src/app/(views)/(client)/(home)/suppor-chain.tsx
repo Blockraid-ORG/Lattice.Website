@@ -1,4 +1,5 @@
 'use client'
+import { toUrlAsset } from '@/lib/utils'
 import { useChainList } from '@/modules/chain/chain.query'
 import Image from 'next/image'
 import React from 'react'
@@ -17,7 +18,7 @@ export default function SupporChain() {
             data ? (
               <>
                 {data.map(item => (
-                  <Image key={item.value} width={60} height={60} alt='chain' className='w-12 h-12 md:h-20 md:w-20 rounded-full' src={item.logo!} />
+                  <Image key={item.value} width={60} height={60} alt='chain' className='w-12 h-12 md:h-20 md:w-20 rounded-full' src={toUrlAsset(item.logo!)} />
                 ))}
               </>
 

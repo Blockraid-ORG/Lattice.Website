@@ -1,5 +1,6 @@
 "use client";
 import { AnimatedTooltip } from "@/components/ui/animated-tooltip";
+import { toUrlAsset } from "@/lib/utils";
 import { useChainList } from "@/modules/chain/chain.query";
 export function ChainHero() {
   const { data } = useChainList()
@@ -11,7 +12,7 @@ export function ChainHero() {
             id: index,
             name: i.label!,
             designation: i.ticker!,
-            image: i.logo!,
+            image: toUrlAsset(i.logo!),
           }
         })} />
       }
