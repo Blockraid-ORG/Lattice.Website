@@ -24,7 +24,7 @@ export default function UpcomingPresale() {
                 {
                   data?.data && data?.data?.map((item, index) => (
                     <div key={index} className='relative border dark:border-transparent bg-white cursor-pointer dark:bg-[#0A2342] p-2 rounded-xl hover:scale-105 duration-300'>
-                      <Link href={item.id} className="absolute top-4 right-4 z-20 py-1 px-2 bg-blue-500/30 text-blue-600 dark:text-white dark:bg-black rounded-full inline-flex gap-2 items-center text-xs font-bold backdrop-blur">
+                      <Link href={item.project.id} className="absolute top-4 right-4 z-20 py-1 px-2 bg-blue-500/30 text-blue-600 dark:text-white dark:bg-black rounded-full inline-flex gap-2 items-center text-xs font-bold backdrop-blur">
                         Upcoming
                       </Link>
                       <Link href={item.id} className='aspect-square block relative z-10'>
