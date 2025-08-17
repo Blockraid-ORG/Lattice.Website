@@ -11,20 +11,23 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { Form } from "@/components/ui/form"
+import { useContribute } from "@/modules/contribute/contribute.hook"
 import { formBuyPresale } from "@/modules/project/project.schema"
-import { TFormBuyPresale, TPresale } from "@/types/project"
+import { TFormBuyPresale, TProject } from "@/types/project"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-export function FormBuyPresale({ data }: { data: TPresale }) {
+export function FormBuyPresale({ data }: { data: TProject }) {
+  const { contributePresale } = useContribute()
   const form = useForm<TFormBuyPresale>({
-    resolver: zodResolver(formBuyPresale(Number(data.maxContribution))),
+    resolver: zodResolver(formBuyPresale(Number(data.presales.maxContribution))),
     defaultValues: {
-      amount: 0
+      amount: 0.001
     }
   })
   async function onSubmit(values: TFormBuyPresale) {
+    contributePresale(data, values.amount)
     toast.info('Under Development!', {
       description: `you will contibute ${values.amount}`
     })
@@ -40,7 +43,7 @@ export function FormBuyPresale({ data }: { data: TPresale }) {
         <DialogHeader>
           <DialogTitle>Form Contribute</DialogTitle>
           <DialogDescription>
-            Maximum Contribution: {data.maxContribution}
+            Maximum Contribution: {data.presales.maxContribution}
           </DialogDescription>
         </DialogHeader>
         <div>

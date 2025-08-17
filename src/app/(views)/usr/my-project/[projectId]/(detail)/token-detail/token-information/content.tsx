@@ -122,7 +122,7 @@ export default function TokenInformation({ data }: { data: TProject }) {
                   <Allocations
                     data={data.allocations}
                     totalSupply={data.totalSupply}
-                    contract={`${data.chains[0].chain.urlScanner}/address/${data.contractAddress}`}
+                    contract={`${data.chains[0].chain.urlScanner}/address/`}
                   />
                 </div>
                 <div className="max-w-xs mx-auto">
