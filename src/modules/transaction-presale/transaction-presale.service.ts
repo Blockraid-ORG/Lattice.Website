@@ -22,6 +22,14 @@ class TansactionPresaleService extends BaseService<TPresale, TFormContribuePresa
     })
     return response.data.data
   }
+  async GET_MY_CONTRIBUTION(params?: TQueryParam): Promise<any>{
+    const response = await axiosInstance({
+      method: 'GET',
+      url: `${this.endpoint}/my-contribution`,
+      params
+    })
+    return response.data.data
+  }
 }
 
 const tansactionpresaleService = new TansactionPresaleService()

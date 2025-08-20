@@ -1,9 +1,10 @@
 import dayjs from '@/lib/dayjs';
 import { NumberComma } from '@/lib/utils';
 import { TProject } from '@/types/project';
+import { FormBuyPresale } from './form-buy-presale';
+import TableMyContribution from './table-my-contribution';
 
 export default function PresaleInfo({ data }: { data: TProject }) {
-  const totalPresale = data.allocations.find(i => i.isPresale)?.supply;
   return (
     <div className='relative z-20 px-3 md:px-0'>
       <div className="container bg-white shadow shadow-neutral-100/5 border p-6 dark:bg-neutral-950 rounded-xl my-6">
@@ -31,20 +32,10 @@ export default function PresaleInfo({ data }: { data: TProject }) {
               <p className='text-sm text-neutral-500'>Ends {dayjs(data?.presales.startDate).toNow()}</p>
             </div>
           </div>
-          <div className='space-y-1 mt-4'>
-            <div className="flex justify-between">
-              <h2>Progress</h2>
-              <p className='text-sm font-semibold'>30% form {NumberComma(Number(data.totalSupply) * totalPresale!)}</p>
-            </div>
-            <div className='bg-primary h-3 rounded-full relative overflow-hidden'>
-              <div
-                className='bg-[#20C997] h-full rounded-full'
-                style={{
-                  width: '30%',
-                }}
-              ></div>
-            </div>
+          <div className='mt-3 flex justify-start container sticky bottom-0 z-30 px-4 md:px-0 border-b pb-4'>
+            <FormBuyPresale data={data} />
           </div>
+          <TableMyContribution data={data} />
         </div>
       </div>
     </div>

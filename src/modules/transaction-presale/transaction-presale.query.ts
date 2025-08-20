@@ -11,10 +11,16 @@ export const useCreateContribute = () => {
     mutationFn: (data: TFormContribuePresale) => tansactionpresaleService.CREATE(data),
     onSuccess: () => {
       toast.success('Success', {
-        description: "Success submit project, waiting for review team!"
+        description: `Your contribution success`,
+        action: {
+          label: "View Transaction",
+          onClick: () => {
+            window.location.href = ``
+          },
+        },
       })
       queryClient.invalidateQueries({
-        queryKey: ["get_project"]
+        queryKey: ["get_my_contribution"]
       });
     },
     onError: () => {
@@ -45,6 +51,20 @@ export const useActivePresale = (filters?: { status?: string }) => {
   return useQuery({
     queryKey: ["get_active_presale", query],
     queryFn: () => tansactionpresaleService.GET_ACTIVE(query),
+    enabled: true
+  });
+}
+export const useMyContribution = (projectId?: string, presaleId?: string) => {
+  return useQuery({
+    queryKey: ["get_my_contribution", projectId, presaleId],
+    queryFn: async ({ queryKey }) => {
+      const [, projectId, presaleId] = queryKey
+      if (!projectId || !presaleId) throw new Error("Missing params")
+      return await tansactionpresaleService.GET_MY_CONTRIBUTION({
+        projectId,
+        presaleId,
+      })
+    },
     enabled: true
   });
 }
