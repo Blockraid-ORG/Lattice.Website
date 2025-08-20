@@ -15,10 +15,12 @@ import { useContribute } from "@/modules/contribute/contribute.hook"
 import { formBuyPresale } from "@/modules/project/project.schema"
 import { TFormBuyPresale, TProject } from "@/types/project"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { toast } from "sonner"
 
 export function FormBuyPresale({ data }: { data: TProject }) {
+  const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
   const { contributePresale } = useContribute()
   const form = useForm<TFormBuyPresale>({
     resolver: zodResolver(formBuyPresale(Number(data.presales.maxContribution))),
@@ -27,13 +29,14 @@ export function FormBuyPresale({ data }: { data: TProject }) {
     }
   })
   async function onSubmit(values: TFormBuyPresale) {
-    contributePresale(data, values.amount)
-    toast.info('Under Development!', {
-      description: `you will contibute ${values.amount}`
-    })
+    setLoading(true)
+    await contributePresale(data, values.amount)
+    setOpen(false)
+    setLoading(false)
   }
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={()=>setOpen(!open)}>
       <DialogTrigger asChild>
         <Button size={'lg'} className='w-full md:w-max'>
           <Icon name="lucide-lab:copy-down" /> Contribute
@@ -56,7 +59,10 @@ export function FormBuyPresale({ data }: { data: TProject }) {
                 placeholder="input amount"
               />
               <div className="mt-5 flex justify-end">
-                <Button type="submit">Submit</Button>
+                <Button className="flex gap-2" disabled={loading} type="submit">
+                  {loading && <Icon name="icon-park-outline:loading" className="animate-spin" />}
+                  Submit
+                </Button>
               </div>
             </form>
           </Form>
