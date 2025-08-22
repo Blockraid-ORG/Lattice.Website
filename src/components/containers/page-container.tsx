@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import React, { Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "../icon";
@@ -15,28 +15,31 @@ export default function PageContainer({
   actions?: React.ReactNode;
   title?: string;
   subtitle?: string;
-  canBack?: boolean
+  canBack?: boolean;
 }) {
-  const router = useRouter()
+  const router = useRouter();
   return (
-    <Suspense fallback={
-      <SuspenseLoader />
-    }>
+    <Suspense fallback={<SuspenseLoader />}>
       <header className="flex flex-col gap-3 md:flex-row justify-between p-3">
         <div>
-          {canBack && (<button className="flex items-center gap-1" onClick={() => router.back()}>
-            <Icon name="ic:round-arrow-back" /> Back
-          </button>)}
-          <h1 className="text-xl font-semibold text-slate-700 dark:text-slate-300">{title}</h1>
-          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{subtitle}</p>
+          {canBack && (
+            <button
+              className="flex items-center gap-1"
+              onClick={() => router.back()}
+            >
+              <Icon name="ic:round-arrow-back" /> Back
+            </button>
+          )}
+          <h1 className="text-xl font-semibold text-slate-700 dark:text-slate-300">
+            {title}
+          </h1>
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+            {subtitle}
+          </p>
         </div>
-        <div>
-          {actions}
-        </div>
+        <div>{actions}</div>
       </header>
-      <div className="p-2">
-        {children}
-      </div>
+      <div className="p-2">{children}</div>
     </Suspense>
-  )
+  );
 }
