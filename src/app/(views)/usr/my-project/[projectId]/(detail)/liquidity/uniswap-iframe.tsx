@@ -9,17 +9,108 @@ import {
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/icon";
 import { DialogTitle } from "@radix-ui/react-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useState } from "react";
+import { useParams } from "next/navigation";
+import { useProjectDetail } from "@/modules/project/project.query";
+import { toast } from "sonner";
 
 interface UniswapIframeProps {
   tokenA?: string;
   tokenB?: string;
   chain?: string;
+  contractAddress: string;
 }
 
-export default function UniswapIframe({
-  tokenA = "0x4200000000000000000000000000000000000006", // WETH Base
+interface CopyableTextProps {
+  text: string;
+  displayText?: string;
+  className?: string;
+}
+
+function CopyableText({
+  text,
+  displayText,
+  className = "",
+}: CopyableTextProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success("Contract address copied to clipboard!", {
+        duration: 2000,
+      });
+
+      // Reset copied state after 2 seconds
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error("Failed to copy to clipboard");
+      console.error("Failed to copy: ", err);
+    }
+  };
+
+  const formatAddress = (address: string) => {
+    if (address.length <= 12) return address;
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            className={`inline-flex items-center gap-2 px-3 py-1.5 bg-muted/50 hover:bg-muted/70 rounded-lg border transition-colors cursor-pointer group ${className}`}
+            onClick={handleCopy}
+          >
+            <code className="text-xs font-mono">
+              {displayText || formatAddress(text)}
+            </code>
+            <Icon
+              name={copied ? "mdi:check" : "mdi:content-copy"}
+              className={`text-sm transition-all duration-200 ${
+                copied
+                  ? "text-green-500 scale-110"
+                  : "text-muted-foreground group-hover:text-foreground"
+              }`}
+            />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{copied ? "Copied!" : "Click to copy contract address"}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+export default function ActionsLiquidity() {
+  const { projectId } = useParams();
+  const { data: project, isLoading } = useProjectDetail(projectId.toString());
+  console.log(project);
+  if (isLoading) return <div>Loading...</div>;
+  if (project?.status === "DEPLOYED") {
+    return (
+      <UniswapIframe
+        tokenA={"0xB8c77482e45F1F44dE1745F52C74426C631bDD52"} // BNB - TODO: ganti jadi dari database
+        tokenB={project.contractAddress}
+        contractAddress={project.contractAddress ?? ""}
+      />
+    );
+  }
+  return null;
+}
+
+function UniswapIframe({
+  tokenA = "0xdAC17F958D2ee523a2206206994597C13D831ec7", // USDT Base
   tokenB = "0x833589fCD6eDb6E08f4c7C32D4f71b54bDA02913", // USDC Base
+  contractAddress,
   chain = "base",
 }: UniswapIframeProps) {
   const [open, setOpen] = useState(false);
@@ -49,12 +140,16 @@ export default function UniswapIframe({
       </DialogTrigger>
       <DialogContent className="max-w-[90vw] w-full h-[90vh] p-0">
         <DialogHeader className="p-6 pb-0">
-          <DialogTitle className="flex items-center gap-2">
-            <Icon className="text-lg" name="simple-icons:uniswap" />
-            Add Liquidity - Uniswap
+          <DialogTitle className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Icon className="text-lg" name="simple-icons:uniswap" />
+              Add Liquidity - Uniswap
+            </div>
+            <CopyableText text={contractAddress} className="flex-shrink-0" />
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Provide liquidity to earn trading fees
+            Provide liquidity to earn trading fees. Click the contract address
+            to copy it.
           </p>
         </DialogHeader>
 
