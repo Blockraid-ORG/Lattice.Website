@@ -1,4 +1,4 @@
-import { TFormContribuePresale } from "@/types/project";
+import { TFormClaimPresale, TFormContribuePresale } from "@/types/project";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import tansactionpresaleService from "./transaction-presale.service";
@@ -65,6 +65,44 @@ export const useMyContribution = (projectId?: string, presaleId?: string) => {
         presaleId,
       })
     },
+    enabled: true
+  });
+}
+
+export const useCreateClaimedPresale = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: TFormClaimPresale) => tansactionpresaleService.CREATE_CLAIM_PRESALE(data),
+    onSuccess: () => {
+      toast.success('Success', {
+        description: `Your claim success`,
+        action: {
+          label: "View Transaction",
+          onClick: () => {
+            window.location.href = ``
+          },
+        },
+      })
+      queryClient.invalidateQueries({
+        queryKey: ["get_my_claimed_presale"]
+      });
+    },
+    onError: () => {
+      toast.error('Error', {
+        description: "Fail to submit data!"
+      })
+    }
+  });
+};
+export const useMyClaimedPresale = (filters?: { status?: string }) => {
+  const searchString = useSearchParams();
+  const query = {
+    ...toObjectQuery(searchString),
+    ...(filters?.status && { status: filters.status })
+  }
+  return useQuery({
+    queryKey: ["get_my_claimed_presale", query],
+    queryFn: () => tansactionpresaleService.GET_CLAIM_PRESALE(query),
     enabled: true
   });
 }
