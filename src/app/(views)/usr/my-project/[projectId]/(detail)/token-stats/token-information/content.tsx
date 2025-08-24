@@ -42,7 +42,6 @@ export default function TokenSats({ data }: { data: TProject }) {
 
   // Map allocation data to VestingData format
   const mappedAllocations = useMemo(() => {
-    console.log("data", data);
     // Handle edge cases
     if (!data?.allocations || data.allocations.length === 0) {
       return [];

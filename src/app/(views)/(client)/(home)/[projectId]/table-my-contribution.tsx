@@ -8,12 +8,15 @@ import {
   TableRow
 } from "@/components/ui/table"
 import { NumberComma } from "@/lib/utils"
+import { useContribute } from "@/modules/contribute/contribute.hook"
 import { useMyContribution } from '@/modules/transaction-presale/transaction-presale.query'
 import { TProject } from '@/types/project'
 import Link from "next/link"
+import { useState } from "react"
 
 export default function TableMyContribution({ data }: { data: TProject }) {
   const { data: myContributions } = useMyContribution(data.id, data.presales.id)
+  const { claimPresale } = useContribute()
   const totalAmount = myContributions?.reduce(
     (acc: number, item: any) => acc + Number(item.count),
     0
@@ -25,6 +28,12 @@ export default function TableMyContribution({ data }: { data: TProject }) {
       (Number(data.presales.price) * (10 ** data.decimals))
     return acc + tokenAmount
   }, 0) ?? 0
+
+  const [isClaiming, setIsClaiming] = useState(false)
+  async function onClaimPresale() {
+    setIsClaiming(true)
+    claimPresale(data).finally(() => setIsClaiming(false))
+  }
   return (
     <div>
       <div className="py-4 border-b">
@@ -44,9 +53,27 @@ export default function TableMyContribution({ data }: { data: TProject }) {
               <p className='text-xs font-medium'>{data.ticker}</p>
             </div>
           </div>
+          <div>
+            <p className='text-sm text-neutral-500'>Claimed Token</p>
+            <div className='flex gap-2 items-center'>
+              <h2 className='font-bold'>{NumberComma(0)}</h2>
+              <p className='text-xs font-medium'>{data.ticker}</p>
+            </div>
+          </div>
         </div>
         <div className="mt-4">
-          <Button size={'lg'}>Claim Token { `Under Develop` }</Button>
+          {/* {
+            !dayjs(data.presales.startDate).add(+data.presales.duration, "day").isAfter(dayjs()) && (
+              <Button
+                disabled={isClaiming} onClick={onClaimPresale}
+                size={'lg'}
+              >Claim Token</Button>
+            )
+          } */}
+          <Button
+            disabled={isClaiming} onClick={onClaimPresale}
+            size={'lg'}
+          >Claim Token</Button>
         </div>
       </div>
       <div className="pt-4">
