@@ -9,16 +9,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/icon";
 import { DialogTitle } from "@radix-ui/react-dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import { useProjectDetail } from "@/modules/project/project.query";
-import { toast } from "sonner";
+import {
+  CopyableText,
+  ModalLiquidity,
+  ConfirmationModal,
+} from "@/components/liquidity-pool";
 
 interface UniswapIframeProps {
   tokenA?: string;
@@ -27,81 +25,57 @@ interface UniswapIframeProps {
   contractAddress: string;
 }
 
-interface CopyableTextProps {
-  text: string;
-  displayText?: string;
-  className?: string;
-}
-
-function CopyableText({
-  text,
-  displayText,
-  className = "",
-}: CopyableTextProps) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      toast.success("Contract address copied to clipboard!", {
-        duration: 2000,
-      });
-
-      // Reset copied state after 2 seconds
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      toast.error("Failed to copy to clipboard");
-      console.error("Failed to copy: ", err);
-    }
-  };
-
-  const formatAddress = (address: string) => {
-    if (address.length <= 12) return address;
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
-
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div
-            className={`inline-flex items-center gap-2 px-3 py-1.5 bg-muted/50 hover:bg-muted/70 rounded-lg border transition-colors cursor-pointer group ${className}`}
-            onClick={handleCopy}
-          >
-            <code className="text-xs font-mono">
-              {displayText || formatAddress(text)}
-            </code>
-            <Icon
-              name={copied ? "mdi:check" : "mdi:content-copy"}
-              className={`text-sm transition-all duration-200 ${
-                copied
-                  ? "text-green-500 scale-110"
-                  : "text-muted-foreground group-hover:text-foreground"
-              }`}
-            />
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{copied ? "Copied!" : "Click to copy contract address"}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-}
-
 export default function ActionsLiquidity() {
   const { projectId } = useParams();
   const { data: project, isLoading } = useProjectDetail(projectId.toString());
+  const [open, setOpen] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [modalData, setModalData] = useState({
+    rangeType: "full",
+    minPrice: "0",
+    maxPrice: "∞",
+    startingPrice: "0.00000000000009",
+    baseToken: "BNB",
+    bnbAmount: "0",
+    buAmount: "0",
+  });
+
   console.log(project);
   if (isLoading) return <div>Loading...</div>;
   if (project?.status === "DEPLOYED") {
     return (
-      <UniswapIframe
-        tokenA={"0xB8c77482e45F1F44dE1745F52C74426C631bDD52"} // BNB - TODO: ganti jadi dari database
-        tokenB={project.contractAddress}
-        contractAddress={project.contractAddress ?? ""}
-      />
+      <>
+        <Button
+          size="sm"
+          variant="default"
+          className="flex items-center gap-2"
+          onClick={() => {
+            setOpen(true);
+            console.log("open", open);
+          }}
+        >
+          <Icon name="mdi:water-plus" className="text-sm" />
+          Add Liquidity
+        </Button>
+        <ModalLiquidity
+          open={open}
+          setOpen={setOpen}
+          setShowConfirmModal={setShowConfirmModal}
+          setModalData={setModalData}
+        />
+        <ConfirmationModal
+          showConfirmModal={showConfirmModal}
+          setShowConfirmModal={setShowConfirmModal}
+          setOpen={setOpen}
+          rangeType={modalData.rangeType}
+          minPrice={modalData.minPrice}
+          maxPrice={modalData.maxPrice}
+          startingPrice={modalData.startingPrice}
+          baseToken={modalData.baseToken}
+          bnbAmount={modalData.bnbAmount}
+          buAmount={modalData.buAmount}
+        />
+      </>
     );
   }
   return null;
