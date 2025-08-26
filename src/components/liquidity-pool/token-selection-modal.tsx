@@ -60,6 +60,22 @@ export function TokenSelectionModal({
 
   const popularTokens: Token[] = [
     {
+      symbol: "BNB",
+      name: "Binance Coin",
+      icon: "cryptocurrency-color:bnb",
+      price: "$625.34",
+      address: "0xb8c77482e45f1f44de1745f52c74426c631bdd52",
+      networks: ["ethereum", "bsc"],
+    },
+    {
+      symbol: "BU",
+      name: "Bakso Urat",
+      icon: "mdi:food",
+      price: "$0.0001234",
+      address: "0xC518FC545C14FC990f269F8f9bE79D7fc471D13f",
+      networks: ["ethereum", "bsc"],
+    },
+    {
       symbol: "ETH",
       name: "Ethereum",
       icon: "cryptocurrency-color:eth",
@@ -102,14 +118,6 @@ export function TokenSelectionModal({
   ];
 
   const additionalTokens: Token[] = [
-    {
-      symbol: "BNB",
-      name: "Binance Coin",
-      icon: "cryptocurrency-color:bnb",
-      price: "$14.67",
-      address: "0x...",
-      networks: ["bsc"],
-    },
     {
       symbol: "MATIC",
       name: "Polygon",
