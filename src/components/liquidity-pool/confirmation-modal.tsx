@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/icon";
 import { toast } from "sonner";
+import BigNumber from "bignumber.js";
 
 interface ConfirmationModalProps {
   showConfirmModal: boolean;
@@ -19,8 +20,8 @@ interface ConfirmationModalProps {
   maxPrice: string;
   startingPrice: string;
   baseToken: string;
-  bnbAmount: string;
-  buAmount: string;
+  tokenAAmount: string;
+  tokenBAmount: string;
   tokenAData?: {
     symbol: string;
     name: string;
@@ -31,10 +32,7 @@ interface ConfirmationModalProps {
     name: string;
     icon: string;
   };
-  tokenPrices?: {
-    BNB: number;
-    BU: number;
-  };
+  tokenPrices?: { [key: string]: number };
   calculateUSDValue?: (symbol: string, amount: string) => string;
   calculateTotalPoolValue?: () => string;
 }
@@ -48,8 +46,8 @@ export function ConfirmationModal({
   maxPrice,
   startingPrice,
   baseToken,
-  bnbAmount,
-  buAmount,
+  tokenAAmount,
+  tokenBAmount,
   tokenAData = {
     symbol: "BNB",
     name: "Binance Coin",
@@ -58,79 +56,61 @@ export function ConfirmationModal({
   tokenBData = {
     symbol: "BU",
     name: "Bakso Urat",
-    icon: "mdi:food",
+    icon: "mdi:coin", // Ubah dari mdi:food ke mdi:coin agar konsisten
   },
   tokenPrices = { BNB: 625.34, BU: 0.0001375 },
   calculateUSDValue = (symbol: string, amount: string) => {
-    // Default implementation menggunakan formatting yang sama
-    const tokenAmount = parseFloat(amount);
-    if (isNaN(tokenAmount) || tokenAmount === 0) return "US$0";
+    // Default implementation menggunakan BigNumber untuk precision
+    const tokenAmount = new BigNumber(amount || 0);
+    if (tokenAmount.isZero()) return "US$0";
 
-    const price = symbol === "BNB" ? 625.34 : 0.0001375;
-    const usdValue = tokenAmount * price;
+    // Use real-time token prices from CoinGecko
+    const price = new BigNumber(tokenPrices?.[symbol] || 0);
+    const usdValue = tokenAmount.multipliedBy(price);
 
-    // Smart formatting sesuai requirement user
-    const formatSmartDecimal = (num: number): string => {
-      if (num === 0) return "0";
-      if (num < 0.01) {
-        const str = num.toFixed(20);
-        return str.replace(/\.?0+$/, "");
-      } else {
-        return num.toFixed(2);
-      }
-    };
-
-    return `US$${formatSmartDecimal(usdValue)}`;
+    return `US$${formatUSDWithoutRounding(usdValue)}`;
   },
   calculateTotalPoolValue = () => "US$0",
 }: ConfirmationModalProps) {
-  // Helper function untuk format USD tanpa pembulatan - sama seperti di modal-liquidity
-  const formatUSDWithoutRounding = (value: number) => {
-    if (value === 0) return "0.00";
+  // Helper function untuk format USD tanpa pembulatan menggunakan BigNumber
+  const formatUSDWithoutRounding = (value: number | BigNumber | undefined) => {
+    // Handle undefined, null values
+    if (value == null) return "0";
 
-    // Smart formatting sesuai requirement user
-    const formatSmartDecimal = (num: number): string => {
-      if (num === 0) return "0";
+    const valueBN = value instanceof BigNumber ? value : new BigNumber(value);
 
-      // Rule: jika < 0.01 tampil utuh, jika >= 0.01 tampil 2 decimal places
-      if (num < 0.01) {
-        // Untuk angka kecil, tampil semua digit signifikan
-        const str = num.toFixed(20);
-        return str.replace(/\.?0+$/, "");
-      } else {
-        // Untuk angka >= 0.01, tampil 2 decimal places
-        return num.toFixed(2);
-      }
-    };
+    if (valueBN.isZero() || valueBN.isNaN()) return "0";
 
-    return formatSmartDecimal(value);
+    // Smart formatting untuk dunia crypto
+    if (valueBN.lt(0.01)) {
+      // Untuk angka kecil, tampil semua digit signifikan tanpa trailing zeros
+      return valueBN.toFixed();
+    } else {
+      // Untuk angka >= 0.01, tampil dengan format yang sesuai
+      return valueBN.decimalPlaces(2).toFixed();
+    }
   };
 
-  // Format rate untuk starting price display
-  const formatRateWithoutRounding = (value: number) => {
-    if (value === 0) return "0";
+  // Format rate untuk starting price display menggunakan BigNumber
+  const formatRateWithoutRounding = (value: number | BigNumber | undefined) => {
+    // Handle undefined, null values
+    if (value == null) return "0";
 
-    // Rule: jika < 0.01 tampil utuh, jika >= 0.01 tampil 2 decimal places
-    let result;
-    if (value < 0.01) {
-      // Untuk angka kecil, tampil semua digit signifikan
-      const str = value.toFixed(20);
-      result = str.replace(/\.?0+$/, "");
+    const valueBN = value instanceof BigNumber ? value : new BigNumber(value);
+
+    if (valueBN.isZero() || valueBN.isNaN()) return "0";
+
+    // Rule: untuk crypto precision, gunakan BigNumber formatting
+    if (valueBN.lt(0.01)) {
+      // Untuk angka kecil, tampil semua digit signifikan tanpa trailing zeros
+      return valueBN.toFixed();
+    } else if (valueBN.lt(1000)) {
+      // Untuk angka < 1000, tampil dengan precision yang sesuai
+      return valueBN.decimalPlaces(2).toFixed();
     } else {
-      // Untuk angka >= 0.01, tampil 2 decimal places
-      result = value.toFixed(2);
+      // Untuk angka >= 1000, gunakan format dengan koma
+      return valueBN.decimalPlaces(2).toFormat();
     }
-
-    // Jika angka >= 1000, gunakan toLocaleString untuk formatting
-    const numValue = parseFloat(result);
-    if (numValue >= 1000) {
-      return numValue.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-    }
-
-    return result;
   };
 
   return (
@@ -178,7 +158,7 @@ export function ConfirmationModal({
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="bg-muted px-2 py-1 rounded text-xs">v4</span>
+                <span className="bg-muted px-2 py-1 rounded text-xs">v3</span>
                 <span className="bg-muted px-2 py-1 rounded text-xs">0.3%</span>
               </div>
             </div>
@@ -212,7 +192,7 @@ export function ConfirmationModal({
                 {(() => {
                   const rate = parseFloat(startingPrice);
                   if (isNaN(rate) || rate === 0) {
-                    return baseToken === "BNB"
+                    return baseToken === "TokenA"
                       ? `0 ${tokenAData.symbol} = 1 ${tokenBData.symbol}`
                       : `0 ${tokenBData.symbol} = 1 ${tokenAData.symbol}`;
                   }
@@ -220,11 +200,11 @@ export function ConfirmationModal({
                   const formattedRate = formatRateWithoutRounding(rate);
 
                   // Format display berdasarkan baseToken - sama seperti di modal-liquidity
-                  if (baseToken === "BNB") {
-                    // BNB selected: input X BNB = 1 BU
+                  if (baseToken === "TokenA") {
+                    // TokenA selected: input X TokenA = 1 TokenB
                     return `${formattedRate} ${tokenAData.symbol} = 1 ${tokenBData.symbol}`;
                   } else {
-                    // BU selected: input X BU = 1 BNB
+                    // TokenB selected: input X TokenB = 1 TokenA
                     return `${formattedRate} ${tokenBData.symbol} = 1 ${tokenAData.symbol}`;
                   }
                 })()}
@@ -234,14 +214,21 @@ export function ConfirmationModal({
                   const rate = parseFloat(startingPrice);
                   if (isNaN(rate) || rate === 0) return "US$0.00";
 
-                  // Calculate USD price berdasarkan baseToken logic
-                  let usdPrice;
-                  if (baseToken === "BNB") {
-                    // BNB selected: rate BNB = 1 BU → 1 BU = rate * BNB_price
-                    usdPrice = rate * tokenPrices!.BNB;
+                  // Calculate USD price berdasarkan baseToken logic menggunakan BigNumber
+                  let usdPrice = new BigNumber(0);
+
+                  // Safely get TokenA price with fallback
+                  const tokenAPrice = new BigNumber(
+                    tokenPrices?.[tokenAData.symbol] || 0
+                  );
+                  const rateBN = new BigNumber(rate);
+
+                  if (baseToken === "TokenA") {
+                    // TokenA selected: rate TokenA = 1 TokenB → 1 TokenB = rate * TokenA_price
+                    usdPrice = rateBN.multipliedBy(tokenAPrice);
                   } else {
-                    // BU selected: rate BU = 1 BNB → 1 BNB = tokenPrices.BNB (tidak berubah)
-                    usdPrice = tokenPrices!.BNB;
+                    // TokenB selected: rate TokenB = 1 TokenA → 1 TokenA = tokenPrices.TokenA (tidak berubah)
+                    usdPrice = tokenAPrice;
                   }
 
                   return `US$${formatUSDWithoutRounding(usdPrice)}`;
@@ -260,10 +247,13 @@ export function ConfirmationModal({
                     <Icon name={tokenAData.icon} className="w-6 h-6" />
                     <div>
                       <div className="font-mono text-lg">
-                        {bnbAmount || "0"} {tokenAData.symbol}
+                        {tokenAAmount || "0"} {tokenAData.symbol}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {calculateUSDValue(tokenAData.symbol, bnbAmount || "0")}
+                        {calculateUSDValue(
+                          tokenAData.symbol,
+                          tokenAAmount || "0"
+                        )}
                       </div>
                     </div>
                   </div>
@@ -273,10 +263,13 @@ export function ConfirmationModal({
                     <Icon name={tokenBData.icon} className="w-6 h-6" />
                     <div>
                       <div className="font-mono text-lg">
-                        {buAmount || "0"} {tokenBData.symbol}
+                        {tokenBAmount || "0"} {tokenBData.symbol}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {calculateUSDValue(tokenBData.symbol, buAmount || "0")}
+                        {calculateUSDValue(
+                          tokenBData.symbol,
+                          tokenBAmount || "0"
+                        )}
                       </div>
                     </div>
                   </div>

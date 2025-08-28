@@ -36,8 +36,8 @@ export default function ActionsLiquidity() {
     maxPrice: "∞",
     startingPrice: "0.00000022",
     baseToken: "BU",
-    bnbAmount: "0",
-    buAmount: "0",
+    tokenAAmount: "0",
+    tokenBAmount: "0",
     tokenPrices: { BNB: 625.34, BU: 0.0001375 },
     calculateUSDValue: () => "US$0",
     calculateTotalPoolValue: () => "US$0",
@@ -65,6 +65,16 @@ export default function ActionsLiquidity() {
           setOpen={setOpen}
           setShowConfirmModal={setShowConfirmModal}
           setModalData={setModalData}
+          projectData={
+            project
+              ? {
+                  name: project.name,
+                  ticker: project.ticker,
+                  contractAddress: project.contractAddress,
+                  chains: project.chains,
+                }
+              : undefined
+          }
         />
         <ConfirmationModal
           showConfirmModal={showConfirmModal}
@@ -75,18 +85,26 @@ export default function ActionsLiquidity() {
           maxPrice={modalData.maxPrice}
           startingPrice={modalData.startingPrice}
           baseToken={modalData.baseToken}
-          bnbAmount={modalData.bnbAmount}
-          buAmount={modalData.buAmount}
+          tokenAAmount={modalData.tokenAAmount}
+          tokenBAmount={modalData.tokenBAmount}
           tokenAData={{
             symbol: "BNB",
             name: "Binance Coin",
             icon: "cryptocurrency-color:bnb",
           }}
-          tokenBData={{
-            symbol: "BU",
-            name: "Bakso Urat",
-            icon: "mdi:food",
-          }}
+          tokenBData={
+            project
+              ? {
+                  symbol: project.ticker,
+                  name: project.name,
+                  icon: "mdi:coin",
+                }
+              : {
+                  symbol: "BU",
+                  name: "Bakso Urat",
+                  icon: "mdi:food",
+                }
+          }
           tokenPrices={modalData.tokenPrices}
           calculateUSDValue={modalData.calculateUSDValue}
           calculateTotalPoolValue={modalData.calculateTotalPoolValue}
@@ -96,7 +114,6 @@ export default function ActionsLiquidity() {
   }
   return null;
 }
-
 // function UniswapIframe({
 //   tokenA = "0xdAC17F958D2ee523a2206206994597C13D831ec7", // USDT Base
 //   tokenB = "0x833589fCD6eDb6E08f4c7C32D4f71b54bDA02913", // USDC Base

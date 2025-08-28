@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,12 +18,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { chains } from "@/data/chain";
+import { useTokenPrices } from "@/hooks/useTokenPrices";
 
 interface TokenSelectionModalProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   onSelectToken: (token: any) => void;
   selectedToken?: string;
+  filterByChain?: string; // Filter tokens by specific chain
+  disabledToken?: string; // Token symbol that should be disabled/hidden
 }
 
 interface Token {
@@ -32,7 +36,15 @@ interface Token {
   icon: string;
   price: string;
   address: string;
-  networks: string[];
+  chain: string;
+}
+
+interface Chain {
+  id: string;
+  symbol: string;
+  name: string;
+  icon: string;
+  tokens: Token[];
 }
 
 interface Network {
@@ -46,95 +58,295 @@ export function TokenSelectionModal({
   setOpen,
   onSelectToken,
   selectedToken,
+  filterByChain,
+  disabledToken,
 }: TokenSelectionModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedNetwork, setSelectedNetwork] = useState("all");
 
+  // Auto-set network filter based on filterByChain prop
+  useEffect(() => {
+    if (filterByChain) {
+      setSelectedNetwork(filterByChain);
+    }
+  }, [filterByChain]);
+
   const networks: Network[] = [
     { id: "all", name: "All Networks", icon: "mdi:earth" },
-    { id: "ethereum", name: "Ethereum", icon: "cryptocurrency-color:eth" },
-    { id: "bsc", name: "BSC", icon: "cryptocurrency-color:bnb" },
-    { id: "polygon", name: "Polygon", icon: "cryptocurrency-color:matic" },
-    { id: "arbitrum", name: "Arbitrum", icon: "simple-icons:arbitrum" },
+    ...chains.flatMap((chainGroup) =>
+      chainGroup.options.map((option) => ({
+        id: option.value,
+        name: option.label,
+        icon:
+          option.value === "binance"
+            ? "cryptocurrency-color:bnb"
+            : option.value === "ethereum"
+            ? "cryptocurrency-color:eth"
+            : option.value === "polygon"
+            ? "cryptocurrency-color:matic"
+            : option.value === "arbitrum"
+            ? "simple-icons:arbitrum"
+            : option.value === "avalanche"
+            ? "cryptocurrency-color:avax"
+            : "mdi:link",
+      }))
+    ),
   ];
 
-  const popularTokens: Token[] = [
+  const popularTokens: Chain[] = [
     {
-      symbol: "BNB",
-      name: "Binance Coin",
+      id: "bsc",
+      symbol: "BSC",
+      name: "Binance Smart Chain",
       icon: "cryptocurrency-color:bnb",
-      price: "$625.34",
-      address: "0xb8c77482e45f1f44de1745f52c74426c631bdd52",
-      networks: ["ethereum", "bsc"],
+      tokens: [
+        {
+          symbol: "LINK",
+          name: "Chainlink",
+          icon: "cryptocurrency-color:link",
+          price: "$24.30",
+          address: "0xf8a0bf9cf54bb92f17374d9e9a321e6a111a51bd",
+          chain: "bsc",
+        },
+        {
+          symbol: "UNI",
+          name: "Uniswap",
+          icon: "cryptocurrency-color:uni",
+          price: "$10.00",
+          address: "0xbf5140a22578168fd562dccf235e5d43a02ce9b1",
+          chain: "bsc",
+        },
+        {
+          symbol: "USDC",
+          name: "USD Coin",
+          icon: "cryptocurrency-color:usdc",
+          price: "$1.00",
+          address: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+          chain: "bsc",
+        },
+        {
+          symbol: "BNB",
+          name: "Binance Coin",
+          icon: "cryptocurrency-color:bnb",
+          price: "$625.34",
+          address: "0x0000000000000000000000000000000000000000",
+          chain: "bsc",
+        },
+        {
+          symbol: "BUSD",
+          name: "Binance USD",
+          icon: "cryptocurrency-color:busd",
+          price: "$1.00",
+          address: "0xe9e7cea3dedca5984780bafc599bd69add087d56",
+          chain: "bsc",
+        },
+        {
+          symbol: "CAKE",
+          name: "PancakeSwap",
+          icon: "cryptocurrency-color:cake",
+          price: "$2.85",
+          address: "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82",
+          chain: "bsc",
+        },
+      ],
     },
     {
-      symbol: "BU",
-      name: "Bakso Urat",
-      icon: "mdi:food",
-      price: "$0.0001234",
-      address: "0xC518FC545C14FC990f269F8f9bE79D7fc471D13f",
-      networks: ["ethereum", "bsc"],
-    },
-    {
+      id: "ethereum",
       symbol: "ETH",
       name: "Ethereum",
       icon: "cryptocurrency-color:eth",
-      price: "$2,345.67",
-      address: "0x...",
-      networks: ["ethereum", "arbitrum"],
+      tokens: [
+        {
+          symbol: "ETH",
+          name: "Ethereum",
+          icon: "cryptocurrency-color:eth",
+          price: "$3,500.00",
+          address: "0x0000000000000000000000000000000000000000",
+          chain: "ethereum",
+        },
+        {
+          symbol: "USDC",
+          name: "USD Coin",
+          icon: "cryptocurrency-color:usdc",
+          price: "$1.00",
+          address: "0xA0b86a33E6441d74E19df00c1f82f9B2f0b36b6E",
+          chain: "ethereum",
+        },
+        {
+          symbol: "USDT",
+          name: "Tether",
+          icon: "cryptocurrency-color:usdt",
+          price: "$1.00",
+          address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+          chain: "ethereum",
+        },
+        {
+          symbol: "UNI",
+          name: "Uniswap",
+          icon: "cryptocurrency-color:uni",
+          price: "$10.00",
+          address: "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984",
+          chain: "ethereum",
+        },
+      ],
     },
     {
-      symbol: "USDC",
-      name: "USD Coin",
-      icon: "cryptocurrency-color:usdc",
-      price: "$1.00",
-      address: "0xA0b86a33E6...",
-      networks: ["ethereum", "bsc", "polygon"],
-    },
-    {
-      symbol: "USDT",
-      name: "Tether",
-      icon: "cryptocurrency-color:usdt",
-      price: "$0.999",
-      address: "0xdAC1...",
-      networks: ["ethereum", "bsc", "polygon"],
-    },
-    {
-      symbol: "WBTC",
-      name: "Wrapped Bitcoin",
-      icon: "cryptocurrency-color:wbtc",
-      price: "$43,210.50",
-      address: "0x2260...",
-      networks: ["ethereum"],
-    },
-    {
-      symbol: "WETH",
-      name: "Wrapped Ethereum",
-      icon: "cryptocurrency-color:weth",
-      price: "$2,345.67",
-      address: "0xC02a...",
-      networks: ["ethereum", "arbitrum"],
-    },
-  ];
-
-  const additionalTokens: Token[] = [
-    {
+      id: "polygon",
       symbol: "MATIC",
       name: "Polygon",
       icon: "cryptocurrency-color:matic",
-      price: "$0.85",
-      address: "0x...",
-      networks: ["polygon"],
+      tokens: [
+        {
+          symbol: "MATIC",
+          name: "Polygon",
+          icon: "cryptocurrency-color:matic",
+          price: "$1.10",
+          address: "0x0000000000000000000000000000000000001010",
+          chain: "polygon",
+        },
+        {
+          symbol: "USDC",
+          name: "USD Coin",
+          icon: "cryptocurrency-color:usdc",
+          price: "$1.00",
+          address: "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+          chain: "polygon",
+        },
+        {
+          symbol: "WETH",
+          name: "Wrapped Ethereum",
+          icon: "cryptocurrency-color:eth",
+          price: "$3,500.00",
+          address: "0x7ceb23fd6d09a2696d4f6b3e8e3cf5ad9b83e5c6",
+          chain: "polygon",
+        },
+      ],
     },
     {
-      symbol: "LINK",
-      name: "Chainlink",
-      icon: "cryptocurrency-color:link",
-      price: "$12.34",
-      address: "0x...",
-      networks: ["ethereum", "bsc", "polygon"],
+      id: "arbitrum",
+      symbol: "ARB",
+      name: "Arbitrum",
+      icon: "simple-icons:arbitrum",
+      tokens: [
+        {
+          symbol: "ARB",
+          name: "Arbitrum",
+          icon: "simple-icons:arbitrum",
+          price: "$1.25",
+          address: "0x912ce59144191c1204e64559fe8253a0e49e6548",
+          chain: "arbitrum",
+        },
+        {
+          symbol: "ETH",
+          name: "Ethereum",
+          icon: "cryptocurrency-color:eth",
+          price: "$3,500.00",
+          address: "0x0000000000000000000000000000000000000000",
+          chain: "arbitrum",
+        },
+        {
+          symbol: "USDC",
+          name: "USD Coin",
+          icon: "cryptocurrency-color:usdc",
+          price: "$1.00",
+          address: "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
+          chain: "arbitrum",
+        },
+      ],
+    },
+    {
+      id: "avalanche",
+      symbol: "AVAX",
+      name: "Avalanche",
+      icon: "cryptocurrency-color:avax",
+      tokens: [
+        {
+          symbol: "AVAX",
+          name: "Avalanche",
+          icon: "cryptocurrency-color:avax",
+          price: "$42.50",
+          address: "0x0000000000000000000000000000000000000000",
+          chain: "avalanche",
+        },
+        {
+          symbol: "USDC",
+          name: "USD Coin",
+          icon: "cryptocurrency-color:usdc",
+          price: "$1.00",
+          address: "0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e",
+          chain: "avalanche",
+        },
+        {
+          symbol: "USDT",
+          name: "Tether",
+          icon: "cryptocurrency-color:usdt",
+          price: "$1.00",
+          address: "0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7",
+          chain: "avalanche",
+        },
+      ],
     },
   ];
+
+  // Extract all unique token symbols from popularTokens
+  const allTokenSymbols = useMemo(() => {
+    const symbols = new Set<string>();
+    popularTokens.forEach((chain) => {
+      chain.tokens.forEach((token) => {
+        symbols.add(token.symbol);
+      });
+    });
+    return Array.from(symbols);
+  }, []);
+
+  // Fetch token prices from CoinGecko
+  const {
+    prices,
+    loading: pricesLoading,
+    error: pricesError,
+  } = useTokenPrices(allTokenSymbols, {
+    refreshInterval: 5 * 60 * 1000, // 5 minutes
+    autoRefresh: true,
+    enabled: open, // Only fetch when modal is open
+  });
+
+  // Helper function to get token price display
+  const getTokenPriceDisplay = (token: Token) => {
+    const priceData = prices[token.symbol];
+    if (pricesLoading && !priceData) {
+      return (
+        <div className="flex items-center gap-1">
+          <Icon name="mdi:loading" className="w-3 h-3 animate-spin" />
+          <span className="text-muted-foreground">Loading...</span>
+        </div>
+      );
+    }
+    if (priceData && !priceData.price.isZero()) {
+      return priceData.formatted;
+    }
+    // Fallback to hardcoded price if CoinGecko data not available
+    return token.price;
+  };
+
+  // Helper function to get price change indicator
+  const getPriceChangeIndicator = (token: Token) => {
+    const priceData = prices[token.symbol];
+    if (priceData && priceData.change24h !== 0) {
+      const isPositive = priceData.change24h > 0;
+      return (
+        <span
+          className={cn(
+            "text-xs font-medium",
+            isPositive ? "text-green-500" : "text-red-500"
+          )}
+        >
+          {isPositive ? "+" : ""}
+          {priceData.change24h.toFixed(2)}%
+        </span>
+      );
+    }
+    return null;
+  };
 
   const filterTokensBySearch = (tokens: Token[]) => {
     if (!searchTerm) return tokens;
@@ -149,11 +361,28 @@ export function TokenSelectionModal({
   const filterTokensByNetwork = (tokens: Token[]) => {
     if (selectedNetwork === "all") return tokens;
 
-    return tokens.filter((token) => token.networks.includes(selectedNetwork));
+    // Map network ids to chain ids for filtering
+    const chainMapping: { [key: string]: string } = {
+      binance: "bsc",
+      ethereum: "ethereum",
+      polygon: "polygon",
+      arbitrum: "arbitrum",
+      avalanche: "avalanche",
+    };
+
+    const mappedChain = chainMapping[selectedNetwork] || selectedNetwork;
+    return tokens.filter((token) => token.chain === mappedChain);
   };
 
   const getFilteredTokens = (tokens: Token[]) => {
-    return filterTokensByNetwork(filterTokensBySearch(tokens));
+    let filtered = filterTokensByNetwork(filterTokensBySearch(tokens));
+
+    // Filter out disabled token if specified
+    if (disabledToken) {
+      filtered = filtered.filter((token) => token.symbol !== disabledToken);
+    }
+
+    return filtered;
   };
 
   const handleSelectToken = (token: Token) => {
@@ -165,9 +394,16 @@ export function TokenSelectionModal({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-md w-full">
         <DialogHeader className="space-y-0 pb-4">
-          <DialogTitle className="text-lg font-semibold">
-            Pilih token
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-lg font-semibold">
+              Pilih token
+            </DialogTitle>
+            {!pricesLoading && Object.keys(prices).length > 0 && (
+              <span className="text-xs text-muted-foreground">
+                Harga terupdate
+              </span>
+            )}
+          </div>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -187,7 +423,11 @@ export function TokenSelectionModal({
 
           {/* Network Selector */}
           <div className="flex items-center gap-2">
-            <Select value={selectedNetwork} onValueChange={setSelectedNetwork}>
+            <Select
+              value={selectedNetwork}
+              onValueChange={setSelectedNetwork}
+              disabled={!!filterByChain} // Disable when filterByChain is provided
+            >
               <SelectTrigger className="w-32 h-8">
                 <SelectValue>
                   <div className="flex items-center gap-2">
@@ -218,10 +458,16 @@ export function TokenSelectionModal({
                 ))}
               </SelectContent>
             </Select>
+            {filterByChain && (
+              <span className="text-xs text-muted-foreground">
+                Terbatas pada{" "}
+                {networks.find((n) => n.id === filterByChain)?.name}
+              </span>
+            )}
           </div>
 
           {/* Popular Tokens */}
-          {!searchTerm && (
+          {/* {!searchTerm && (
             <div className="flex flex-wrap gap-2">
               {getFilteredTokens(popularTokens)
                 .slice(0, 5)
@@ -242,7 +488,7 @@ export function TokenSelectionModal({
                   </Button>
                 ))}
             </div>
-          )}
+          )} */}
 
           {/* Token List */}
           <div className="space-y-2">
@@ -251,15 +497,31 @@ export function TokenSelectionModal({
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Icon name="mdi:trending-up" className="w-4 h-4" />
                 <span>Token berdasarkan volume 24 jam</span>
+                {pricesLoading && (
+                  <Icon name="mdi:loading" className="w-3 h-3 animate-spin" />
+                )}
+              </div>
+            )}
+
+            {/* Price Error Notice */}
+            {pricesError && !pricesLoading && (
+              <div className="flex items-center gap-2 p-2 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-md">
+                <Icon
+                  name="mdi:alert-circle"
+                  className="w-3 h-3 flex-shrink-0"
+                />
+                <span>
+                  Menggunakan harga cache. Gagal mengambil harga terbaru.
+                </span>
               </div>
             )}
 
             {/* Tokens */}
             <div className="max-h-60 overflow-y-auto space-y-1">
-              {getFilteredTokens([...popularTokens, ...additionalTokens]).map(
-                (token) => (
+              {popularTokens.flatMap((chain) =>
+                getFilteredTokens(chain.tokens).map((token) => (
                   <div
-                    key={token.symbol}
+                    key={token.address}
                     onClick={() => handleSelectToken(token)}
                     className={cn(
                       "flex items-center justify-between p-3 rounded-lg hover:bg-muted cursor-pointer transition-colors",
@@ -276,19 +538,24 @@ export function TokenSelectionModal({
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-medium">{token.price}</div>
+                      <div className="flex flex-col items-end">
+                        <div className="font-medium">
+                          {getTokenPriceDisplay(token)}
+                        </div>
+                        {getPriceChangeIndicator(token)}
+                      </div>
                       <div className="text-sm text-muted-foreground">
                         {token.address.slice(0, 8)}...
                       </div>
                     </div>
                   </div>
-                )
+                ))
               )}
             </div>
 
             {/* No Results */}
             {searchTerm &&
-              getFilteredTokens([...popularTokens, ...additionalTokens])
+              popularTokens.flatMap((chain) => getFilteredTokens(chain.tokens))
                 .length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                   <Icon
