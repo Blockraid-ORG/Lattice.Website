@@ -396,11 +396,11 @@ export function TokenSelectionModal({
         <DialogHeader className="space-y-0 pb-4">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-lg font-semibold">
-              Pilih token
+              Select Token
             </DialogTitle>
             {!pricesLoading && Object.keys(prices).length > 0 && (
               <span className="text-xs text-muted-foreground">
-                Harga terupdate
+                Prices updated
               </span>
             )}
           </div>
@@ -414,7 +414,7 @@ export function TokenSelectionModal({
               className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4"
             />
             <Input
-              placeholder="Cari token"
+              placeholder="Search tokens"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 h-12"
@@ -460,8 +460,7 @@ export function TokenSelectionModal({
             </Select>
             {filterByChain && (
               <span className="text-xs text-muted-foreground">
-                Terbatas pada{" "}
-                {networks.find((n) => n.id === filterByChain)?.name}
+                Limited to {networks.find((n) => n.id === filterByChain)?.name}
               </span>
             )}
           </div>
@@ -496,7 +495,7 @@ export function TokenSelectionModal({
             {searchTerm && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Icon name="mdi:trending-up" className="w-4 h-4" />
-                <span>Token berdasarkan volume 24 jam</span>
+                <span>Tokens by 24h volume</span>
                 {pricesLoading && (
                   <Icon name="mdi:loading" className="w-3 h-3 animate-spin" />
                 )}
@@ -510,9 +509,7 @@ export function TokenSelectionModal({
                   name="mdi:alert-circle"
                   className="w-3 h-3 flex-shrink-0"
                 />
-                <span>
-                  Menggunakan harga cache. Gagal mengambil harga terbaru.
-                </span>
+                <span>Using cached prices. Failed to fetch latest prices.</span>
               </div>
             )}
 
@@ -562,8 +559,8 @@ export function TokenSelectionModal({
                     name="mdi:help-circle"
                     className="w-12 h-12 mx-auto mb-2 opacity-50"
                   />
-                  <p>Token tidak ditemukan</p>
-                  <p className="text-sm">Coba kata kunci yang berbeda</p>
+                  <p>No tokens found</p>
+                  <p className="text-sm">Try different keywords</p>
                 </div>
               )}
           </div>

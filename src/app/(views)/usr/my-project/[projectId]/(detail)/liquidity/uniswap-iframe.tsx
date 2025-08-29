@@ -30,7 +30,7 @@ export default function ActionsLiquidity() {
   const { data: project, isLoading } = useProjectDetail(projectId.toString());
   const [open, setOpen] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [modalData, setModalData] = useState({
+  const [modalData, setModalData] = useState<any>({
     rangeType: "full",
     minPrice: "0",
     maxPrice: "∞",
@@ -38,12 +38,15 @@ export default function ActionsLiquidity() {
     baseToken: "BU",
     tokenAAmount: "0",
     tokenBAmount: "0",
+    tokenAData: null, // Tambahkan tokenAData
+    tokenBData: null, // Tambahkan tokenBData
     tokenPrices: { BNB: 625.34, BU: 0.0001375 },
     calculateUSDValue: () => "US$0",
     calculateTotalPoolValue: () => "US$0",
   });
 
-  console.log(project);
+  console.log("project token", project);
+  console.log("modalData for confirmation:", modalData);
   if (isLoading) return <div>Loading...</div>;
   if (project?.status === "DEPLOYED") {
     return (
@@ -72,10 +75,20 @@ export default function ActionsLiquidity() {
                   ticker: project.ticker,
                   contractAddress: project.contractAddress,
                   chains: project.chains,
+                  logo: project.logo,
                 }
               : undefined
           }
         />
+        {(() => {
+          console.log("🔧 Passing to ConfirmationModal:", {
+            hasTokenAData: !!modalData.tokenAData,
+            tokenAData: modalData.tokenAData,
+            hasTokenBData: !!modalData.tokenBData,
+            tokenBData: modalData.tokenBData,
+          });
+          return null;
+        })()}
         <ConfirmationModal
           showConfirmModal={showConfirmModal}
           setShowConfirmModal={setShowConfirmModal}
@@ -87,13 +100,27 @@ export default function ActionsLiquidity() {
           baseToken={modalData.baseToken}
           tokenAAmount={modalData.tokenAAmount}
           tokenBAmount={modalData.tokenBAmount}
-          tokenAData={{
-            symbol: "BNB",
-            name: "Binance Coin",
-            icon: "cryptocurrency-color:bnb",
-          }}
+          tokenAData={
+            modalData.tokenAData
+              ? {
+                  symbol: modalData.tokenAData.symbol,
+                  name: modalData.tokenAData.name,
+                  icon: modalData.tokenAData.icon,
+                }
+              : {
+                  symbol: "BNB",
+                  name: "Binance Coin",
+                  icon: "cryptocurrency-color:bnb",
+                }
+          }
           tokenBData={
-            project
+            modalData.tokenBData
+              ? {
+                  symbol: modalData.tokenBData.symbol,
+                  name: modalData.tokenBData.name,
+                  icon: modalData.tokenBData.icon,
+                }
+              : project
               ? {
                   symbol: project.ticker,
                   name: project.name,
@@ -102,7 +129,7 @@ export default function ActionsLiquidity() {
               : {
                   symbol: "BU",
                   name: "Bakso Urat",
-                  icon: "mdi:food",
+                  icon: "mdi:coin",
                 }
           }
           tokenPrices={modalData.tokenPrices}

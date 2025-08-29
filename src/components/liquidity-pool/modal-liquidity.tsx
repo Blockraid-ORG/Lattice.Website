@@ -56,6 +56,7 @@ interface ModalLiquidityProps {
         chainid: number;
       };
     }>;
+    logo: string;
   };
 }
 
@@ -67,8 +68,8 @@ export function ModalLiquidity({
   projectData,
 }: ModalLiquidityProps) {
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedTokenA, setSelectedTokenA] = useState("BNB");
-  const [selectedTokenB, setSelectedTokenB] = useState("BAKSO URAT");
+  const [selectedTokenA, setSelectedTokenA] = useState("");
+  const [selectedTokenB, setSelectedTokenB] = useState(projectData?.ticker);
   const [selectedFeeTier, setSelectedFeeTier] = useState("0.3");
   const [hookEnabled, setHookEnabled] = useState(false);
   const [startingPrice, setStartingPrice] = useState(""); // Default starting price for testing
@@ -120,13 +121,14 @@ export function ModalLiquidity({
 
   // Selected token objects
   const [tokenAData, setTokenAData] = useState({
-    symbol: "BNB",
-    name: "Binance Coin",
-    icon: "cryptocurrency-color:bnb",
+    symbol: "",
+    name: "",
+    icon: "",
   });
+
   const [tokenBData, setTokenBData] = useState({
-    symbol: "BU",
-    name: "Bakso Urat",
+    symbol: projectData?.ticker,
+    name: projectData?.name,
     icon: "mdi:coin", // Ubah dari mdi:food ke mdi:coin agar konsisten
   });
 
@@ -142,8 +144,8 @@ export function ModalLiquidity({
   // Inline token configurations to prevent callback dependency issues
   // TEMPORARILY USE STATIC token A config to isolate infinite loop
   const tokenAConfig = {
-    symbol: "BNB",
-    address: undefined, // native token
+    symbol: "",
+    address: "", // native token
     isNative: true,
     useWalletBalance: true,
   };
@@ -156,8 +158,8 @@ export function ModalLiquidity({
 
   // TEMPORARILY USE STATIC token B config to isolate infinite loop
   const tokenBConfig = {
-    symbol: "BU",
-    address: "0xC518FC545C14FC990f269F8f9bE79D7fc471D13f",
+    symbol: projectData?.ticker,
+    address: projectData?.contractAddress,
     isNative: false,
     useWalletBalance: false, // use total supply for project token
   };
@@ -170,8 +172,8 @@ export function ModalLiquidity({
 
   // TEMPORARILY DISABLE balance fetching to isolate infinite loop
   const tokenABalance = {
-    balance: new BigNumber(0.01688),
-    formatted: "0.01688",
+    balance: new BigNumber(1000),
+    formatted: "1000",
     isLoading: false,
     totalSupply: null,
   };
@@ -201,20 +203,46 @@ export function ModalLiquidity({
   // });
 
   // Calculate USD values for token amounts menggunakan BigNumber untuk precision
+  // Gunakan consistent USD value untuk pair tokens agar tidak ada selisih
   const calculateUSDValue = (tokenSymbol: string, amount: string) => {
     const tokenAmount = new BigNumber(amount || 0);
     if (tokenAmount.isZero()) return "US$0";
 
-    // Use calculated project price if available for project token
+    const tokenAAmountBN = new BigNumber(tokenAAmount || 0);
+    const tokenBAmountBN = new BigNumber(tokenBAmount || 0);
+
+    // Jika kedua token memiliki nilai (auto-calculated pair), gunakan USD value yang consistent
+    if (!tokenAAmountBN.isZero() && !tokenBAmountBN.isZero()) {
+      // Hitung total pool value berdasarkan token A sebagai referensi (anchor)
+      const tokenAPriceBN = tokenPricesBN[tokenASymbol] || new BigNumber(0);
+      const totalPoolValueUSD = tokenAAmountBN.multipliedBy(tokenAPriceBN);
+
+      // Untuk full amounts: kedua token menampilkan total pool value
+      // Untuk partial amounts: proportional berdasarkan total pool value
+      if (
+        tokenAmount.isEqualTo(tokenAAmountBN) ||
+        tokenAmount.isEqualTo(tokenBAmountBN)
+      ) {
+        // Jika user input full amount, tampilkan total pool value
+        return `US$${formatUSDWithoutRounding(totalPoolValueUSD)}`;
+      } else {
+        // Jika partial amount, hitung proportional
+        const referenceAmount =
+          tokenSymbol === tokenASymbol ? tokenAAmountBN : tokenBAmountBN;
+        const usdValue = totalPoolValueUSD
+          .multipliedBy(tokenAmount)
+          .dividedBy(referenceAmount);
+        return `US$${formatUSDWithoutRounding(usdValue)}`;
+      }
+    }
+
+    // Fallback: gunakan individual price calculation (untuk single token input)
     const priceBN =
       !displayProjectTokenPrice.isZero() && tokenSymbol === tokenBSymbol
         ? displayProjectTokenPrice
         : tokenPricesBN[tokenSymbol] || new BigNumber(0);
 
     const usdValue = tokenAmount.multipliedBy(priceBN);
-
-    // USD calculation logging removed to prevent infinite loops
-
     return `US$${formatUSDWithoutRounding(usdValue)}`;
   };
 
@@ -329,7 +357,7 @@ export function ModalLiquidity({
   const getButtonState = () => {
     if (!isWalletConnected) {
       return {
-        text: "Hubungkan wallet terlebih dahulu",
+        text: "Connect wallet first",
         disabled: true,
         className:
           "w-full h-12 bg-blue-600 hover:bg-blue-700 text-white cursor-not-allowed",
@@ -339,7 +367,7 @@ export function ModalLiquidity({
 
     if (balancesLoading || !balancesInitialized) {
       return {
-        text: "Memuat balance token...",
+        text: "Loading token balances...",
         disabled: true,
         className:
           "w-full h-12 bg-gray-600 hover:bg-gray-700 text-white cursor-not-allowed",
@@ -349,7 +377,7 @@ export function ModalLiquidity({
 
     if (balancesError) {
       return {
-        text: "Error mengambil balance - coba refresh",
+        text: "Error fetching balance - try refresh",
         disabled: true,
         className:
           "w-full h-12 bg-red-600 hover:bg-red-700 text-white cursor-not-allowed",
@@ -369,7 +397,7 @@ export function ModalLiquidity({
         startingPriceBN.isNaN()
       ) {
         return {
-          text: "Masukkan harga awal yang valid",
+          text: "Enter valid starting price",
           disabled: true,
           className:
             "w-full h-12 bg-gray-600 hover:bg-gray-700 text-white cursor-not-allowed",
@@ -378,7 +406,7 @@ export function ModalLiquidity({
 
       if (!tokenAAmount || tokenAAmountBN.isZero() || tokenAAmountBN.isNaN()) {
         return {
-          text: `Masukkan jumlah ${tokenASymbol} yang valid`,
+          text: `Enter valid ${tokenASymbol} amount`,
           disabled: true,
           className:
             "w-full h-12 bg-gray-600 hover:bg-gray-700 text-white cursor-not-allowed",
@@ -387,7 +415,7 @@ export function ModalLiquidity({
 
       if (!tokenBAmount || tokenBAmountBN.isZero() || tokenBAmountBN.isNaN()) {
         return {
-          text: `Masukkan jumlah ${tokenBSymbol} yang valid`,
+          text: `Enter valid ${tokenBSymbol} amount`,
           disabled: true,
           className:
             "w-full h-12 bg-gray-600 hover:bg-gray-700 text-white cursor-not-allowed",
@@ -400,7 +428,7 @@ export function ModalLiquidity({
 
         if (!minPrice || minPriceBN.isZero() || minPriceBN.isNaN()) {
           return {
-            text: "Masukkan harga minimum yang valid",
+            text: "Enter valid minimum price",
             disabled: true,
             className:
               "w-full h-12 bg-gray-600 hover:bg-gray-700 text-white cursor-not-allowed",
@@ -412,7 +440,7 @@ export function ModalLiquidity({
           (!maxPrice || maxPriceBN.isZero() || maxPriceBN.isNaN())
         ) {
           return {
-            text: "Masukkan harga maksimum yang valid",
+            text: "Enter valid maximum price",
             disabled: true,
             className:
               "w-full h-12 bg-gray-600 hover:bg-gray-700 text-white cursor-not-allowed",
@@ -421,7 +449,7 @@ export function ModalLiquidity({
 
         if (maxPrice !== "∞" && maxPriceBN.lte(minPriceBN)) {
           return {
-            text: "Harga maksimum harus lebih besar dari minimum",
+            text: "Maximum price must be greater than minimum",
             disabled: true,
             className:
               "w-full h-12 bg-gray-600 hover:bg-gray-700 text-white cursor-not-allowed",
@@ -431,7 +459,7 @@ export function ModalLiquidity({
 
       if (!isAllAmountsValid()) {
         return {
-          text: "Saldo tidak mencukupi",
+          text: "Insufficient balance",
           disabled: true,
           className:
             "w-full h-12 bg-red-600 hover:bg-red-700 text-white cursor-not-allowed",
@@ -440,7 +468,7 @@ export function ModalLiquidity({
     }
 
     return {
-      text: "Tinjau",
+      text: "Review",
       disabled: false,
       className: "w-full h-12 bg-purple-600 hover:bg-purple-700 text-white",
     };
@@ -733,15 +761,15 @@ export function ModalLiquidity({
   ];
 
   const feeTiers = [
-    { value: "0.01", label: "0.01%", description: "Untuk stablecoin" },
-    { value: "0.05", label: "0.05%", description: "Untuk trading standar" },
+    { value: "0.01", label: "0.01%", description: "For stablecoins" },
+    { value: "0.05", label: "0.05%", description: "For standard trading" },
     {
       value: "0.3",
       label: "0.3%",
-      description: "Untuk sebagian besar pair",
+      description: "For most pairs",
       recommended: true,
     },
-    { value: "1", label: "1%", description: "Untuk pair eksotik" },
+    { value: "1", label: "1%", description: "For exotic pairs" },
   ];
 
   const handleContinue = () => {
@@ -878,13 +906,13 @@ export function ModalLiquidity({
 
     if (valueBN.isZero()) return "0";
 
-    // Smart formatting untuk dunia crypto
-    if (valueBN.lt(0.01)) {
-      // Untuk angka kecil, tampil semua digit signifikan tanpa trailing zeros
-      return valueBN.toFixed();
-    } else {
-      // Untuk angka >= 0.01, tampil dengan format yang sesuai
+    // Smart formatting untuk dunia crypto sesuai requirement user
+    if (valueBN.gte(1)) {
+      // Untuk angka >= 1, batasi ke 2 decimal places
       return valueBN.decimalPlaces(2).toFixed();
+    } else {
+      // Untuk angka < 1, tampilkan full precision
+      return valueBN.toFixed();
     }
   };
 
@@ -915,17 +943,16 @@ export function ModalLiquidity({
     }
   };
 
-  const canContinue =
-    currentStep === 1 ? selectedTokenA && selectedTokenB : true;
+  const canContinue = currentStep === 1 ? tokenASymbol && tokenBSymbol : true;
 
   const resetForm = () => {
-    setSelectedTokenA("BNB");
-    setSelectedTokenB("BU");
+    setSelectedTokenA("");
+    setSelectedTokenB("");
     setSelectedFeeTier("0.3");
     setHookEnabled(false);
     setCurrentStep(1);
-    setBaseToken("TokenB");
-    setStartingPrice("0.00000022"); // Default starting price
+    setBaseToken("TokenA");
+    setStartingPrice("0"); // Default starting price
     setRangeType("full");
     setMinPrice("0");
     setMaxPrice("∞");
@@ -933,9 +960,9 @@ export function ModalLiquidity({
     setTokenBAmount("0");
     setLastUpdatedField(null);
     setTokenAData({
-      symbol: "BNB",
-      name: "Binance Coin",
-      icon: "cryptocurrency-color:bnb",
+      symbol: "",
+      name: "",
+      icon: "",
     });
 
     // Reset token B data berdasarkan project data yang tersedia
@@ -948,9 +975,9 @@ export function ModalLiquidity({
       setSelectedTokenB(projectData.ticker);
     } else {
       setTokenBData({
-        symbol: "BU",
-        name: "Bakso Urat",
-        icon: "mdi:coin", // Ubah dari mdi:food ke mdi:coin agar konsisten
+        symbol: "",
+        name: "",
+        icon: "", // Ubah dari mdi:food ke mdi:coin agar konsisten
       });
     }
   };
@@ -963,7 +990,7 @@ export function ModalLiquidity({
           <div className="w-80 bg-muted/30 border-r p-6 flex flex-col h-full">
             <DialogHeader className="mb-8 flex-shrink-0">
               <DialogTitle className="text-xl font-semibold">
-                Posisi baru
+                New Position
               </DialogTitle>
             </DialogHeader>
 
@@ -980,9 +1007,9 @@ export function ModalLiquidity({
                   1
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-medium text-sm">Langkah 1</h3>
+                  <h3 className="font-medium text-sm">Step 1</h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Pilih pasangan token dan biaya
+                    Select token pair and fee tier
                   </p>
                 </div>
               </div>
@@ -999,9 +1026,9 @@ export function ModalLiquidity({
                   2
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-medium text-sm">Langkah 2</h3>
+                  <h3 className="font-medium text-sm">Step 2</h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Tetapkan rentang harga dan jumlah setoran
+                    Set price range and deposit amounts
                   </p>
                 </div>
               </div>
@@ -1027,20 +1054,20 @@ export function ModalLiquidity({
                       onClick={resetForm}
                     >
                       <Icon name="mdi:refresh" className="w-4 h-4 mr-1" />
-                      Setel ulang
+                      Reset
                     </Button>
 
                     <Select value="v3">
                       <SelectTrigger className="h-8 w-auto px-3 text-xs">
-                        <SelectValue>Posisi v3</SelectValue>
+                        <SelectValue>v3 Position</SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="v4" disabled>
-                          Posisi v4
+                          v4 Position
                         </SelectItem>
-                        <SelectItem value="v3">Posisi v3</SelectItem>
+                        <SelectItem value="v3">v3 Position</SelectItem>
                         <SelectItem value="v2" disabled>
-                          Posisi v2
+                          v2 Position
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -1052,12 +1079,10 @@ export function ModalLiquidity({
 
                   {/* Token Pair Selection */}
                   <div>
-                    <h2 className="text-lg font-semibold mb-6">
-                      Pilih pasangan
-                    </h2>
+                    <h2 className="text-lg font-semibold mb-6">Select Pair</h2>
                     <p className="text-sm text-muted-foreground mb-6">
-                      Pilih token yang ingin kamu sediakan likuiditasnya. Kamu
-                      dapat memilih token di semua jaringan yang didukung.
+                      Choose tokens you'd like to provide liquidity for. You can
+                      select tokens across all supported networks.
                     </p>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -1066,12 +1091,26 @@ export function ModalLiquidity({
                         <Button
                           variant="outline"
                           onClick={() => setShowTokenAModal(true)}
-                          className="h-14 px-4 w-full justify-start"
+                          className={`h-14 px-4 w-full justify-start ${
+                            !tokenASymbol ? "text-muted-foreground" : ""
+                          }`}
                         >
-                          <div className="flex items-center gap-3">
-                            <Icon name={tokenAIcon} className="w-6 h-6" />
-                            <span className="font-medium">{tokenASymbol}</span>
-                          </div>
+                          {tokenASymbol ? (
+                            <div className="flex items-center gap-3">
+                              <Icon name={tokenAIcon} className="w-6 h-6" />
+                              <span className="font-medium">
+                                {tokenASymbol}
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-3">
+                              <Icon
+                                name="mdi:help-circle-outline"
+                                className="w-6 h-6 text-muted-foreground"
+                              />
+                              <span>Select first token</span>
+                            </div>
+                          )}
                         </Button>
                       </div>
 
@@ -1080,22 +1119,48 @@ export function ModalLiquidity({
                         <Button
                           variant="outline"
                           onClick={() => setShowTokenBModal(true)}
-                          className="h-14 px-4 w-full justify-start"
+                          className={`h-14 px-4 w-full justify-start ${
+                            !!projectData
+                              ? "bg-muted/30 cursor-not-allowed opacity-60"
+                              : !tokenBSymbol
+                              ? "text-muted-foreground"
+                              : ""
+                          }`}
                           disabled={!!projectData} // Disable when project data is available
                         >
                           {tokenBSymbol ? (
                             <div className="flex items-center gap-3">
                               <Icon name={tokenBIcon} className="w-6 h-6" />
-                              <span className="font-medium">
-                                {tokenBSymbol}
-                              </span>
+                              <div className="flex flex-col items-start">
+                                <span className="font-medium">
+                                  {tokenBSymbol}
+                                </span>
+                                {!!projectData && (
+                                  <span className="text-xs text-muted-foreground">
+                                    Project Token
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           ) : (
-                            <span className="text-muted-foreground">
-                              Pilih token
-                            </span>
+                            <div className="flex items-center gap-3">
+                              <Icon
+                                name="mdi:help-circle-outline"
+                                className="w-6 h-6 text-muted-foreground"
+                              />
+                              <span>
+                                {projectData
+                                  ? "Project token will be auto-selected"
+                                  : "Select second token"}
+                              </span>
+                            </div>
                           )}
                         </Button>
+                        {!!projectData && tokenBSymbol && (
+                          <p className="text-xs text-muted-foreground">
+                            Project token automatically selected
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -1111,7 +1176,7 @@ export function ModalLiquidity({
                             className="text-muted-foreground"
                           />
                           <span className="text-sm text-muted-foreground">
-                            Tambahkan Hook (Lanjutan)
+                            Add Hook (Advanced)
                           </span>
                           <TooltipProvider>
                             <Tooltip>
@@ -1123,8 +1188,8 @@ export function ModalLiquidity({
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p>
-                                  Hook memungkinkan fungsionalitas kustom untuk
-                                  pool ini
+                                  Hooks enable custom functionality for this
+                                  pool
                                 </p>
                               </TooltipContent>
                             </Tooltip>
@@ -1136,7 +1201,7 @@ export function ModalLiquidity({
                         <div className="flex items-center gap-3">
                           <input
                             type="text"
-                            placeholder="Masukkan alamat hook"
+                            placeholder="Enter hook address"
                             className="flex-1 h-12 px-4 bg-muted/50 border border-border rounded-lg text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                           />
                           <Button
@@ -1154,24 +1219,24 @@ export function ModalLiquidity({
 
                   {/* Fee Tier Selection */}
                   <div>
-                    <h3 className="font-semibold mb-2">Tingkatan komisi</h3>
+                    <h3 className="font-semibold mb-2">Fee Tier</h3>
                     <p className="text-sm text-muted-foreground mb-6">
-                      Jumlah yang diperoleh dari penyediaan likuiditas. Pilihlah
-                      jumlah yang sesuai dengan toleransi risiko dan strategimu.
+                      Amount earned from providing liquidity. Choose a fee tier
+                      that matches your risk tolerance and strategy.
                     </p>
 
                     <div className="p-4 border rounded-lg bg-muted/20">
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="font-medium text-sm">
-                            Tingkatan komisi{" "}
+                            Fee Tier{" "}
                             {
                               feeTiers.find((t) => t.value === selectedFeeTier)
                                 ?.label
                             }
                           </div>
                           <div className="text-xs text-muted-foreground mt-1">
-                            % yang akan kamu peroleh dalam bentuk biaya
+                            % you'll earn in fees
                           </div>
                         </div>
                         {/* <Select
@@ -1218,20 +1283,20 @@ export function ModalLiquidity({
                       onClick={resetForm}
                     >
                       <Icon name="mdi:refresh" className="w-4 h-4 mr-1" />
-                      Setel ulang
+                      Reset
                     </Button>
 
                     <Select value="v3">
                       <SelectTrigger className="h-8 w-auto px-3 text-xs">
-                        <SelectValue>Posisi v3</SelectValue>
+                        <SelectValue>v3 Position</SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="v4" disabled>
-                          Posisi v4
+                          v4 Position
                         </SelectItem>
-                        <SelectItem value="v3">Posisi v3</SelectItem>
+                        <SelectItem value="v3">v3 Position</SelectItem>
                         <SelectItem value="v2" disabled>
-                          Posisi v2
+                          v2 Position
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -1244,11 +1309,27 @@ export function ModalLiquidity({
                   {/* Token Pair Header */}
                   <div className="flex items-center gap-3 mb-6">
                     <div className="flex items-center gap-2">
-                      <Icon name={tokenAIcon} className="w-6 h-6" />
-                      <Icon name={tokenBIcon} className="w-6 h-6" />
+                      {tokenAIcon ? (
+                        <Icon name={tokenAIcon} className="w-6 h-6" />
+                      ) : (
+                        <Icon
+                          name="mdi:help-circle-outline"
+                          className="w-6 h-6 text-muted-foreground"
+                        />
+                      )}
+                      {tokenBIcon ? (
+                        <Icon name={tokenBIcon} className="w-6 h-6" />
+                      ) : (
+                        <Icon
+                          name="mdi:help-circle-outline"
+                          className="w-6 h-6 text-muted-foreground"
+                        />
+                      )}
                     </div>
                     <span className="font-semibold text-lg">
-                      {tokenASymbol} / {tokenBSymbol}
+                      {tokenASymbol && tokenBSymbol
+                        ? `${tokenASymbol} / ${tokenBSymbol}`
+                        : "Select Token Pair"}
                     </span>
                     <div className="flex items-center gap-2">
                       <span className="bg-muted px-2 py-1 rounded text-xs">
@@ -1268,13 +1349,12 @@ export function ModalLiquidity({
                         className="text-muted-foreground mt-0.5"
                       />
                       <div>
-                        <h3 className="font-medium mb-2">Membuat pool baru</h3>
+                        <h3 className="font-medium mb-2">Creating new pool</h3>
                         <p className="text-sm text-muted-foreground">
-                          Pilihanmu akan membuat pool likuiditas baru, yang
-                          dapat mengakibatkan likuiditas awal yang lebih rendah
-                          dan peningkatan volatilitas. Pertimbangkan untuk
-                          menambahkan likuiditas ke pool yang sudah ada untuk
-                          meminimalkan risiko ini.
+                          Your selection will create a new liquidity pool, which
+                          may result in lower initial liquidity and increased
+                          volatility. Consider adding liquidity to an existing
+                          pool to minimize this risk.
                         </p>
                       </div>
                     </div>
@@ -1283,19 +1363,17 @@ export function ModalLiquidity({
                   {/* Starting Price */}
                   <div className="space-y-4">
                     <div>
-                      <h3 className="font-semibold mb-2">
-                        Tentukan harga awal
-                      </h3>
+                      <h3 className="font-semibold mb-2">Set Starting Price</h3>
                       <p className="text-sm text-muted-foreground mb-4">
-                        Saat membuat pool baru, kamu harus menetapkan nilai
-                        tukar awal untuk kedua token. Nilai ini akan
-                        mencerminkan harga pasar awal.
+                        When creating a new pool, you must set the initial
+                        exchange rate for both tokens. This will reflect the
+                        initial market price.
                       </p>
 
                       <div className="space-y-4">
                         <div>
                           <label className="text-sm text-muted-foreground mb-2 block">
-                            Harga awal
+                            Starting Price
                           </label>
                           <div className="flex items-center gap-2">
                             <input
@@ -1355,14 +1433,14 @@ export function ModalLiquidity({
                           </div>
                           <p className="text-sm text-muted-foreground mt-2">
                             {baseToken === "TokenA"
-                              ? `Harga dinyatakan sebagai: X ${tokenASymbol} = 1 ${tokenBSymbol}`
-                              : `Harga dinyatakan sebagai: X ${tokenBSymbol} = 1 ${tokenASymbol}`}
+                              ? `Price expressed as: X ${tokenASymbol} = 1 ${tokenBSymbol}`
+                              : `Price expressed as: X ${tokenBSymbol} = 1 ${tokenASymbol}`}
                           </p>
                         </div>
 
                         <div className="flex items-center justify-between p-3 border rounded-lg">
                           <span className="text-sm">
-                            Harga pasar:{" "}
+                            Market price:{" "}
                             {(() => {
                               const rate = new BigNumber(startingPrice || 0);
                               if (rate.isNaN() || rate.isZero()) {
@@ -1382,16 +1460,17 @@ export function ModalLiquidity({
 
                                 if (valueBN.isZero()) return "0";
 
-                                // Rule: untuk crypto precision, gunakan BigNumber formatting
-                                if (valueBN.lt(0.01)) {
-                                  // Untuk angka kecil, tampil semua digit signifikan tanpa trailing zeros
-                                  return valueBN.toFixed();
-                                } else if (valueBN.lt(1000)) {
-                                  // Untuk angka < 1000, tampil dengan precision yang sesuai
-                                  return valueBN.decimalPlaces(2).toFixed();
+                                // Rule: untuk crypto precision berdasarkan requirement user
+                                if (valueBN.gte(1)) {
+                                  // Untuk angka >= 1, batasi ke 2 decimal places (12.53, 1.32)
+                                  if (valueBN.gte(1000)) {
+                                    return valueBN.decimalPlaces(2).toFormat();
+                                  } else {
+                                    return valueBN.decimalPlaces(2).toFixed();
+                                  }
                                 } else {
-                                  // Untuk angka >= 1000, gunakan format dengan koma
-                                  return valueBN.decimalPlaces(2).toFormat();
+                                  // Untuk angka < 1, tampilkan full precision (0.2315423423, 0.0000045)
+                                  return valueBN.toFixed();
                                 }
                               };
 
@@ -1455,7 +1534,7 @@ export function ModalLiquidity({
                               }
                             }}
                           >
-                            Gunakan harga pasar
+                            Use market price
                           </Button>
                         </div>
                       </div>
@@ -1464,9 +1543,7 @@ export function ModalLiquidity({
                     {/* Price Range */}
                     <div className="space-y-4">
                       <div>
-                        <h3 className="font-semibold mb-2">
-                          Tetapkan rentang harga
-                        </h3>
+                        <h3 className="font-semibold mb-2">Set Price Range</h3>
 
                         <div className="flex gap-2 mb-4">
                           <Button
@@ -1476,7 +1553,7 @@ export function ModalLiquidity({
                             className="flex-1"
                             onClick={() => setRangeType("full")}
                           >
-                            Rentang penuh
+                            Full Range
                           </Button>
                           <Button
                             variant={
@@ -1485,22 +1562,22 @@ export function ModalLiquidity({
                             className="flex-1"
                             onClick={() => setRangeType("custom")}
                           >
-                            Rentang khusus
+                            Custom Range
                           </Button>
                         </div>
 
                         <p className="text-sm text-muted-foreground mb-4">
-                          Penentuan likuiditas rentang penuh saat pembuatan pool
-                          memastikan partisipasi pasar berkelanjutan di semua
-                          kemungkinan harga. Prosesnya akan lebih sederhana,
-                          tetapi potensi kerugian non-permanen lebih tinggi.
+                          Full range liquidity provision during pool creation
+                          ensures continuous market participation across all
+                          possible prices. The process is simpler, but potential
+                          impermanent loss is higher.
                         </p>
 
                         {rangeType === "custom" && (
                           <div className="grid grid-cols-2 gap-4 mb-4">
                             <div className="p-4 border rounded-lg">
                               <label className="text-sm text-muted-foreground mb-2 block">
-                                Harga minimum
+                                Minimum Price
                               </label>
                               <input
                                 type="text"
@@ -1515,7 +1592,7 @@ export function ModalLiquidity({
                             </div>
                             <div className="p-4 border rounded-lg">
                               <label className="text-sm text-muted-foreground mb-2 block">
-                                Harga maksimum
+                                Maximum Price
                               </label>
                               <input
                                 type="text"
@@ -1535,9 +1612,10 @@ export function ModalLiquidity({
                       {/* Token Deposit */}
                       <div className="space-y-4">
                         <div>
-                          <h3 className="font-semibold mb-2">Setor token</h3>
+                          <h3 className="font-semibold mb-2">Deposit Tokens</h3>
                           <p className="text-sm text-muted-foreground mb-4">
-                            Tentukan jumlah token untuk kontribusi likuiditasmu.
+                            Specify the amount of tokens for your liquidity
+                            contribution.
                           </p>
                         </div>
 
@@ -1562,7 +1640,10 @@ export function ModalLiquidity({
                                     ? "text-red-500"
                                     : ""
                                 }`}
-                                placeholder="0"
+                                placeholder={
+                                  tokenASymbol ? "0" : "Select token first"
+                                }
+                                disabled={!tokenASymbol}
                               />
                               <div className="flex items-center gap-2">
                                 <Button
@@ -1578,16 +1659,34 @@ export function ModalLiquidity({
                                     )
                                   }
                                   disabled={
+                                    !tokenASymbol ||
                                     !tokenABalance ||
                                     tokenABalance.balance.isZero()
                                   }
                                 >
                                   MAX
                                 </Button>
-                                <Icon name={tokenAIcon} className="w-6 h-6" />
-                                <span className="font-medium">
-                                  {tokenASymbol}
-                                </span>
+                                {tokenAIcon ? (
+                                  <>
+                                    <Icon
+                                      name={tokenAIcon}
+                                      className="w-6 h-6"
+                                    />
+                                    <span className="font-medium">
+                                      {tokenASymbol}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Icon
+                                      name="mdi:help-circle-outline"
+                                      className="w-6 h-6 text-muted-foreground"
+                                    />
+                                    <span className="text-muted-foreground text-sm">
+                                      Select Token
+                                    </span>
+                                  </>
+                                )}
                               </div>
                             </div>
                             <div className="flex items-center justify-between text-sm">
@@ -1598,7 +1697,12 @@ export function ModalLiquidity({
                                     : "text-muted-foreground"
                                 }
                               >
-                                {calculateUSDValue(tokenASymbol, tokenAAmount)}
+                                {!tokenASymbol
+                                  ? "-"
+                                  : calculateUSDValue(
+                                      tokenASymbol,
+                                      tokenAAmount
+                                    )}
                               </span>
                               <span
                                 className={
@@ -1607,30 +1711,37 @@ export function ModalLiquidity({
                                     : "text-muted-foreground"
                                 }
                               >
-                                Balance:{" "}
-                                {(() => {
-                                  if (tokenABalance?.isLoading)
-                                    return "Loading...";
-                                  if (!tokenABalance) return "Not Connected";
+                                {!tokenASymbol ? (
+                                  "Select token to view balance"
+                                ) : (
+                                  <>
+                                    Balance:{" "}
+                                    {(() => {
+                                      if (tokenABalance?.isLoading)
+                                        return "Loading...";
+                                      if (!tokenABalance)
+                                        return "Not Connected";
 
-                                  return tokenABalance.formatted || "0";
-                                })()}{" "}
-                                {tokenASymbol}
-                                {!!projectData &&
-                                  tokenASymbol === projectData.ticker &&
-                                  tokenABalance?.totalSupply &&
-                                  " (Total Supply)"}
+                                      return tokenABalance.formatted || "0";
+                                    })()}{" "}
+                                    {tokenASymbol}
+                                    {!!projectData &&
+                                      tokenASymbol === projectData.ticker &&
+                                      tokenABalance?.totalSupply &&
+                                      " (Total Supply)"}
+                                  </>
+                                )}
                               </span>
                             </div>
                             {(isTokenAAmountEmpty() ||
                               !isTokenAAmountValid()) && (
                               <div className="text-red-500 text-xs mt-2">
                                 {isTokenAAmountEmpty()
-                                  ? `Masukkan jumlah ${tokenASymbol}`
+                                  ? `Enter ${tokenASymbol} amount`
                                   : lastUpdatedField === "tokenB" &&
                                     hasAutoCalculationError()
-                                  ? `Auto-calculation melebihi saldo ${tokenASymbol} yang tersedia`
-                                  : "Jumlah melebihi saldo yang tersedia"}
+                                  ? `Auto-calculation exceeds available ${tokenASymbol} balance`
+                                  : "Amount exceeds available balance"}
                               </div>
                             )}
                           </div>
@@ -1670,7 +1781,10 @@ export function ModalLiquidity({
                                     ? "text-red-500"
                                     : ""
                                 }`}
-                                placeholder="0"
+                                placeholder={
+                                  tokenBSymbol ? "0" : "Select token first"
+                                }
+                                disabled={!tokenBSymbol}
                               />
                               <div className="flex items-center gap-2">
                                 <Button
@@ -1686,16 +1800,34 @@ export function ModalLiquidity({
                                     )
                                   }
                                   disabled={
+                                    !tokenBSymbol ||
                                     !tokenBBalance ||
                                     tokenBBalance.balance.isZero()
                                   }
                                 >
                                   MAX
                                 </Button>
-                                <Icon name={tokenBIcon} className="w-6 h-6" />
-                                <span className="font-medium">
-                                  {tokenBSymbol}
-                                </span>
+                                {tokenBIcon ? (
+                                  <>
+                                    <Icon
+                                      name={tokenBIcon}
+                                      className="w-6 h-6"
+                                    />
+                                    <span className="font-medium">
+                                      {tokenBSymbol}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Icon
+                                      name="mdi:help-circle-outline"
+                                      className="w-6 h-6 text-muted-foreground"
+                                    />
+                                    <span className="text-muted-foreground text-sm">
+                                      Select Token
+                                    </span>
+                                  </>
+                                )}
                               </div>
                             </div>
                             <div className="flex items-center justify-between text-sm">
@@ -1706,7 +1838,12 @@ export function ModalLiquidity({
                                     : "text-muted-foreground"
                                 }
                               >
-                                {calculateUSDValue(tokenBSymbol, tokenBAmount)}
+                                {!tokenBSymbol
+                                  ? "-"
+                                  : calculateUSDValue(
+                                      tokenBSymbol,
+                                      tokenBAmount
+                                    )}
                               </span>
                               <span
                                 className={
@@ -1715,30 +1852,37 @@ export function ModalLiquidity({
                                     : "text-muted-foreground"
                                 }
                               >
-                                Balance:{" "}
-                                {(() => {
-                                  if (tokenBBalance?.isLoading)
-                                    return "Loading...";
-                                  if (!tokenBBalance) return "Not Connected";
+                                {!tokenBSymbol ? (
+                                  "Select token to view balance"
+                                ) : (
+                                  <>
+                                    Balance:{" "}
+                                    {(() => {
+                                      if (tokenBBalance?.isLoading)
+                                        return "Loading...";
+                                      if (!tokenBBalance)
+                                        return "Not Connected";
 
-                                  return tokenBBalance.formatted || "0";
-                                })()}{" "}
-                                {tokenBSymbol}
-                                {!!projectData &&
-                                  tokenBSymbol === projectData.ticker &&
-                                  tokenBBalance?.totalSupply &&
-                                  " (Total Supply)"}
+                                      return tokenBBalance.formatted || "0";
+                                    })()}{" "}
+                                    {tokenBSymbol}
+                                    {!!projectData &&
+                                      tokenBSymbol === projectData.ticker &&
+                                      tokenBBalance?.totalSupply &&
+                                      " (Total Supply)"}
+                                  </>
+                                )}
                               </span>
                             </div>
                             {(isTokenBAmountEmpty() ||
                               !isTokenBAmountValid()) && (
                               <div className="text-red-500 text-xs mt-2">
                                 {isTokenBAmountEmpty()
-                                  ? `Masukkan jumlah ${tokenBSymbol}`
+                                  ? `Enter ${tokenBSymbol} amount`
                                   : lastUpdatedField === "tokenA" &&
                                     hasAutoCalculationError()
-                                  ? `Auto-calculation melebihi saldo ${tokenBSymbol} yang tersedia`
-                                  : "Jumlah melebihi saldo yang tersedia"}
+                                  ? `Auto-calculation exceeds available ${tokenBSymbol} balance`
+                                  : "Amount exceeds available balance"}
                               </div>
                             )}
                           </div>
@@ -1771,7 +1915,7 @@ export function ModalLiquidity({
                                   className="w-4 h-4 animate-spin"
                                 />
                                 <span>
-                                  Mengambil balance token dari wallet...
+                                  Fetching token balance from wallet...
                                 </span>
                               </div>
                             )}
@@ -1782,7 +1926,7 @@ export function ModalLiquidity({
                                   className="w-4 h-4"
                                 />
                                 <span>
-                                  Gagal mengambil balance: {balancesError}
+                                  Failed to fetch balance: {balancesError}
                                 </span>
                                 <Button
                                   variant="ghost"
@@ -1794,16 +1938,14 @@ export function ModalLiquidity({
                                     name="mdi:refresh"
                                     className="w-3 h-3 mr-1"
                                   />
-                                  Coba lagi
+                                  Try again
                                 </Button>
                               </div>
                             )}
                             {!balancesInitialized && !balancesLoading && (
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Icon name="mdi:wallet" className="w-4 h-4" />
-                                <span>
-                                  Hubungkan wallet untuk melihat balance
-                                </span>
+                                <span>Connect wallet to view balance</span>
                               </div>
                             )}
                           </div>
@@ -1812,7 +1954,7 @@ export function ModalLiquidity({
                         {/* Market Prices Display */}
                         <div className="p-3 bg-muted/20 rounded-lg">
                           <div className="text-xs text-muted-foreground mb-2">
-                            Harga Pasar Saat Ini
+                            Current Market Prices
                           </div>
                           <div className="grid grid-cols-2 gap-4 text-sm mb-3">
                             <div className="flex items-center justify-between">
@@ -1865,7 +2007,7 @@ export function ModalLiquidity({
                                     className="w-4 h-4 text-muted-foreground"
                                   />
                                   <span className="text-sm font-medium">
-                                    Total Nilai Pool
+                                    Total Pool Value
                                   </span>
                                 </div>
                                 <span className="font-mono text-sm font-bold">
@@ -1886,6 +2028,15 @@ export function ModalLiquidity({
                               onClick={
                                 !buttonState.disabled
                                   ? () => {
+                                      console.log(
+                                        "🎯 Passing modalData to confirmation:",
+                                        {
+                                          tokenAData,
+                                          tokenBData,
+                                          tokenAAmount,
+                                          tokenBAmount,
+                                        }
+                                      );
                                       setModalData({
                                         rangeType,
                                         minPrice,
@@ -1894,6 +2045,8 @@ export function ModalLiquidity({
                                         baseToken,
                                         tokenAAmount,
                                         tokenBAmount,
+                                        tokenAData, // Tambahkan tokenAData yang sebenarnya
+                                        tokenBData, // Tambahkan tokenBData yang sebenarnya
                                         tokenPrices,
                                         calculateUSDValue,
                                         calculateTotalPoolValue,
@@ -1931,7 +2084,7 @@ export function ModalLiquidity({
                       disabled={!canContinue}
                       className="px-8"
                     >
-                      Lanjutkan
+                      Continue
                     </Button>
                   </div>
                 </div>

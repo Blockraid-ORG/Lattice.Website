@@ -72,6 +72,14 @@ export function ConfirmationModal({
   },
   calculateTotalPoolValue = () => "US$0",
 }: ConfirmationModalProps) {
+  // Debug log untuk memastikan data yang benar diterima
+  console.log("🎯 ConfirmationModal received data:", {
+    tokenAData,
+    tokenBData,
+    tokenAAmount,
+    tokenBAmount,
+  });
+
   // Helper function untuk format USD tanpa pembulatan menggunakan BigNumber
   const formatUSDWithoutRounding = (value: number | BigNumber | undefined) => {
     // Handle undefined, null values
@@ -81,13 +89,13 @@ export function ConfirmationModal({
 
     if (valueBN.isZero() || valueBN.isNaN()) return "0";
 
-    // Smart formatting untuk dunia crypto
-    if (valueBN.lt(0.01)) {
-      // Untuk angka kecil, tampil semua digit signifikan tanpa trailing zeros
-      return valueBN.toFixed();
-    } else {
-      // Untuk angka >= 0.01, tampil dengan format yang sesuai
+    // Smart formatting untuk dunia crypto sesuai requirement user
+    if (valueBN.gte(1)) {
+      // Untuk angka >= 1, batasi ke 2 decimal places
       return valueBN.decimalPlaces(2).toFixed();
+    } else {
+      // Untuk angka < 1, tampilkan full precision
+      return valueBN.toFixed();
     }
   };
 
@@ -100,16 +108,17 @@ export function ConfirmationModal({
 
     if (valueBN.isZero() || valueBN.isNaN()) return "0";
 
-    // Rule: untuk crypto precision, gunakan BigNumber formatting
-    if (valueBN.lt(0.01)) {
-      // Untuk angka kecil, tampil semua digit signifikan tanpa trailing zeros
-      return valueBN.toFixed();
-    } else if (valueBN.lt(1000)) {
-      // Untuk angka < 1000, tampil dengan precision yang sesuai
-      return valueBN.decimalPlaces(2).toFixed();
+    // Rule: untuk crypto precision berdasarkan requirement user
+    if (valueBN.gte(1)) {
+      // Untuk angka >= 1, batasi ke 2 decimal places (12.53, 1.32)
+      if (valueBN.gte(1000)) {
+        return valueBN.decimalPlaces(2).toFormat();
+      } else {
+        return valueBN.decimalPlaces(2).toFixed();
+      }
     } else {
-      // Untuk angka >= 1000, gunakan format dengan koma
-      return valueBN.decimalPlaces(2).toFormat();
+      // Untuk angka < 1, tampilkan full precision (0.2315423423, 0.0000045)
+      return valueBN.toFixed();
     }
   };
 
@@ -128,7 +137,7 @@ export function ConfirmationModal({
           <DialogHeader className="mb-6">
             <div className="flex items-center justify-between">
               <DialogTitle className="text-lg font-semibold">
-                Membuat posisi
+                Create Position
               </DialogTitle>
               <div className="flex items-center gap-4">
                 <Button
@@ -137,7 +146,7 @@ export function ConfirmationModal({
                   className="text-sm text-muted-foreground"
                 >
                   <Icon name="mdi:help-circle" className="w-4 h-4 mr-2" />
-                  Minta bantuan
+                  Get Help
                 </Button>
               </div>
             </div>
@@ -175,7 +184,9 @@ export function ConfirmationModal({
                 </div>
               </div>
               <div>
-                <div className="text-sm text-muted-foreground mb-1">Maks</div>
+                <div className="text-sm text-muted-foreground mb-1">
+                  Maximum
+                </div>
                 <div className="font-mono text-sm">
                   {rangeType === "full" ? "∞" : maxPrice} {tokenBData.symbol}/
                   {tokenAData.symbol}
@@ -186,7 +197,7 @@ export function ConfirmationModal({
             {/* Starting Price */}
             <div>
               <div className="text-sm text-muted-foreground mb-2">
-                Harga awal
+                Starting Price
               </div>
               <div className="font-mono text-lg">
                 {(() => {
@@ -239,7 +250,7 @@ export function ConfirmationModal({
             {/* Deposit Amounts */}
             <div>
               <div className="text-sm text-muted-foreground mb-3">
-                Menyetorkan
+                Depositing
               </div>
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
@@ -281,7 +292,7 @@ export function ConfirmationModal({
             <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg">
               <div className="flex items-center gap-2">
                 <Icon name="mdi:pool" className="w-5 h-5 text-primary" />
-                <span className="text-sm font-medium">Total Nilai Pool</span>
+                <span className="text-sm font-medium">Total Pool Value</span>
               </div>
               <span className="font-mono text-lg font-bold text-primary">
                 {calculateTotalPoolValue()}
@@ -290,9 +301,7 @@ export function ConfirmationModal({
 
             {/* Network Fee */}
             <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
-                Biaya jaringan
-              </div>
+              <div className="text-sm text-muted-foreground">Network Fee</div>
               <div className="flex items-center gap-2">
                 <Icon name="mdi:alert" className="w-4 h-4 text-yellow-500" />
                 <span className="text-sm">&lt;US$0,01</span>
@@ -303,12 +312,12 @@ export function ConfirmationModal({
             <Button
               className="w-full h-12 bg-pink-600 hover:bg-pink-700 text-white"
               onClick={() => {
-                toast.success("Posisi berhasil dibuat!");
+                toast.success("Position successfully created!");
                 setShowConfirmModal(false);
                 // Don't need setOpen(false) here since main modal is already closed
               }}
             >
-              Buat
+              Create
             </Button>
           </div>
         </div>
