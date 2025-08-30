@@ -93,8 +93,11 @@ export const columns: ColumnDef<TProject>[] = [
                   <Icon className="text-lg" name="mage:box-3d-upload-fill" /> Deploy
                 </Link>
               </DropdownMenuItem>
-
-
+              <DropdownMenuItem asChild>
+                <Link href={`/usr/my-project/${row.original.id}/additional-reward`}>
+                  <Icon className="text-lg" name="tabler:gift-filled" /> Additional Reward
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href={`/usr/my-project/${row.original.id}/whitelist`}>
                   <Icon className="text-lg" name="stash:list-add" /> Whitelist

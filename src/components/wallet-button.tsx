@@ -31,9 +31,12 @@ export default function WalletButton({ withText }: { withText?: boolean }) {
         onSuccess: async (data) => {
           try {
             const nonce = data.data.nonce;
+            const message = `Welcome To Terravest\n\n
+Agree to Presale Terms\n\nTo participate in the BRIDGE presale, you must agree to the following terms:\n\n
+By signing, you acknowledge and agree to the BRIDGE presale terms and conditions.\nYou understand that participation is subject to all applicable laws and regulations, and you have read and accept the full terms at terravest.capital/terms.\n\nNonce: ${nonce}`;
             const provider = new Web3Provider(web3Provider);
             const signer = provider.getSigner();
-            const signature = await signer.signMessage(nonce);
+            const signature = await signer.signMessage(message);
 
             verifySignature({
               walletAddress: address,

@@ -103,6 +103,12 @@ export type TFormContribuePresale = {
   transactionHash: string
 }
 
+export type TFormClaimPresale = {
+  presaleId: string
+  amount: string
+  transactionHash: string
+}
+
 export type TResponsePresale = TPresale & {
   project: TProject
 }

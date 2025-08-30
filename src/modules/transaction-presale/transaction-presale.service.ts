@@ -30,6 +30,22 @@ class TansactionPresaleService extends BaseService<TPresale, TFormContribuePresa
     })
     return response.data.data
   }
+  async CREATE_CLAIM_PRESALE(data: any): Promise<any> {
+    const response = await axiosInstance({
+      method: 'POST',
+      url: `${this.endpoint}/claimPresale`,
+      data
+    })
+    return response.data.data
+  }
+  async GET_CLAIM_PRESALE(params?: TQueryParam): Promise<any> {
+    const response = await axiosInstance({
+      method: 'GET',
+      url: `${this.endpoint}/claimPresale`,
+      params
+    })
+    return response.data.data
+  }
 }
 
 const tansactionpresaleService = new TansactionPresaleService()
