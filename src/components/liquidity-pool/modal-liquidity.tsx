@@ -89,7 +89,45 @@ export function ModalLiquidity({
     useState<BigNumber>(new BigNumber(0));
 
   // Check wallet connection status using Web3Auth
-  const { isConnected: isWalletConnected } = useWeb3AuthConnect();
+  const { isConnected: isWalletConnected, connect } = useWeb3AuthConnect();
+
+  // State untuk user address
+  const [userAddress, setUserAddress] = useState<string | null>(null);
+
+  // Effect untuk mendapatkan user address ketika wallet connected
+  useEffect(() => {
+    const getUserAddress = async () => {
+      if (isWalletConnected) {
+        try {
+          const web3Provider = await connect();
+          if (web3Provider) {
+            const result = await web3Provider.request({
+              method: "eth_accounts",
+            });
+            const accounts = Array.isArray(result) ? (result as string[]) : [];
+            if (accounts.length > 0) {
+              setUserAddress(accounts[0]);
+              console.log("🔗 User address:", accounts[0]);
+            } else {
+              console.warn("⚠️ No accounts returned from wallet");
+              setUserAddress(null);
+            }
+          } else {
+            console.warn("⚠️ Web3 provider not available");
+            setUserAddress(null);
+          }
+        } catch (error) {
+          console.error("Error getting user address:", error);
+          setUserAddress(null);
+        }
+      } else {
+        console.log("📱 Wallet not connected");
+        setUserAddress(null);
+      }
+    };
+
+    getUserAddress();
+  }, [isWalletConnected, connect]);
 
   // Memoized token address mapping untuk balance reading
   const tokenAddressMap = useMemo(() => {
@@ -263,7 +301,8 @@ export function ModalLiquidity({
     const tokenBPriceBN =
       !displayProjectTokenPrice.isZero() && tokenBSymbol
         ? displayProjectTokenPrice
-        : tokenPricesBN[tokenBSymbol] || new BigNumber(0);
+        : (tokenBSymbol ? tokenPricesBN[tokenBSymbol] : new BigNumber(0)) ||
+          new BigNumber(0);
 
     const tokenAUSD = tokenAValue.multipliedBy(tokenAPriceBN);
     const tokenBUSD = tokenBValue.multipliedBy(tokenBPriceBN);
@@ -481,9 +520,9 @@ export function ModalLiquidity({
   // RE-ENABLE dynamic token symbols (Fix for token selection lag)
   const allTokenSymbols = useMemo(() => {
     const symbols = new Set<string>();
-    symbols.add(tokenASymbol);
-    symbols.add(tokenBSymbol);
-    symbols.add(selectedTokenA);
+    if (tokenASymbol) symbols.add(tokenASymbol);
+    if (tokenBSymbol) symbols.add(tokenBSymbol);
+    if (selectedTokenA) symbols.add(selectedTokenA);
     // Add common symbols to ensure they're always fetched
     symbols.add("BNB");
     symbols.add("USDC");
@@ -587,6 +626,101 @@ export function ModalLiquidity({
       ? mapChainNameToValue(projectData.chains[0].chain.name)
       : "binance";
   }, [projectData?.chains]);
+
+  // Debug logging untuk chain ID dan token addresses
+  useEffect(() => {
+    if (projectData?.chains[0]?.chain) {
+      console.log("🔗 Project Chain Info:", {
+        chainName: projectData.chains[0].chain.name,
+        chainId: projectData.chains[0].chain.chainid,
+        projectChainString: projectChain,
+        contractAddress: projectData.contractAddress,
+        selectedTokenA,
+        selectedTokenB,
+        tokenAFromMap: selectedTokenA ? tokenAddressMap[selectedTokenA] : null,
+        tokenBFromMap: selectedTokenB ? tokenAddressMap[selectedTokenB] : null,
+      });
+    }
+  }, [
+    projectData,
+    projectChain,
+    selectedTokenA,
+    selectedTokenB,
+    tokenAddressMap,
+  ]);
+
+  // ROBUST: Process tokenAData with simple native token logic
+  const processedTokenAData = useMemo(() => {
+    console.log("🔥 USEMEMO TRIGGERED - Processing tokenAData:", {
+      tokenAData,
+      selectedTokenA,
+      selectedTokenA_type: typeof selectedTokenA,
+      selectedTokenA_check: selectedTokenA === "BNB",
+      tokenAddressMap_BNB: tokenAddressMap["BNB"],
+      tokenAFromMap: selectedTokenA ? tokenAddressMap[selectedTokenA] : null,
+    });
+
+    // EARLY EXIT DEBUG
+    if (!selectedTokenA) {
+      console.log("❌ selectedTokenA is empty, returning original tokenAData");
+      return tokenAData;
+    }
+
+    // Base token A data (fallback jika kosong)
+    const baseTokenAData =
+      Object.keys(tokenAData).length === 0 && selectedTokenA
+        ? {
+            symbol: selectedTokenA,
+            name: selectedTokenA === "BNB" ? "Binance Coin" : selectedTokenA,
+            icon:
+              selectedTokenA === "BNB"
+                ? "cryptocurrency-color:bnb"
+                : "mdi:coin",
+          }
+        : tokenAData;
+
+    // Get contract address from mapping
+    const contractAddress = selectedTokenA
+      ? tokenAddressMap[selectedTokenA]?.address
+      : undefined;
+
+    // ROBUST LOGIC: Jika tidak ada address → Native Token, Ada address → Contract Token
+    const isNativeToken = !contractAddress; // No address = native token
+
+    const finalTokenAData = {
+      ...baseTokenAData,
+      address: contractAddress,
+      isNative: isNativeToken,
+    };
+
+    console.log("🎯 USEMEMO RESULT - Robust token processing:", {
+      selectedTokenA,
+      contractAddress,
+      isNativeToken,
+      logic: `contractAddress: ${
+        contractAddress ? "EXISTS" : "UNDEFINED"
+      } → isNative: ${isNativeToken}`,
+      finalTokenAData,
+      finalTokenAData_keys: Object.keys(finalTokenAData),
+      finalTokenAData_isNative: finalTokenAData.isNative,
+      finalTokenAData_address: finalTokenAData.address,
+    });
+
+    console.log("🚀 USEMEMO RETURNING:", finalTokenAData);
+    return finalTokenAData;
+  }, [tokenAData, selectedTokenA, tokenAddressMap]);
+
+  // Debug logging untuk selectedTokenA changes (AFTER processedTokenAData is defined)
+  useEffect(() => {
+    console.log("🎯 selectedTokenA CHANGED:", {
+      selectedTokenA,
+      selectedTokenA_type: typeof selectedTokenA,
+      selectedTokenA_check: selectedTokenA === "BNB",
+      processedTokenAData_after_change: processedTokenAData,
+      processedTokenAData_isNative: (processedTokenAData as any)?.isNative,
+      processedTokenAData_address: (processedTokenAData as any)?.address,
+    });
+  }, [selectedTokenA, processedTokenAData]);
 
   // Debug logging untuk token configs (separate to prevent render cycles)
   // Token A config logging removed to prevent infinite loops
@@ -1508,9 +1642,13 @@ export function ModalLiquidity({
                             onClick={() => {
                               // Calculate market price berdasarkan baseToken
                               const tokenAPrice =
-                                tokenPricesBN[tokenASymbol] || new BigNumber(0);
+                                (tokenASymbol
+                                  ? tokenPricesBN[tokenASymbol]
+                                  : new BigNumber(0)) || new BigNumber(0);
                               const tokenBPrice =
-                                tokenPricesBN[tokenBSymbol] || new BigNumber(0);
+                                (tokenBSymbol
+                                  ? tokenPricesBN[tokenBSymbol]
+                                  : new BigNumber(0)) || new BigNumber(0);
 
                               if (
                                 !tokenAPrice.isZero() &&
@@ -1982,8 +2120,9 @@ export function ModalLiquidity({
                                   !displayProjectTokenPrice.isZero() &&
                                     tokenBSymbol
                                     ? displayProjectTokenPrice
-                                    : tokenPricesBN[tokenBSymbol] ||
-                                        new BigNumber(0)
+                                    : (tokenBSymbol
+                                        ? tokenPricesBN[tokenBSymbol]
+                                        : new BigNumber(0)) || new BigNumber(0)
                                 )}
                               </span>
                             </div>
@@ -2028,15 +2167,129 @@ export function ModalLiquidity({
                               onClick={
                                 !buttonState.disabled
                                   ? () => {
+                                      // CRITICAL: Use pre-processed tokenAData
                                       console.log(
-                                        "🎯 Passing modalData to confirmation:",
+                                        "🚨 ONCLICK START - Before using processedTokenAData:",
                                         {
-                                          tokenAData,
-                                          tokenBData,
-                                          tokenAAmount,
-                                          tokenBAmount,
+                                          original_tokenAData: tokenAData,
+                                          processedTokenAData:
+                                            processedTokenAData,
+                                          selectedTokenA: selectedTokenA,
+                                          processedTokenAData_isNative: (
+                                            processedTokenAData as any
+                                          )?.isNative,
+                                          processedTokenAData_address: (
+                                            processedTokenAData as any
+                                          )?.address,
                                         }
                                       );
+
+                                      const finalTokenAData =
+                                        processedTokenAData;
+
+                                      console.log(
+                                        "🔧 ONCLICK: finalTokenAData assigned:",
+                                        {
+                                          finalTokenAData,
+                                          finalTokenAData_isNative: (
+                                            finalTokenAData as any
+                                          ).isNative,
+                                          finalTokenAData_address: (
+                                            finalTokenAData as any
+                                          ).address,
+                                          same_object:
+                                            processedTokenAData ===
+                                            finalTokenAData,
+                                          keys_in_object:
+                                            Object.keys(finalTokenAData),
+                                        }
+                                      );
+
+                                      const finalTokenBData = {
+                                        ...tokenBData,
+                                        address:
+                                          projectData?.contractAddress || // Prioritas project token
+                                          (selectedTokenB
+                                            ? tokenAddressMap[selectedTokenB]
+                                                ?.address
+                                            : undefined),
+                                        isNative: selectedTokenB
+                                          ? tokenAddressMap[selectedTokenB]
+                                              ?.isNative || false
+                                          : false,
+                                      };
+
+                                      console.log(
+                                        "🎯 Final modal data before sending to confirmation:",
+                                        {
+                                          projectData: {
+                                            ticker: projectData?.ticker,
+                                            contractAddress:
+                                              projectData?.contractAddress,
+                                            chainId:
+                                              projectData?.chains[0]?.chain
+                                                ?.chainid,
+                                            chainName:
+                                              projectData?.chains[0]?.chain
+                                                ?.name,
+                                          },
+                                          selectedTokenA,
+                                          selectedTokenB,
+                                          tokenAddressMap: {
+                                            selectedA: selectedTokenA
+                                              ? tokenAddressMap[selectedTokenA]
+                                              : null,
+                                            selectedB: selectedTokenB
+                                              ? tokenAddressMap[selectedTokenB]
+                                              : null,
+                                          },
+                                          processedData: {
+                                            finalTokenAData,
+                                            finalTokenBData,
+                                          },
+                                          validationChecks: {
+                                            tokenAValid:
+                                              (finalTokenAData as any)
+                                                .address ||
+                                              (finalTokenAData as any).isNative,
+                                            tokenBValid:
+                                              finalTokenBData.address ||
+                                              finalTokenBData.isNative,
+                                          },
+                                        }
+                                      );
+
+                                      console.log(
+                                        "🚀 CRITICAL: Final data before setModalData:",
+                                        {
+                                          finalTokenAData: {
+                                            symbol: finalTokenAData.symbol,
+                                            name: finalTokenAData.name,
+                                            address: (finalTokenAData as any)
+                                              .address,
+                                            isNative: (finalTokenAData as any)
+                                              .isNative,
+                                            fullObject: finalTokenAData,
+                                          },
+                                          finalTokenBData: {
+                                            symbol: finalTokenBData.symbol,
+                                            name: finalTokenBData.name,
+                                            address: finalTokenBData.address,
+                                            isNative: finalTokenBData.isNative,
+                                          },
+                                          dataIntegrity: {
+                                            tokenA_hasIsNative:
+                                              "isNative" in finalTokenAData,
+                                            tokenA_isNative_value: (
+                                              finalTokenAData as any
+                                            ).isNative,
+                                            shouldBeNative:
+                                              selectedTokenA === "BNB" ||
+                                              finalTokenAData.symbol === "BNB",
+                                          },
+                                        }
+                                      );
+
                                       setModalData({
                                         rangeType,
                                         minPrice,
@@ -2045,11 +2298,17 @@ export function ModalLiquidity({
                                         baseToken,
                                         tokenAAmount,
                                         tokenBAmount,
-                                        tokenAData, // Tambahkan tokenAData yang sebenarnya
-                                        tokenBData, // Tambahkan tokenBData yang sebenarnya
+                                        tokenAData: finalTokenAData,
+                                        tokenBData: finalTokenBData,
                                         tokenPrices,
                                         calculateUSDValue,
                                         calculateTotalPoolValue,
+                                        // Data tambahan untuk Uniswap integration
+                                        feeTier: selectedFeeTier,
+                                        chainId:
+                                          projectData?.chains[0]?.chain
+                                            ?.chainid || 56, // Use actual project chain ID
+                                        userAddress,
                                       });
                                       setOpen(false); // Close main modal first
                                       setShowConfirmModal(true);

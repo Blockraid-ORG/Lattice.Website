@@ -2,14 +2,17 @@
 
 import { BrowserProvider, Contract, ethers } from "ethers";
 import BigNumber from "bignumber.js";
+import { UNISWAP_V3_ADDRESSES } from "@/data/constants";
 
-// ERC20 ABI untuk membaca balance dan total supply
+// ERC20 ABI untuk membaca balance, total supply, dan approval
 const ERC20_ABI = [
   "function balanceOf(address owner) view returns (uint256)",
   "function totalSupply() view returns (uint256)",
   "function decimals() view returns (uint8)",
   "function symbol() view returns (string)",
   "function name() view returns (string)",
+  "function approve(address spender, uint256 amount) returns (bool)",
+  "function allowance(address owner, address spender) view returns (uint256)",
 ];
 
 interface TokenInfo {
@@ -325,5 +328,243 @@ export class TokenBalanceService {
   static reset() {
     this.provider = null;
     this.walletAddress = null;
+  }
+
+  // ============================================
+  // UNISWAP V3 APPROVAL FUNCTIONS
+  // ============================================
+
+  /**
+   * Cek allowance token untuk Uniswap Position Manager
+   */
+  static async checkAllowance(
+    tokenAddress: string,
+    chainId: number
+  ): Promise<BigNumber> {
+    if (!this.provider || !this.walletAddress) {
+      throw new Error("Service not initialized");
+    }
+
+    try {
+      const addresses =
+        UNISWAP_V3_ADDRESSES[chainId as keyof typeof UNISWAP_V3_ADDRESSES];
+      if (!addresses) throw new Error(`Unsupported chain: ${chainId}`);
+
+      const tokenContract = new Contract(
+        tokenAddress,
+        ERC20_ABI,
+        this.provider
+      );
+
+      const allowanceRaw = await tokenContract.allowance(
+        this.walletAddress,
+        addresses.POSITION_MANAGER
+      );
+
+      const tokenDecimals = await tokenContract.decimals();
+      const allowance = new BigNumber(
+        ethers.formatUnits(allowanceRaw, tokenDecimals)
+      );
+
+      console.log(`✅ Current allowance for ${tokenAddress}:`, {
+        allowanceRaw: allowanceRaw.toString(),
+        allowance: allowance.toString(),
+        formatted: this.formatBalance(allowance),
+      });
+
+      return allowance;
+    } catch (error) {
+      console.error("❌ Error checking allowance:", error);
+      throw new Error(`Failed to check allowance: ${(error as Error).message}`);
+    }
+  }
+
+  /**
+   * Approve token untuk Uniswap Position Manager
+   */
+  static async approveForUniswap(
+    tokenAddress: string,
+    amount: BigNumber,
+    chainId: number,
+    useInfiniteApproval: boolean = true
+  ): Promise<string> {
+    if (!this.provider || !this.walletAddress) {
+      throw new Error("Service not initialized");
+    }
+
+    try {
+      const addresses =
+        UNISWAP_V3_ADDRESSES[chainId as keyof typeof UNISWAP_V3_ADDRESSES];
+      if (!addresses) throw new Error(`Unsupported chain: ${chainId}`);
+
+      const signer = await this.provider.getSigner();
+      const tokenContract = new Contract(tokenAddress, ERC20_ABI, signer);
+
+      const tokenDecimals = await tokenContract.decimals();
+
+      // Gunakan infinite approval atau amount spesifik
+      const approvalAmount = useInfiniteApproval
+        ? ethers.MaxUint256
+        : ethers.parseUnits(amount.toFixed(), tokenDecimals);
+
+      console.log(`🔄 Approving ${tokenAddress} for Uniswap...`, {
+        spender: addresses.POSITION_MANAGER,
+        amount: useInfiniteApproval ? "INFINITE" : amount.toString(),
+        approvalAmount: approvalAmount.toString(),
+      });
+
+      const tx = await tokenContract.approve(
+        addresses.POSITION_MANAGER,
+        approvalAmount
+      );
+
+      console.log("🚀 Approval transaction sent:", tx.hash);
+      const receipt = await tx.wait();
+
+      console.log("✅ Token approval successful:", {
+        transactionHash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: receipt.gasUsed?.toString(),
+      });
+
+      return receipt.hash;
+    } catch (error) {
+      console.error("❌ Error approving token:", error);
+      throw new Error(`Failed to approve token: ${(error as Error).message}`);
+    }
+  }
+
+  /**
+   * Batch approve multiple tokens untuk Uniswap
+   */
+  static async batchApproveForUniswap(
+    tokens: Array<{
+      address: string;
+      amount: BigNumber;
+    }>,
+    chainId: number,
+    useInfiniteApproval: boolean = true
+  ): Promise<string[]> {
+    if (!this.provider || !this.walletAddress) {
+      throw new Error("Service not initialized");
+    }
+
+    const txHashes: string[] = [];
+
+    console.log(`🔄 Starting batch approval for ${tokens.length} tokens...`);
+
+    for (const token of tokens) {
+      try {
+        const txHash = await this.approveForUniswap(
+          token.address,
+          token.amount,
+          chainId,
+          useInfiniteApproval
+        );
+        txHashes.push(txHash);
+
+        // Add small delay antara transactions
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } catch (error) {
+        console.error(`❌ Failed to approve token ${token.address}:`, error);
+        throw error;
+      }
+    }
+
+    console.log(`✅ Batch approval completed for ${txHashes.length} tokens`);
+    return txHashes;
+  }
+
+  /**
+   * Cek apakah token perlu di-approve
+   */
+  static async needsApproval(
+    tokenAddress: string,
+    requiredAmount: BigNumber,
+    chainId: number
+  ): Promise<boolean> {
+    try {
+      const currentAllowance = await this.checkAllowance(tokenAddress, chainId);
+      const needsApproval = currentAllowance.lt(requiredAmount);
+
+      console.log(`🔍 Checking if ${tokenAddress} needs approval:`, {
+        currentAllowance: currentAllowance.toString(),
+        requiredAmount: requiredAmount.toString(),
+        needsApproval,
+      });
+
+      return needsApproval;
+    } catch (error) {
+      console.error("❌ Error checking if approval needed:", error);
+      return true; // Safe default - assume approval needed
+    }
+  }
+
+  /**
+   * Estimate gas untuk approval transaction
+   */
+  static async estimateApprovalGas(
+    tokenAddress: string,
+    amount: BigNumber,
+    chainId: number,
+    useInfiniteApproval: boolean = true
+  ): Promise<bigint> {
+    if (!this.provider || !this.walletAddress) {
+      throw new Error("Service not initialized");
+    }
+
+    try {
+      const addresses =
+        UNISWAP_V3_ADDRESSES[chainId as keyof typeof UNISWAP_V3_ADDRESSES];
+      if (!addresses) throw new Error(`Unsupported chain: ${chainId}`);
+
+      const signer = await this.provider.getSigner();
+      const tokenContract = new Contract(tokenAddress, ERC20_ABI, signer);
+
+      const tokenDecimals = await tokenContract.decimals();
+      const approvalAmount = useInfiniteApproval
+        ? ethers.MaxUint256
+        : ethers.parseUnits(amount.toFixed(), tokenDecimals);
+
+      const estimatedGas = await tokenContract.approve.estimateGas(
+        addresses.POSITION_MANAGER,
+        approvalAmount
+      );
+
+      // Add 20% buffer
+      return (estimatedGas * BigInt(120)) / BigInt(100);
+    } catch (error) {
+      console.error("Gas estimation failed:", error);
+      return BigInt(50000); // Conservative fallback untuk ERC20 approval
+    }
+  }
+
+  /**
+   * Helper untuk mengecek dan approve jika diperlukan
+   */
+  static async ensureApproval(
+    tokenAddress: string,
+    requiredAmount: BigNumber,
+    chainId: number,
+    useInfiniteApproval: boolean = true
+  ): Promise<string | null> {
+    const needsApproval = await this.needsApproval(
+      tokenAddress,
+      requiredAmount,
+      chainId
+    );
+
+    if (!needsApproval) {
+      console.log(`✅ ${tokenAddress} already has sufficient allowance`);
+      return null;
+    }
+
+    console.log(`🔄 ${tokenAddress} needs approval, proceeding...`);
+    return await this.approveForUniswap(
+      tokenAddress,
+      requiredAmount,
+      chainId,
+      useInfiniteApproval
+    );
   }
 }

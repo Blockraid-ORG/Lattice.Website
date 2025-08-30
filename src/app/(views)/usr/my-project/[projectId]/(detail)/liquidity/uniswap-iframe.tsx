@@ -34,13 +34,13 @@ export default function ActionsLiquidity() {
     rangeType: "full",
     minPrice: "0",
     maxPrice: "∞",
-    startingPrice: "0.00000022",
-    baseToken: "BU",
+    startingPrice: "0",
+    baseToken: "TokenA",
     tokenAAmount: "0",
     tokenBAmount: "0",
     tokenAData: null, // Tambahkan tokenAData
     tokenBData: null, // Tambahkan tokenBData
-    tokenPrices: { BNB: 625.34, BU: 0.0001375 },
+    tokenPrices: { TokenA: 0, TokenB: 0 },
     calculateUSDValue: () => "US$0",
     calculateTotalPoolValue: () => "US$0",
   });
@@ -106,11 +106,13 @@ export default function ActionsLiquidity() {
                   symbol: modalData.tokenAData.symbol,
                   name: modalData.tokenAData.name,
                   icon: modalData.tokenAData.icon,
+                  address: modalData.tokenAData.address,
                 }
               : {
                   symbol: "BNB",
                   name: "Binance Coin",
                   icon: "cryptocurrency-color:bnb",
+                  // BNB is native token, no address needed or use WBNB
                 }
           }
           tokenBData={
@@ -119,12 +121,14 @@ export default function ActionsLiquidity() {
                   symbol: modalData.tokenBData.symbol,
                   name: modalData.tokenBData.name,
                   icon: modalData.tokenBData.icon,
+                  address: modalData.tokenBData.address,
                 }
               : project
               ? {
                   symbol: project.ticker,
                   name: project.name,
                   icon: "mdi:coin",
+                  address: project.contractAddress,
                 }
               : {
                   symbol: "BU",
@@ -135,6 +139,10 @@ export default function ActionsLiquidity() {
           tokenPrices={modalData.tokenPrices}
           calculateUSDValue={modalData.calculateUSDValue}
           calculateTotalPoolValue={modalData.calculateTotalPoolValue}
+          // Props tambahan untuk Uniswap integration
+          feeTier={modalData.feeTier || "0.3"}
+          chainId={modalData.chainId || 56}
+          userAddress={modalData.userAddress}
         />
       </>
     );
