@@ -16,7 +16,7 @@ export const defaultValues = {
       vesting: 0,
       startDate: new Date().toISOString(),
       isPresale: false,
-    },
+    }
   ],
   socials: [
     {
