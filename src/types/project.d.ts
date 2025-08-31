@@ -60,6 +60,23 @@ export type TProjectReviewLog = {
   createdAt: string;
   createdBy: string;
 };
+
+export type TAdditionalReward = {
+  id: string
+  address: string
+  amount: string
+  type: {
+    id: string
+    name: string
+  },
+  user: {
+    id: string
+    walletAddress: string
+  },
+  startDateCliam: string 
+  endDateCliam: string
+  isClaimed: boolean
+}
 export type TProject = {
   id: string
   name: string
@@ -88,6 +105,8 @@ export type TProject = {
   Presales: TPresale[];
   user: TProjectOwner;
   reviewLogs: TReviewLog[];
+  isHashAirdrop?: boolean
+  additionalReward?: TAdditionalReward[] | []
 };
 
 export type TProjectCounter = {

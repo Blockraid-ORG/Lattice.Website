@@ -49,7 +49,7 @@ export default function FormCreate() {
     resolver: zodResolver(formCreateProjectSchema),
     defaultValues: defaultValues
   })
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove } = useFieldArray<TFormProjectAllocation>({
     control: form.control,
     name: "allocations"
   })
@@ -198,6 +198,22 @@ export default function FormCreate() {
       toast.error("Failed to save token")
     } finally {
       setLoading(false)
+    }
+  }
+  async function onCheckedChangeAirdrop(state: boolean) {
+    if (state) {
+      append({
+        name: "Airdrop",
+        supply: 0,
+        vesting: 0,
+        startDate: new Date().toISOString(),
+        isPresale: false,
+      });
+    } else {
+      const index = allocations.findIndex((a:any) => a.name.toLowerCase() === "airdrop");
+      if (index !== -1) {
+        remove(index);
+      }
     }
   }
   return (
@@ -371,6 +387,7 @@ export default function FormCreate() {
                           name={`allocations.${index}.name`}
                           label="Allocation"
                           placeholder="e.g. Team"
+                          disabled={field.name === "Airdrop"}
                         />
                       </div>
                       <div className="flex-1">
@@ -420,6 +437,10 @@ export default function FormCreate() {
                 <Button variant="secondary" disabled={totalPercent >= 100} type="button" onClick={() => append({ allocation: "", supply: 0, start_date: "", vesting: 0 })}>
                   + Allocation
                 </Button>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch onCheckedChange={onCheckedChangeAirdrop} id="enable-airdrop" />
+                <Label htmlFor="enable-airdrop">Enable Airdrop</Label>
               </div>
             </div>
             <div className='bg-form-token-gradient p-4 md:p-8 rounded-2xl'>
