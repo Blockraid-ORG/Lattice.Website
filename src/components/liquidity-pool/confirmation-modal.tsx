@@ -641,11 +641,11 @@ export function ConfirmationModal({
           }
           // Force correct TS address for Arbitrum
           if (
-            tokenData.symbol?.toUpperCase() === "TK" ||
+            tokenData.symbol?.toUpperCase() === "KM" ||
             tokenData.name?.toLowerCase().includes("toko") ||
             tokenData.name?.toLowerCase().includes("kulkas")
           ) {
-            return "0xbF5CA5d9Cb4E54bbB79163C384BAB22337C4A20f"; // TK Token Arbitrum
+            return "0xAe771AC9292c84ed2A6625Ae92380DedCF9A5076"; // KM Token Arbitrum
           }
         }
 
@@ -666,8 +666,8 @@ export function ConfirmationModal({
         chainId: chainId || 56,
         address: getTokenAddress(tokenBData, chainId || 56),
         decimals: (tokenBData as any)?.decimals || 18,
-        symbol: tokenBData.symbol || "TK", // FIXED: Ensure TK symbol
-        name: tokenBData.name || "Toko Kulkas Token", // FIXED: Proper token name
+        symbol: tokenBData.symbol || "KM", // FIXED: Ensure KM symbol
+        name: tokenBData.name || "KOSAN AN Token", // FIXED: Proper token name
         isNative: !!(tokenBData as any)?.isNative,
       };
 
@@ -1127,11 +1127,11 @@ export function ConfirmationModal({
           fee: fee,
           CRITICAL_CHECK: {
             "Is USDC tokenA?": tokenASDK.symbol === "USDC",
-            "Is TK tokenB?": tokenBSDK.symbol === "TK",
+            "Is KM tokenB?": tokenBSDK.symbol === "KM",
             "USDC amount":
               tokenASDK.symbol === "USDC" ? tokenAAmount : tokenBAmount,
-            "TK amount":
-              tokenBSDK.symbol === "TK"
+            "KM amount":
+              tokenBSDK.symbol === "KM"
                 ? tokenBSDK.symbol === tokenBData?.symbol
                   ? tokenBAmount
                   : tokenAAmount

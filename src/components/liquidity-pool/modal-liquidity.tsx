@@ -186,7 +186,7 @@ export function ModalLiquidity({
       // Arbitrum specific tokens - Use Native USDC that user actually has
       map.USDC = { address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831" }; // Native USDC (Circle) - User has this one
       map["USDC.e"] = { address: "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8" }; // USDC.e (Bridged)
-      map.TK = { address: "0xbF5CA5d9Cb4E54bbB79163C384BAB22337C4A20f" }; // TK Token (Toko Kulkas)
+      map.KM = { address: "0xAe771AC9292c84ed2A6625Ae92380DedCF9A5076" }; // KM Token (KOSAN AN)
       map.WETH = { address: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1" }; // WETH Arbitrum
       map.ARB = { address: "0x912ce59144191c1204e64559fe8253a0e49e6548" }; // ARB Arbitrum
       map.USDT = { address: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9" }; // USDT Arbitrum

@@ -173,11 +173,11 @@ export function TokenSelectionModal({
           chain: "arbitrum",
         },
         {
-          symbol: "TK",
-          name: "Toko Kulkas",
-          icon: "mdi:fridge-outline",
+          symbol: "KM",
+          name: "KOSAN AN",
+          icon: "mdi:home-city-outline",
           price: "$0.001",
-          address: "0xbF5CA5d9Cb4E54bbB79163C384BAB22337C4A20f",
+          address: "0xAe771AC9292c84ed2A6625Ae92380DedCF9A5076",
           chain: "arbitrum",
         },
         {

@@ -238,9 +238,9 @@ export class UniswapV3SDKService {
           decimals = 6; // USDC ALWAYS has 6 decimals on ALL chains!
         } else if (
           tokenData.address?.toLowerCase() ===
-          "0xbF5CA5d9Cb4E54bbB79163C384BAB22337C4A20f" // TK Token Arbitrum (Toko Kulkas)
+          "0xae771ac9292c84ed2a6625ae92380dedcf9a5076" // KM Token Arbitrum (KOSAN AN)
         ) {
-          decimals = 18; // TK token has 18 decimals
+          decimals = 18; // KM token has 18 decimals
         } else if (
           tokenData.address?.toLowerCase() ===
           "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d" // USDC BSC (fallback)
@@ -278,13 +278,13 @@ export class UniswapV3SDKService {
         finalName = "USD Coin";
         decimals = 6;
       }
-      // Ensure correct TS data
+      // Ensure correct KM data
       if (
         tokenData.address?.toLowerCase() ===
-        "0xbF5CA5d9Cb4E54bbB79163C384BAB22337C4A20f"
+        "0xae771ac9292c84ed2a6625ae92380dedcf9a5076"
       ) {
-        finalSymbol = "TK";
-        finalName = "Toko Kulkas";
+        finalSymbol = "KM";
+        finalName = "KOSAN AN";
         decimals = 18;
       }
     }
@@ -704,9 +704,9 @@ export class UniswapV3SDKService {
             symbol = "USDC";
           } else if (
             tokenAddress.toLowerCase() ===
-            "0xbF5CA5d9Cb4E54bbB79163C384BAB22337C4A20f" // TK Token Arbitrum
+            "0xae771ac9292c84ed2a6625ae92380dedcf9a5076" // KM Token Arbitrum
           ) {
-            symbol = "TS";
+            symbol = "KM";
           } else if (
             tokenAddress.toLowerCase() ===
             "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d" // USDC BSC (fallback)
@@ -738,9 +738,9 @@ export class UniswapV3SDKService {
             decimals = 6; // USDC has 6 decimals on all chains
           } else if (
             tokenAddress.toLowerCase() ===
-            "0xbF5CA5d9Cb4E54bbB79163C384BAB22337C4A20f" // TK Token Arbitrum
+            "0xae771ac9292c84ed2a6625ae92380dedcf9a5076" // KM Token Arbitrum
           ) {
-            decimals = 18; // TK Token (18 decimals)
+            decimals = 18; // KM Token (18 decimals)
           } else if (
             tokenAddress.toLowerCase() ===
             "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d" // USDC BSC (fallback)
@@ -750,7 +750,7 @@ export class UniswapV3SDKService {
             tokenAddress.toLowerCase() ===
             "0xc327d83686f6b491b1d93755fcee036abd4877dc" // KS Token BSC (fallback)
           ) {
-            decimals = 18; // TK Token (assumed)
+            decimals = 18; // TH Token (assumed)
           } else {
             decimals = 18; // Default
           }
@@ -814,17 +814,17 @@ export class UniswapV3SDKService {
       const isArbitrumUSDC =
         tokenAddress.toLowerCase() ===
         "0xaf88d065e77c8cc2239327c5edb3a432268e5831"; // Native USDC Arbitrum
-      const isArbitrumTS =
+      const isArbitrumTH =
         tokenAddress.toLowerCase() ===
-        "0xbF5CA5d9Cb4E54bbB79163C384BAB22337C4A20f"; // TK Token Arbitrum
+        "0xae771ac9292c84ed2a6625ae92380dedcf9a5076"; // KM Token Arbitrum
       const isBscUSDC =
         tokenAddress.toLowerCase() ===
         "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"; // USDC BSC
 
       const tokenSymbol =
-        isArbitrumUSDC || isBscUSDC ? "USDC" : isArbitrumTS ? "TS" : "UNKNOWN";
+        isArbitrumUSDC || isBscUSDC ? "USDC" : isArbitrumTH ? "KM" : "UNKNOWN";
       const tokenDecimals =
-        isArbitrumUSDC || isBscUSDC ? 6 : isArbitrumTS ? 18 : 18;
+        isArbitrumUSDC || isBscUSDC ? 6 : isArbitrumTH ? 18 : 18;
 
       // SAFETY CHECK: Prevent absurdly large approval amounts (likely decimal conversion bug)
       const humanReadableAmount = Number(amount) / Math.pow(10, tokenDecimals);
@@ -1152,19 +1152,19 @@ export class UniswapV3SDKService {
         .multipliedBy(new BigNumber(10).pow(token1.decimals))
         .toFixed(0);
 
-      console.log("🆕 FRESH TOKEN PAIR VALIDATION - TK TOKEN TEST:", {
-        testType: "🏪 Testing with Toko Kulkas (TK) - Brand new token pair",
+      console.log("🆕 FRESH TOKEN PAIR VALIDATION - TH TOKEN TEST:", {
+        testType: "🏬 Testing with Toko HP (TH) - Brand new token pair",
         tokenDetails: {
           projectName:
-            params.tokenB?.symbol === "TK"
-              ? "Toko Kulkas (Real Estate Tokenization)"
+            params.tokenB?.symbol === "TH"
+              ? "Toko HP"
               : `${params.tokenB.symbol} Project`,
           totalSupply:
-            params.tokenB?.symbol === "TK" ? "10,000 TK" : "Unknown supply",
+            params.tokenB?.symbol === "TH" ? "10,000 TH" : "Unknown supply",
           contractVerified:
             params.tokenB?.address ===
-            "0xbF5CA5d9Cb4E54bbB79163C384BAB22337C4A20f"
-              ? "✅ Verified TK Contract"
+            "0xB0CED92BEEC892dA79551A6D0823510F17f1804F"
+              ? "✅ Verified TH Contract"
               : "Contract pending verification",
         },
         userInput: {
@@ -1177,9 +1177,9 @@ export class UniswapV3SDKService {
           },
         },
         poolExpectation: {
-          creation: "✅ Will create FIRST EVER TK/USDC pool",
+          creation: "✅ Will create FIRST EVER TH/USDC pool",
           priceCalculation: "✅ Enhanced sorting + price calculation logic",
-          finalResult: `✅ Pool rate: 1 USDC = 2500 TK (tradeable)`,
+          finalResult: `✅ Pool rate: 1 USDC = 2500 TH (tradeable)`,
           tokenDeduction: `✅ Wallet: -${params.amount0} ${params.tokenA.symbol} & -${params.amount1} ${params.tokenB.symbol}`,
           verification:
             "✅ Check Uniswap positions + ArbiScan for confirmation",
@@ -1196,19 +1196,19 @@ export class UniswapV3SDKService {
             symbol: token0.symbol,
             address: token0.address,
             decimals: token0.decimals,
-            isTK:
-              token0.symbol === "TK" ||
+            isTH:
+              token0.symbol === "TH" ||
               token0.address.toLowerCase() ===
-                "0xbf5ca5d9cb4e54bbb79163c384bab22337c4a20f",
+                "0xb0ced92beec892da79551a6d0823510f17f1804f",
           },
           token1: {
             symbol: token1.symbol,
             address: token1.address,
             decimals: token1.decimals,
-            isTK:
-              token1.symbol === "TK" ||
+            isTH:
+              token1.symbol === "TH" ||
               token1.address.toLowerCase() ===
-                "0xbf5ca5d9cb4e54bbb79163c384bab22337c4a20f",
+                "0xb0ced92beec892da79551a6d0823510f17f1804f",
           },
         },
         calculations: {
@@ -1310,15 +1310,15 @@ export class UniswapV3SDKService {
         // But Uniswap needs token1/token0 ratio after address sorting
 
         // CRITICAL: Determine correct token order for pool (Uniswap sorts by address)
-        // tokenA = USDC, tokenB = TK
+        // tokenA = USDC, tokenB = TH
         const tokenAAmount = new BigNumber(params.amount0); // 1 USDC
-        const tokenBAmount = new BigNumber(params.amount1); // 2500 TK
+        const tokenBAmount = new BigNumber(params.amount1); // 2500 TH
 
         // Explicitly determine sorted token order
         let sortedToken0, sortedToken1, sorted0Amount, sorted1Amount;
 
         if (token0.address.toLowerCase() < token1.address.toLowerCase()) {
-          // tokenA (USDC) becomes pool token0, tokenB (TS) becomes pool token1
+          // tokenA (USDC) becomes pool token0, tokenB (TH) becomes pool token1
           sortedToken0 = {
             symbol: params.tokenA.symbol,
             address: token0.address,
@@ -1328,23 +1328,23 @@ export class UniswapV3SDKService {
             address: token1.address,
           }; // TS
           sorted0Amount = tokenAAmount; // 1 USDC
-          sorted1Amount = tokenBAmount; // 2500 TK
+          sorted1Amount = tokenBAmount; // 2500 TH
         } else {
-          // tokenB (TK) becomes pool token0, tokenA (USDC) becomes pool token1
+          // tokenB (TH) becomes pool token0, tokenA (USDC) becomes pool token1
           sortedToken0 = {
             symbol: params.tokenB.symbol,
             address: token1.address,
-          }; // TK
+          }; // TH
           sortedToken1 = {
             symbol: params.tokenA.symbol,
             address: token0.address,
           }; // USDC
-          sorted0Amount = tokenBAmount; // 2500 TK
+          sorted0Amount = tokenBAmount; // 2500 TH
           sorted1Amount = tokenAAmount; // 1 USDC
         }
 
         // Calculate price as token1/token0 (Uniswap V3 standard)
-        // User wants: 1 USDC = 2500 TK
+        // User wants: 1 USDC = 2500 TH
         initialPrice = sorted1Amount.dividedBy(sorted0Amount).toString();
 
         console.log("📊 EXPLICIT TOKEN SORTING & PRICE CALCULATION:", {
@@ -1845,11 +1845,19 @@ export class UniswapV3SDKService {
         this.signer
       );
 
-      // Calculate initial sqrtPriceX96 from price
-      const price = parseFloat(params.initialPrice);
-
-      // sqrtPriceX96 = sqrt(price) * 2^96
-      const sqrtPriceX96 = BigInt(Math.floor(Math.sqrt(price) * 2 ** 96));
+      // Calculate initial sqrtPriceX96 from price (decimals-aware)
+      const priceHuman = new BigNumber(params.initialPrice);
+      const decimalFactor = new BigNumber(10).pow(
+        (sortedToken0.decimals || 18) - (sortedToken1.decimals || 18)
+      );
+      const priceAdjusted = priceHuman.multipliedBy(decimalFactor);
+      const sqrtPriceX96 = BigInt(
+        new BigNumber(2)
+          .pow(96)
+          .multipliedBy(priceAdjusted.sqrt())
+          .integerValue(BigNumber.ROUND_FLOOR)
+          .toFixed(0)
+      );
 
       // Step 0: Validate tokens before pool creation
       ("🔍 Step 0: Validating tokens before pool creation...");
@@ -1899,9 +1907,69 @@ export class UniswapV3SDKService {
         );
 
         if (existingPool !== "0x0000000000000000000000000000000000000000") {
-          // Return existing pool info
+          // If pool already exists, ensure it's initialized with a price
+          const readOnlyPoolContract = new ethers.Contract(
+            existingPool,
+            [
+              "function slot0() external view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, uint8 feeProtocol, bool unlocked)",
+            ],
+            this.provider
+          );
+
+          const existingSlot0 = await readOnlyPoolContract.slot0();
+          const existingSqrt = BigInt(existingSlot0.sqrtPriceX96.toString());
+
+          if (existingSqrt === BigInt(0)) {
+            // Not initialized yet → initialize now with provided initial price (decimals-aware)
+            const priceHuman = new BigNumber(params.initialPrice);
+            const decimalFactor = new BigNumber(10).pow(
+              (sortedToken0.decimals || 18) - (sortedToken1.decimals || 18)
+            );
+            const priceAdjusted = priceHuman.multipliedBy(decimalFactor);
+            const sqrtPriceX96 = BigInt(
+              new BigNumber(2)
+                .pow(96)
+                .multipliedBy(priceAdjusted.sqrt())
+                .integerValue(BigNumber.ROUND_FLOOR)
+                .toFixed(0)
+            );
+
+            const poolWriter = new ethers.Contract(
+              existingPool,
+              ["function initialize(uint160 sqrtPriceX96) external"],
+              this.signer
+            );
+
+            try {
+              const initGasEstimate = await poolWriter.initialize.estimateGas(
+                sqrtPriceX96
+              );
+              const initTx = await poolWriter.initialize(sqrtPriceX96, {
+                gasLimit: (initGasEstimate * BigInt(120)) / BigInt(100),
+                maxFeePerGas: ethers.parseUnits("0.1", "gwei"),
+                maxPriorityFeePerGas: ethers.parseUnits("0.05", "gwei"),
+              });
+              await initTx.wait();
+            } catch {
+              // Fallback with fixed gas if estimation fails
+              const initTx = await poolWriter.initialize(sqrtPriceX96, {
+                gasLimit: 120000,
+                maxFeePerGas: ethers.parseUnits("0.1", "gwei"),
+                maxPriorityFeePerGas: ethers.parseUnits("0.05", "gwei"),
+              });
+              await initTx.wait();
+            }
+
+            // Return after successful initialization
+            return {
+              hash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+              poolAddress: existingPool,
+            };
+          }
+
+          // Already initialized → return as-is
           return {
-            hash: "0x0000000000000000000000000000000000000000000000000000000000000000", // Dummy hash
+            hash: "0x0000000000000000000000000000000000000000000000000000000000000000",
             poolAddress: existingPool,
           };
         }

@@ -51,7 +51,8 @@ export const ARBITRUM_TOKENS = {
   "USDC.e": "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8", // Bridged USDC from Ethereum
   WETH: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1", // WETH Arbitrum Official
   TS: "0xacef9E8342FbC6468D49c32b6ADBA3f8F8b352Ec", // TS Token (User Project - Toko Sepatu)
-  TK: "0xbF5CA5d9Cb4E54bbB79163C384BAB22337C4A20f", // TK Token (User Project - Toko Kulkas) - 18 decimals, 10,000 supply
+  TH: "0xB0CED92BEEC892dA79551A6D0823510F17f1804F", // TH Token (User Project - Toko HP) - 18 decimals, 10,000 supply
+  KM: "0xAe771AC9292c84ed2A6625Ae92380DedCF9A5076", // KM Token (KOSAN AN) - 18 decimals, 10,000 supply
   // Additional Arbitrum tokens
   USDT: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9", // USDT Arbitrum
   ARB: "0x912CE59144191C1204E64559FE8253a0e49E6548", // ARB Arbitrum
