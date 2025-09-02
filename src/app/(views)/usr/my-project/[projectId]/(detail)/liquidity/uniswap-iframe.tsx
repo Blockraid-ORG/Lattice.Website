@@ -45,9 +45,48 @@ export default function ActionsLiquidity() {
     calculateTotalPoolValue: () => "US$0",
   });
 
-  console.log("project token", project);
-  console.log("modalData for confirmation:", modalData);
-  if (isLoading) return <div>Loading...</div>;
+  // 🎯 Extract chainId from project data safely
+  const projectChainId = project?.chains?.[0]?.chain?.chainid;
+
+  // 🚨 Don't show liquidity button if chainId not loaded yet
+  const isChainIdReady = projectChainId !== undefined;
+
+  // ✅ MANUAL ADDRESS OVERRIDE UNTUK TESTING - Updated from project info
+  // 🎯 USDC/KS Pair Configuration for BSC
+  const USDC_BSC_ADDRESS = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d"; // USDC BSC Official
+  const KS_TOKEN_ADDRESS = "0xC327D83686f6B491B1D93755fCEe036aBd4877Dc"; // KS Project Token (Verified)
+
+  // Legacy constants for compatibility
+  const MANUAL_CONTRACT_ADDRESS = KS_TOKEN_ADDRESS;
+  const TEST_TOKEN_ADDRESS = "0x55d398326f99059fF775485246999027B3197955"; // USDT BSC Official
+
+  // 🎯 Dynamic Token Configuration based on actual project chain
+  if (isChainIdReady && projectChainId) {
+    const isArbitrum = projectChainId === 42161;
+    const isBSC = projectChainId === 56;
+  }
+
+  // 🔍 Loading states and safety checks
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <div className="text-sm text-gray-500">Loading project data...</div>
+      </div>
+    );
+  }
+
+  // 🚨 Don't show liquidity options if chainId not ready
+  if (!isChainIdReady) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <div className="text-sm text-amber-600">
+          ⚠️ Waiting for project chain information...
+        </div>
+      </div>
+    );
+  }
+
+  // 🚨 Project must be deployed to add liquidity
   if (project?.status === "DEPLOYED") {
     return (
       <>
@@ -57,7 +96,6 @@ export default function ActionsLiquidity() {
           className="flex items-center gap-2"
           onClick={() => {
             setOpen(true);
-            console.log("open", open);
           }}
         >
           <Icon name="mdi:water-plus" className="text-sm" />
@@ -81,12 +119,6 @@ export default function ActionsLiquidity() {
           }
         />
         {(() => {
-          console.log("🔧 Passing to ConfirmationModal:", {
-            hasTokenAData: !!modalData.tokenAData,
-            tokenAData: modalData.tokenAData,
-            hasTokenBData: !!modalData.tokenBData,
-            tokenBData: modalData.tokenBData,
-          });
           return null;
         })()}
         <ConfirmationModal
@@ -107,12 +139,16 @@ export default function ActionsLiquidity() {
                   name: modalData.tokenAData.name,
                   icon: modalData.tokenAData.icon,
                   address: modalData.tokenAData.address,
+                  isNative: modalData.tokenAData.isNative || false,
+                  decimals: modalData.tokenAData.decimals || 18,
                 }
               : {
-                  symbol: "BNB",
-                  name: "Binance Coin",
-                  icon: "cryptocurrency-color:bnb",
-                  // BNB is native token, no address needed or use WBNB
+                  symbol: "USDC",
+                  name: "USD Coin",
+                  icon: "cryptocurrency-color:usdc",
+                  address: USDC_BSC_ADDRESS, // USDC BSC Official
+                  isNative: false, // USDC adalah BEP20 token, bukan native
+                  decimals: 18, // USDC BSC uses 18 decimals
                 }
           }
           tokenBData={
@@ -122,18 +158,25 @@ export default function ActionsLiquidity() {
                   name: modalData.tokenBData.name,
                   icon: modalData.tokenBData.icon,
                   address: modalData.tokenBData.address,
+                  isNative: modalData.tokenBData.isNative || false,
+                  decimals: modalData.tokenBData.decimals || 18,
                 }
-              : project
+              : project && project.status === "DEPLOYED" // ✅ VALIDASI STATUS DEPLOYED
               ? {
                   symbol: project.ticker,
                   name: project.name,
                   icon: "mdi:coin",
-                  address: project.contractAddress,
+                  address: KS_TOKEN_ADDRESS, // ⚡ Back to KS contract for testing
+                  isNative: false, // Project token selalu ERC20/BEP20
+                  decimals: project.decimals || 18,
                 }
               : {
-                  symbol: "BU",
-                  name: "Bakso Urat",
-                  icon: "mdi:coin",
+                  symbol: "CAKE", // 🍰 FALLBACK: Using PancakeSwap CAKE token for testing
+                  name: "PancakeSwap Token",
+                  icon: "cryptocurrency:cake",
+                  address: "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82", // CAKE BSC (widely used in BSC)
+                  isNative: false,
+                  decimals: 18,
                 }
           }
           tokenPrices={modalData.tokenPrices}
@@ -141,7 +184,7 @@ export default function ActionsLiquidity() {
           calculateTotalPoolValue={modalData.calculateTotalPoolValue}
           // Props tambahan untuk Uniswap integration
           feeTier={modalData.feeTier || "0.3"}
-          chainId={modalData.chainId || 56}
+          chainId={projectChainId} // Use actual project chainId, not fallback
           userAddress={modalData.userAddress}
         />
       </>

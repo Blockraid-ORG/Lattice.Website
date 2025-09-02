@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import { TokenSelectionModal } from "./token-selection-modal";
 import { useTokenPrices } from "@/hooks/useTokenPrices";
 import { useLiquidityTokenBalances } from "@/hooks/useTokenBalances";
+import { useUniswapV3SDK } from "@/hooks/useUniswapV3SDK";
 
 interface ModalLiquidityProps {
   open: boolean;
@@ -91,8 +92,39 @@ export function ModalLiquidity({
   // Check wallet connection status using Web3Auth
   const { isConnected: isWalletConnected, connect } = useWeb3AuthConnect();
 
+  // 🎯 Safe chainId extraction from project data
+  const projectChainId = projectData?.chains?.[0]?.chain?.chainid;
+  const isChainIdReady = projectChainId !== undefined;
+
+  // 🔒 Only initialize SDK when chainId is available
+  const {
+    isReady: isSDKReady,
+    isConnecting: isSDKConnecting,
+    error: sdkError,
+  } = useUniswapV3SDK(projectChainId || 56); // Fallback only for hook initialization
+
   // State untuk user address
   const [userAddress, setUserAddress] = useState<string | null>(null);
+
+  // Utility function to get correct decimals for each token
+  const getCorrectDecimals = (tokenSymbol: string, address?: string) => {
+    // Known USDC addresses with 6 decimals
+    const usdcAddresses = [
+      "0xaf88d065e77c8cc2239327c5edb3a432268e5831", // Native USDC Arbitrum
+      "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // USDC BSC
+      "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8", // USDC.e Arbitrum
+    ];
+
+    if (
+      tokenSymbol?.toUpperCase() === "USDC" ||
+      (address && usdcAddresses.includes(address.toLowerCase()))
+    ) {
+      return 6; // USDC always has 6 decimals
+    }
+
+    // Most other tokens use 18 decimals (ETH standard)
+    return 18;
+  };
 
   // Effect untuk mendapatkan user address ketika wallet connected
   useEffect(() => {
@@ -107,21 +139,17 @@ export function ModalLiquidity({
             const accounts = Array.isArray(result) ? (result as string[]) : [];
             if (accounts.length > 0) {
               setUserAddress(accounts[0]);
-              console.log("🔗 User address:", accounts[0]);
             } else {
-              console.warn("⚠️ No accounts returned from wallet");
               setUserAddress(null);
             }
           } else {
-            console.warn("⚠️ Web3 provider not available");
+            ("⚠️ Web3 provider not available");
             setUserAddress(null);
           }
         } catch (error) {
-          console.error("Error getting user address:", error);
           setUserAddress(null);
         }
       } else {
-        console.log("📱 Wallet not connected");
         setUserAddress(null);
       }
     };
@@ -131,28 +159,51 @@ export function ModalLiquidity({
 
   // Memoized token address mapping untuk balance reading
   const tokenAddressMap = useMemo(() => {
+    // 🚨 Don't build token map if chainId not ready
+    if (!isChainIdReady || !projectChainId) {
+      return {};
+    }
+
     const map: Record<string, { address?: string; isNative?: boolean }> = {
-      // BSC
+      // BSC tokens (chainId 56)
       BNB: { isNative: true },
       BUSD: { address: "0xe9e7cea3dedca5984780bafc599bd69add087d56" },
       CAKE: { address: "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82" },
-      // Ethereum
+
+      // Ethereum tokens (chainId 1)
       ETH: { isNative: true },
       WETH: { address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2" },
-      // Multi-chain tokens
-      USDC: { address: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d" }, // BSC USDC
-      USDT: { address: "0x55d398326f99059fF775485246999027B3197955" }, // BSC USDT
-      LINK: { address: "0xf8a0bf9cf54bb92f17374d9e9a321e6a111a51bd" }, // BSC LINK
-      UNI: { address: "0xbf5140a22578168fd562dccf235e5d43a02ce9b1" }, // BSC UNI
-      // Polygon
+
+      // Polygon tokens (chainId 137)
       MATIC: { isNative: true },
-      // Arbitrum
-      ARB: { address: "0x912ce59144191c1204e64559fe8253a0e49e6548" },
-      // Avalanche
+
+      // Avalanche tokens (chainId 43114)
       AVAX: { isNative: true },
     };
+
+    // Chain-specific token mappings
+    if (projectChainId === 42161) {
+      // Arbitrum specific tokens - Use Native USDC that user actually has
+      map.USDC = { address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831" }; // Native USDC (Circle) - User has this one
+      map["USDC.e"] = { address: "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8" }; // USDC.e (Bridged)
+      map.TK = { address: "0xbF5CA5d9Cb4E54bbB79163C384BAB22337C4A20f" }; // TK Token (Toko Kulkas)
+      map.WETH = { address: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1" }; // WETH Arbitrum
+      map.ARB = { address: "0x912ce59144191c1204e64559fe8253a0e49e6548" }; // ARB Arbitrum
+      map.USDT = { address: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9" }; // USDT Arbitrum
+    } else if (projectChainId === 56) {
+      // BSC specific tokens
+      map.USDC = { address: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d" }; // BSC USDC
+      map.KS = { address: "0xC327D83686f6B491B1D93755fCEe036aBd4877Dc" }; // KS Token (BSC project)
+      map.USDT = { address: "0x55d398326f99059fF775485246999027B3197955" }; // BSC USDT
+      map.LINK = { address: "0xf8a0bf9cf54bb92f17374d9e9a321e6a111a51bd" }; // BSC LINK
+      map.UNI = { address: "0xbf5140a22578168fd562dccf235e5d43a02ce9b1" }; // BSC UNI
+    } else {
+      // Default fallback (should not happen in production)
+      map.USDC = { address: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d" }; // BSC USDC fallback
+    }
+
     return map;
-  }, []);
+  }, [projectChainId, isChainIdReady]);
 
   // Remove getTokenConfigSimple to prevent callback dependency issues
   // Logic will be inlined in tokenAConfig and tokenBConfig
@@ -345,7 +396,17 @@ export function ModalLiquidity({
   const isAllInputsValid = () => {
     // 1. Check if starting price is valid
     const startingPriceBN = new BigNumber(startingPrice || 0);
-    if (!startingPrice || startingPriceBN.isZero() || startingPriceBN.isNaN()) {
+    if (
+      !startingPrice ||
+      startingPriceBN.isZero() ||
+      startingPriceBN.isNaN() ||
+      startingPriceBN.isNegative()
+    ) {
+      return false;
+    }
+
+    // Additional validation for extremely small or large prices
+    if (startingPriceBN.lt(0.000000001) || startingPriceBN.gt(1000000000)) {
       return false;
     }
 
@@ -404,6 +465,26 @@ export function ModalLiquidity({
       };
     }
 
+    if (isSDKConnecting) {
+      return {
+        text: "Initializing Uniswap SDK...",
+        disabled: true,
+        className:
+          "w-full h-12 bg-purple-600 hover:bg-purple-700 text-white cursor-not-allowed",
+        icon: "mdi:loading",
+      };
+    }
+
+    if (!isSDKReady) {
+      return {
+        text: "Uniswap SDK not ready",
+        disabled: true,
+        className:
+          "w-full h-12 bg-red-600 hover:bg-red-700 text-white cursor-not-allowed",
+        icon: "mdi:alert-circle",
+      };
+    }
+
     if (balancesLoading || !balancesInitialized) {
       return {
         text: "Loading token balances...",
@@ -433,10 +514,20 @@ export function ModalLiquidity({
       if (
         !startingPrice ||
         startingPriceBN.isZero() ||
-        startingPriceBN.isNaN()
+        startingPriceBN.isNaN() ||
+        startingPriceBN.isNegative()
       ) {
         return {
           text: "Enter valid starting price",
+          disabled: true,
+          className:
+            "w-full h-12 bg-gray-600 hover:bg-gray-700 text-white cursor-not-allowed",
+        };
+      }
+
+      if (startingPriceBN.lt(0.000000001) || startingPriceBN.gt(1000000000)) {
+        return {
+          text: "Starting price out of range",
           disabled: true,
           className:
             "w-full h-12 bg-gray-600 hover:bg-gray-700 text-white cursor-not-allowed",
@@ -516,6 +607,7 @@ export function ModalLiquidity({
   // Token selection modals
   const [showTokenAModal, setShowTokenAModal] = useState(false);
   const [showTokenBModal, setShowTokenBModal] = useState(false);
+  const [showTokenHelper, setShowTokenHelper] = useState(false);
 
   // RE-ENABLE dynamic token symbols (Fix for token selection lag)
   const allTokenSymbols = useMemo(() => {
@@ -637,8 +729,6 @@ export function ModalLiquidity({
         contractAddress: projectData.contractAddress,
         selectedTokenA,
         selectedTokenB,
-        tokenAFromMap: selectedTokenA ? tokenAddressMap[selectedTokenA] : null,
-        tokenBFromMap: selectedTokenB ? tokenAddressMap[selectedTokenB] : null,
       });
     }
   }, [
@@ -651,18 +741,8 @@ export function ModalLiquidity({
 
   // ROBUST: Process tokenAData with simple native token logic
   const processedTokenAData = useMemo(() => {
-    console.log("🔥 USEMEMO TRIGGERED - Processing tokenAData:", {
-      tokenAData,
-      selectedTokenA,
-      selectedTokenA_type: typeof selectedTokenA,
-      selectedTokenA_check: selectedTokenA === "BNB",
-      tokenAddressMap_BNB: tokenAddressMap["BNB"],
-      tokenAFromMap: selectedTokenA ? tokenAddressMap[selectedTokenA] : null,
-    });
-
     // EARLY EXIT DEBUG
     if (!selectedTokenA) {
-      console.log("❌ selectedTokenA is empty, returning original tokenAData");
       return tokenAData;
     }
 
@@ -684,65 +764,24 @@ export function ModalLiquidity({
       ? tokenAddressMap[selectedTokenA]?.address
       : undefined;
 
-    // ROBUST LOGIC: Jika tidak ada address → Native Token, Ada address → Contract Token
-    const isNativeToken = !contractAddress; // No address = native token
+    // IMPROVED LOGIC: Check for native token properly
+    const tokenFromMap = selectedTokenA
+      ? tokenAddressMap[selectedTokenA]
+      : null;
+    const isNativeToken = tokenFromMap?.isNative || selectedTokenA === "BNB"; // Explicit native check
+
+    // FIXED: Use correct decimals per token instead of hardcoded 18
+    const correctDecimals = getCorrectDecimals(selectedTokenA, contractAddress);
 
     const finalTokenAData = {
       ...baseTokenAData,
       address: contractAddress,
       isNative: isNativeToken,
+      decimals: correctDecimals, // Use correct decimals per token
     };
 
-    console.log("🎯 USEMEMO RESULT - Robust token processing:", {
-      selectedTokenA,
-      contractAddress,
-      isNativeToken,
-      logic: `contractAddress: ${
-        contractAddress ? "EXISTS" : "UNDEFINED"
-      } → isNative: ${isNativeToken}`,
-      finalTokenAData,
-      finalTokenAData_keys: Object.keys(finalTokenAData),
-      finalTokenAData_isNative: finalTokenAData.isNative,
-      finalTokenAData_address: finalTokenAData.address,
-    });
-
-    console.log("🚀 USEMEMO RETURNING:", finalTokenAData);
     return finalTokenAData;
   }, [tokenAData, selectedTokenA, tokenAddressMap]);
-
-  // Debug logging untuk selectedTokenA changes (AFTER processedTokenAData is defined)
-  useEffect(() => {
-    console.log("🎯 selectedTokenA CHANGED:", {
-      selectedTokenA,
-      selectedTokenA_type: typeof selectedTokenA,
-      selectedTokenA_check: selectedTokenA === "BNB",
-      processedTokenAData_after_change: processedTokenAData,
-      processedTokenAData_isNative: (processedTokenAData as any)?.isNative,
-      processedTokenAData_address: (processedTokenAData as any)?.address,
-    });
-  }, [selectedTokenA, processedTokenAData]);
-
-  // Debug logging untuk token configs (separate to prevent render cycles)
-  // Token A config logging removed to prevent infinite loops
-
-  // Token config logging removed to prevent infinite loops
-
-  // Debug logging removed to prevent infinite loops
-
-  // Balance debugging removed to prevent infinite loops
-
-  // TEMPORARILY DISABLE auto-set token B to isolate infinite loop
-  // Original code commented out:
-  // useEffect(() => {
-  //   if (projectData && projectData.ticker) {
-  //     setTokenBData({
-  //       symbol: projectData.ticker,
-  //       name: projectData.name,
-  //       icon: "mdi:coin",
-  //     });
-  //     setSelectedTokenB(projectData.ticker);
-  //   }
-  // }, [projectData?.ticker, projectData?.name]);
 
   // Safe project token price calculation using refs (avoid setState loops)
   const calculateProjectTokenPrice = useCallback(() => {
@@ -752,15 +791,6 @@ export function ModalLiquidity({
     const tokenAPriceData = realTimePrices[tokenASymbol];
     const tokenAPrice = tokenAPriceData?.priceNumber || 0;
 
-    console.log("🎯 Project token price calculation:", {
-      startingPrice,
-      rate: rate.toString(),
-      tokenASymbol,
-      tokenAPrice,
-      baseToken,
-      tokenBSymbol,
-    });
-
     if (!rate.isNaN() && !rate.isZero() && tokenAPrice > 0) {
       const tokenAPriceBN = new BigNumber(tokenAPrice);
       let tokenBPriceUSD;
@@ -768,19 +798,10 @@ export function ModalLiquidity({
       if (baseToken === "TokenA") {
         // TokenA is base: rate TokenA = 1 TokenB
         tokenBPriceUSD = tokenAPriceBN.multipliedBy(rate);
-        console.log("💰 TokenA base: BU price = BNB price × rate", {
-          formula: `$${tokenAPrice} × ${rate.toString()}`,
-          result: `$${tokenBPriceUSD.toString()}`,
-        });
       } else {
         // TokenB is base: rate TokenB = 1 TokenA
         // Example: 125 BU = 1 BNB → BU price = BNB price ÷ rate
         tokenBPriceUSD = tokenAPriceBN.dividedBy(rate);
-        console.log("💰 TokenB base: BU price = BNB price ÷ rate", {
-          formula: `$${tokenAPrice} ÷ ${rate.toString()}`,
-          result: `$${tokenBPriceUSD.toString()}`,
-          expected: "$869.8 ÷ 125 = $6.958",
-        });
       }
 
       // Store in ref (no setState loops) and update display state
@@ -789,11 +810,6 @@ export function ModalLiquidity({
 
       return tokenBPriceUSD;
     } else {
-      console.log("⚠️ Invalid conditions for price calculation:", {
-        rateValid: !rate.isNaN() && !rate.isZero(),
-        tokenAPriceValid: tokenAPrice > 0,
-      });
-
       const zeroPrice = new BigNumber(0);
       calculatedProjectTokenPriceRef.current = zeroPrice;
       setDisplayProjectTokenPrice(zeroPrice);
@@ -814,15 +830,6 @@ export function ModalLiquidity({
     const rate = new BigNumber(startingPrice);
     if (rate.isZero() || rate.isNaN()) return;
 
-    console.log("🧮 Auto-calculation triggered:", {
-      lastUpdatedField,
-      startingPrice,
-      baseToken,
-      tokenAAmount,
-      tokenBAmount,
-      rate: rate.toString(),
-    });
-
     if (lastUpdatedField === "tokenA" && tokenAAmount) {
       const tokenAValue = new BigNumber(tokenAAmount);
       if (!tokenAValue.isZero() && !tokenAValue.isNaN()) {
@@ -832,19 +839,10 @@ export function ModalLiquidity({
           // TokenA selected: "rate TokenA = 1 TokenB"
           // Contoh: 0.0055 BNB = 1 BU → 1 BNB = 181.818 BU
           tokenBValue = tokenAValue.dividedBy(rate);
-          console.log("🔢 TokenA base calculation:", {
-            formula: `${tokenAValue.toString()} ÷ ${rate.toString()}`,
-            result: tokenBValue.toString(),
-          });
         } else {
           // TokenB selected: "rate TokenB = 1 TokenA"
           // Contoh: 125 BU = 1 BNB → 0.016 BNB = 0.016 × 125 = 2 BU
           tokenBValue = tokenAValue.multipliedBy(rate);
-          console.log("🔢 TokenB base calculation:", {
-            formula: `${tokenAValue.toString()} × ${rate.toString()}`,
-            result: tokenBValue.toString(),
-            expected: "0.016 × 125 = 2",
-          });
         }
         setTokenBAmount(tokenBValue.toFixed());
       } else if (tokenAValue.isZero()) {
@@ -874,15 +872,6 @@ export function ModalLiquidity({
   // Debug: Log initial states when modal opens
   useEffect(() => {
     if (open) {
-      console.log("🔍 Modal opened with initial states:", {
-        baseToken,
-        startingPrice,
-        tokenAAmount,
-        tokenBAmount,
-        lastUpdatedField,
-        tokenASymbol,
-        tokenBSymbol,
-      });
     }
   }, [open]);
 
@@ -939,22 +928,12 @@ export function ModalLiquidity({
 
   // Handler for Token A amount changes
   const handleTokenAAmountChange = (value: string) => {
-    console.log(
-      `💰 ${tokenASymbol} amount changed:`,
-      value,
-      `→ will trigger auto-calc for ${tokenBSymbol}`
-    );
     setTokenAAmount(value);
     setLastUpdatedField("tokenA");
   };
 
   // Handler for Token B amount changes
   const handleTokenBAmountChange = (value: string) => {
-    console.log(
-      `💰 ${tokenBSymbol} amount changed:`,
-      value,
-      `→ will trigger auto-calc for ${tokenASymbol}`
-    );
     setTokenBAmount(value);
     setLastUpdatedField("tokenB");
   };
@@ -1116,6 +1095,32 @@ export function ModalLiquidity({
     }
   };
 
+  // 🚨 Don't render modal content if chainId not ready
+  if (!isChainIdReady || !projectChainId) {
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Loading Project Data...</DialogTitle>
+          </DialogHeader>
+          <div className="p-6 text-center">
+            <div className="animate-pulse mb-4">
+              <div className="w-12 h-12 bg-gray-300 rounded-full mx-auto mb-3"></div>
+              <div className="h-4 bg-gray-300 rounded mx-auto mb-2"></div>
+              <div className="h-3 bg-gray-200 rounded mx-auto w-3/4"></div>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              ⏳ Waiting for project chain information...
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+              Chain ID: {projectChainId || "Loading..."}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-4xl w-full h-[90vh] p-0 overflow-hidden">
@@ -1124,7 +1129,13 @@ export function ModalLiquidity({
           <div className="w-80 bg-muted/30 border-r p-6 flex flex-col h-full">
             <DialogHeader className="mb-8 flex-shrink-0">
               <DialogTitle className="text-xl font-semibold">
-                New Position
+                New Position (
+                {projectChainId === 42161
+                  ? "Arbitrum One"
+                  : projectChainId === 56
+                  ? "BSC"
+                  : `Chain ${projectChainId}`}
+                )
               </DialogTitle>
             </DialogHeader>
 
@@ -1538,9 +1549,6 @@ export function ModalLiquidity({
                                 }`}
                                 onClick={() => {
                                   setBaseToken("TokenA");
-                                  console.log(
-                                    "🎯 BaseToken changed to TokenA - BNB selected"
-                                  );
                                 }}
                               >
                                 <Icon name={tokenAIcon} className="w-4 h-4" />
@@ -1555,9 +1563,6 @@ export function ModalLiquidity({
                                 }`}
                                 onClick={() => {
                                   setBaseToken("TokenB");
-                                  console.log(
-                                    "🎯 BaseToken changed to TokenB - BU selected"
-                                  );
                                 }}
                               >
                                 <Icon name={tokenBIcon} className="w-4 h-4" />
@@ -2041,6 +2046,47 @@ export function ModalLiquidity({
                           </div>
                         )}
 
+                        {/* SDK Status Display */}
+                        {isWalletConnected && (
+                          <div className="p-3 bg-muted/20 rounded-lg mb-3">
+                            {isSDKConnecting && (
+                              <div className="flex items-center gap-2 text-sm text-purple-600">
+                                <Icon
+                                  name="mdi:loading"
+                                  className="w-4 h-4 animate-spin"
+                                />
+                                <span>Initializing Uniswap V3 SDK...</span>
+                              </div>
+                            )}
+                            {sdkError && (
+                              <div className="flex items-center gap-2 text-sm text-red-600">
+                                <Icon
+                                  name="mdi:alert-circle"
+                                  className="w-4 h-4"
+                                />
+                                <span>SDK Error: {sdkError}</span>
+                              </div>
+                            )}
+                            {!isSDKReady && !isSDKConnecting && !sdkError && (
+                              <div className="flex items-center gap-2 text-sm text-amber-600">
+                                <Icon name="mdi:alert" className="w-4 h-4" />
+                                <span>Uniswap SDK not ready</span>
+                              </div>
+                            )}
+                            {isSDKReady && !isSDKConnecting && !sdkError && (
+                              <div className="flex items-center gap-2 text-sm text-green-600">
+                                <Icon
+                                  name="mdi:check-circle"
+                                  className="w-4 h-4"
+                                />
+                                <span>
+                                  Uniswap V3 SDK Ready · Chain {projectChainId}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
                         {/* Balance Status Display */}
                         {(balancesLoading ||
                           balancesError ||
@@ -2066,18 +2112,32 @@ export function ModalLiquidity({
                                 <span>
                                   Failed to fetch balance: {balancesError}
                                 </span>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 px-2 text-xs ml-auto"
-                                  onClick={refetchBalances}
-                                >
-                                  <Icon
-                                    name="mdi:refresh"
-                                    className="w-3 h-3 mr-1"
-                                  />
-                                  Try again
-                                </Button>
+                                <div className="flex gap-1 ml-auto">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 px-2 text-xs"
+                                    onClick={refetchBalances}
+                                  >
+                                    <Icon
+                                      name="mdi:refresh"
+                                      className="w-3 h-3 mr-1"
+                                    />
+                                    Try again
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 px-2 text-xs"
+                                    onClick={() => setShowTokenHelper(true)}
+                                  >
+                                    <Icon
+                                      name="mdi:help-circle"
+                                      className="w-3 h-3 mr-1"
+                                    />
+                                    Help
+                                  </Button>
+                                </div>
                               </div>
                             )}
                             {!balancesInitialized && !balancesLoading && (
@@ -2168,127 +2228,37 @@ export function ModalLiquidity({
                                 !buttonState.disabled
                                   ? () => {
                                       // CRITICAL: Use pre-processed tokenAData
-                                      console.log(
-                                        "🚨 ONCLICK START - Before using processedTokenAData:",
-                                        {
-                                          original_tokenAData: tokenAData,
-                                          processedTokenAData:
-                                            processedTokenAData,
-                                          selectedTokenA: selectedTokenA,
-                                          processedTokenAData_isNative: (
-                                            processedTokenAData as any
-                                          )?.isNative,
-                                          processedTokenAData_address: (
-                                            processedTokenAData as any
-                                          )?.address,
-                                        }
-                                      );
 
                                       const finalTokenAData =
                                         processedTokenAData;
 
-                                      console.log(
-                                        "🔧 ONCLICK: finalTokenAData assigned:",
-                                        {
-                                          finalTokenAData,
-                                          finalTokenAData_isNative: (
-                                            finalTokenAData as any
-                                          ).isNative,
-                                          finalTokenAData_address: (
-                                            finalTokenAData as any
-                                          ).address,
-                                          same_object:
-                                            processedTokenAData ===
-                                            finalTokenAData,
-                                          keys_in_object:
-                                            Object.keys(finalTokenAData),
-                                        }
+                                      // Get correct decimals for tokenB
+                                      const tokenBAddress =
+                                        projectData?.contractAddress ||
+                                        (selectedTokenB
+                                          ? tokenAddressMap[selectedTokenB]
+                                              ?.address
+                                          : undefined);
+                                      const tokenBDecimals = getCorrectDecimals(
+                                        selectedTokenB ||
+                                          tokenBData.symbol ||
+                                          "UNKNOWN",
+                                        tokenBAddress
                                       );
 
                                       const finalTokenBData = {
                                         ...tokenBData,
-                                        address:
-                                          projectData?.contractAddress || // Prioritas project token
-                                          (selectedTokenB
-                                            ? tokenAddressMap[selectedTokenB]
-                                                ?.address
-                                            : undefined),
+                                        address: tokenBAddress,
                                         isNative: selectedTokenB
                                           ? tokenAddressMap[selectedTokenB]
                                               ?.isNative || false
                                           : false,
+                                        decimals: tokenBDecimals, // Use correct decimals per token
+                                        name:
+                                          tokenBData?.name ||
+                                          tokenBData?.symbol ||
+                                          "Unknown Token", // Add name fallback
                                       };
-
-                                      console.log(
-                                        "🎯 Final modal data before sending to confirmation:",
-                                        {
-                                          projectData: {
-                                            ticker: projectData?.ticker,
-                                            contractAddress:
-                                              projectData?.contractAddress,
-                                            chainId:
-                                              projectData?.chains[0]?.chain
-                                                ?.chainid,
-                                            chainName:
-                                              projectData?.chains[0]?.chain
-                                                ?.name,
-                                          },
-                                          selectedTokenA,
-                                          selectedTokenB,
-                                          tokenAddressMap: {
-                                            selectedA: selectedTokenA
-                                              ? tokenAddressMap[selectedTokenA]
-                                              : null,
-                                            selectedB: selectedTokenB
-                                              ? tokenAddressMap[selectedTokenB]
-                                              : null,
-                                          },
-                                          processedData: {
-                                            finalTokenAData,
-                                            finalTokenBData,
-                                          },
-                                          validationChecks: {
-                                            tokenAValid:
-                                              (finalTokenAData as any)
-                                                .address ||
-                                              (finalTokenAData as any).isNative,
-                                            tokenBValid:
-                                              finalTokenBData.address ||
-                                              finalTokenBData.isNative,
-                                          },
-                                        }
-                                      );
-
-                                      console.log(
-                                        "🚀 CRITICAL: Final data before setModalData:",
-                                        {
-                                          finalTokenAData: {
-                                            symbol: finalTokenAData.symbol,
-                                            name: finalTokenAData.name,
-                                            address: (finalTokenAData as any)
-                                              .address,
-                                            isNative: (finalTokenAData as any)
-                                              .isNative,
-                                            fullObject: finalTokenAData,
-                                          },
-                                          finalTokenBData: {
-                                            symbol: finalTokenBData.symbol,
-                                            name: finalTokenBData.name,
-                                            address: finalTokenBData.address,
-                                            isNative: finalTokenBData.isNative,
-                                          },
-                                          dataIntegrity: {
-                                            tokenA_hasIsNative:
-                                              "isNative" in finalTokenAData,
-                                            tokenA_isNative_value: (
-                                              finalTokenAData as any
-                                            ).isNative,
-                                            shouldBeNative:
-                                              selectedTokenA === "BNB" ||
-                                              finalTokenAData.symbol === "BNB",
-                                          },
-                                        }
-                                      );
 
                                       setModalData({
                                         rangeType,
@@ -2305,9 +2275,7 @@ export function ModalLiquidity({
                                         calculateTotalPoolValue,
                                         // Data tambahan untuk Uniswap integration
                                         feeTier: selectedFeeTier,
-                                        chainId:
-                                          projectData?.chains[0]?.chain
-                                            ?.chainid || 56, // Use actual project chain ID
+                                        chainId: projectChainId, // Use project chain ID from hook
                                         userAddress,
                                       });
                                       setOpen(false); // Close main modal first

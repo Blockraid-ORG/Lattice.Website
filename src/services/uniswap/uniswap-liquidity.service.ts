@@ -9,7 +9,6 @@ import {
   DEADLINE_FROM_NOW,
 } from "@/lib/uniswap/constants";
 import { UniswapPoolService } from "./uniswap-pool.service";
-import { TokenBalanceService } from "@/services/token-balance.service";
 
 export interface AddLiquidityParams {
   tokenA: string;
@@ -57,14 +56,15 @@ export class UniswapLiquidityService {
     useFullRange = true,
   }: AddLiquidityParams): Promise<LiquidityResult> {
     try {
-      console.log("🚀 Starting liquidity addition process...", {
-        tokenA,
-        tokenB,
-        fee,
-        amountA: amountA.toString(),
-        amountB: amountB.toString(),
-        chainId,
-      });
+      "🚀 Starting liquidity addition process...",
+        {
+          tokenA,
+          tokenB,
+          fee,
+          amountA: amountA.toString(),
+          amountB: amountB.toString(),
+          chainId,
+        };
 
       // Validasi input
       this.validateAddLiquidityParams({
@@ -98,7 +98,7 @@ export class UniswapLiquidityService {
         throw new Error("Pool does not exist. Please create the pool first.");
       }
 
-      console.log("✅ Pool found:", poolAddress);
+      "✅ Pool found:", poolAddress;
 
       // Ambil pool info untuk current price
       const poolInfo = await UniswapPoolService.getPoolInfo(
@@ -116,7 +116,7 @@ export class UniswapLiquidityService {
             fee
           );
 
-      console.log("📊 Calculated ticks:", { tickLower, tickUpper });
+      "📊 Calculated ticks:", { tickLower, tickUpper };
 
       // Ensure token approvals
       await this.ensureTokenApprovals(
@@ -186,13 +186,14 @@ export class UniswapLiquidityService {
         deadline: txDeadline,
       };
 
-      console.log("📝 Transaction parameters:", {
-        ...params,
-        amount0Desired: params.amount0Desired.toString(),
-        amount1Desired: params.amount1Desired.toString(),
-        amount0Min: params.amount0Min.toString(),
-        amount1Min: params.amount1Min.toString(),
-      });
+      "📝 Transaction parameters:",
+        {
+          ...params,
+          amount0Desired: params.amount0Desired.toString(),
+          amount1Desired: params.amount1Desired.toString(),
+          amount0Min: params.amount0Min.toString(),
+          amount1Min: params.amount1Min.toString(),
+        };
 
       // Estimate gas
       const estimatedGas = await this.estimateAddLiquidityGas(
@@ -204,9 +205,9 @@ export class UniswapLiquidityService {
         gasLimit: estimatedGas,
       });
 
-      console.log("🚀 Liquidity transaction sent:", tx.hash);
+      "🚀 Liquidity transaction sent:", tx.hash;
       const receipt = await tx.wait();
-      console.log("✅ Liquidity added successfully:", receipt.hash);
+      "✅ Liquidity added successfully:", receipt.hash;
 
       // Extract hasil dari transaction logs
       const result = this.parseAddLiquidityResult(
@@ -217,7 +218,7 @@ export class UniswapLiquidityService {
 
       return result;
     } catch (error) {
-      console.error("❌ Error adding liquidity:", error);
+      "❌ Error adding liquidity:", error;
       throw error;
     }
   }
@@ -338,7 +339,7 @@ export class UniswapLiquidityService {
     tokens: Array<{ address: string; amount: BigNumber }>,
     chainId: number
   ): Promise<void> {
-    console.log("🔄 Ensuring token approvals...");
+    ("🔄 Ensuring token approvals...");
 
     for (const token of tokens) {
       const txHash = await TokenBalanceService.ensureApproval(
@@ -349,9 +350,9 @@ export class UniswapLiquidityService {
       );
 
       if (txHash) {
-        console.log(`✅ Token ${token.address} approved:`, txHash);
+        `✅ Token ${token.address} approved:`, txHash;
       } else {
-        console.log(`✅ Token ${token.address} already approved`);
+        `✅ Token ${token.address} already approved`;
       }
     }
   }
@@ -415,7 +416,7 @@ export class UniswapLiquidityService {
       // Add 20% buffer
       return (estimatedGas * BigInt(120)) / BigInt(100);
     } catch (error) {
-      console.error("Gas estimation failed:", error);
+      "Gas estimation failed:", error;
       return BigInt(500000); // Conservative fallback
     }
   }
@@ -521,7 +522,7 @@ export class UniswapLiquidityService {
 
       return positions;
     } catch (error) {
-      console.error("Error fetching user positions:", error);
+      "Error fetching user positions:", error;
       return [];
     }
   }

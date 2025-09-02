@@ -8,7 +8,6 @@ import {
   type AddLiquidityParams,
   type LiquidityResult,
 } from "@/services/uniswap/uniswap-liquidity.service";
-import { TokenBalanceService } from "@/services/token-balance.service";
 import { FEE_TIERS } from "@/lib/uniswap/constants";
 
 interface UniswapIntegrationState {
@@ -116,7 +115,7 @@ export function useUniswapIntegration() {
           poolAddress: null,
         });
 
-        console.error("Error checking pool:", error);
+        "Error checking pool:", error;
         return null;
       }
     },
@@ -170,7 +169,7 @@ export function useUniswapIntegration() {
         });
 
         toast.error(`Gagal membuat pool: ${errorMessage}`);
-        console.error("Error creating pool:", error);
+        "Error creating pool:", error;
         return null;
       }
     },
@@ -190,7 +189,7 @@ export function useUniswapIntegration() {
           ...poolInfo,
         };
       } catch (error) {
-        console.error("Error getting pool info:", error);
+        "Error getting pool info:", error;
         return null;
       }
     },
@@ -207,7 +206,7 @@ export function useUniswapIntegration() {
         );
         return initialized;
       } catch (error) {
-        console.error("Error initializing services:", error);
+        "Error initializing services:", error;
         return false;
       }
     },
@@ -251,7 +250,7 @@ export function useUniswapIntegration() {
           useFullRange: true, // Default ke full range
         };
 
-        console.log("🚀 Adding liquidity with params:", params);
+        "🚀 Adding liquidity with params:", params;
 
         // Execute add liquidity
         const result = await UniswapLiquidityService.addLiquidity(params);
@@ -287,7 +286,7 @@ export function useUniswapIntegration() {
         }
 
         toast.error(userMessage);
-        console.error("Error adding liquidity:", error);
+        "Error adding liquidity:", error;
         return null;
       }
     },
@@ -311,7 +310,7 @@ export function useUniswapIntegration() {
         );
         return positions;
       } catch (error) {
-        console.error("Error fetching user positions:", error);
+        "Error fetching user positions:", error;
         return [];
       }
     },

@@ -48,7 +48,7 @@ export class UniswapPoolService {
 
       return poolAddress === ethers.ZeroAddress ? null : poolAddress;
     } catch (error) {
-      console.error("Error checking pool existence:", error);
+      "Error checking pool existence:", error;
       throw new Error(`Failed to check pool: ${(error as Error).message}`);
     }
   }

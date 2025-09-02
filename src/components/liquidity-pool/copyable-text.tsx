@@ -35,7 +35,6 @@ export function CopyableText({
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       toast.error("Failed to copy to clipboard");
-      console.error("Failed to copy: ", err);
     }
   };
 

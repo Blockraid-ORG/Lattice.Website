@@ -57,7 +57,7 @@ export function useTokenPrices(
       const errorMessage =
         err instanceof Error ? err.message : "Gagal mengambil harga token";
       setError(errorMessage);
-      console.error("Error fetching token prices:", err);
+      "Error fetching token prices:", err;
     } finally {
       setLoading(false);
     }

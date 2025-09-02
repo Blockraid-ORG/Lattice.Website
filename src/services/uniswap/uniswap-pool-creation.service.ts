@@ -75,13 +75,14 @@ export class UniswapPoolCreationService {
         signer
       );
 
-      console.log("Creating pool with params:", {
-        token0,
-        token1,
-        fee,
-        sqrtPriceX96: sqrtPriceX96.toString(),
-        chainId,
-      });
+      "Creating pool with params:",
+        {
+          token0,
+          token1,
+          fee,
+          sqrtPriceX96: sqrtPriceX96.toString(),
+          chainId,
+        };
 
       const tx = await positionManager.createAndInitializePoolIfNecessary(
         token0,
@@ -93,9 +94,9 @@ export class UniswapPoolCreationService {
         }
       );
 
-      console.log("Pool creation transaction sent:", tx.hash);
+      "Pool creation transaction sent:", tx.hash;
       const receipt = await tx.wait();
-      console.log("Pool created successfully:", receipt.hash);
+      "Pool created successfully:", receipt.hash;
 
       // Return the pool address
       const poolAddress = await UniswapPoolService.checkPoolExists(
@@ -111,7 +112,7 @@ export class UniswapPoolCreationService {
 
       return poolAddress;
     } catch (error) {
-      console.error("Error creating pool:", error);
+      "Error creating pool:", error;
       throw new Error(`Failed to create pool: ${(error as Error).message}`);
     }
   }
@@ -137,12 +138,12 @@ export class UniswapPoolCreationService {
       );
 
       if (existingPool) {
-        console.log("Pool already exists:", existingPool);
+        "Pool already exists:", existingPool;
         return existingPool;
       }
 
       // Buat pool baru
-      console.log("Pool not found, creating new pool...");
+      ("Pool not found, creating new pool...");
       return await this.createPool({
         tokenA,
         tokenB,
@@ -152,7 +153,7 @@ export class UniswapPoolCreationService {
         walletClient,
       });
     } catch (error) {
-      console.error("Error ensuring pool exists:", error);
+      "Error ensuring pool exists:", error;
       throw error;
     }
   }
@@ -203,7 +204,7 @@ export class UniswapPoolCreationService {
 
       return sqrtPriceX96; // Return JSBI type directly
     } catch (error) {
-      console.error("Error calculating sqrtPriceX96:", error);
+      "Error calculating sqrtPriceX96:", error;
       throw new Error(
         `Failed to calculate sqrtPriceX96: ${(error as Error).message}`
       );
@@ -256,7 +257,7 @@ export class UniswapPoolCreationService {
       // Add 20% buffer
       return (estimatedGas * BigInt(120)) / BigInt(100);
     } catch (error) {
-      console.error("Gas estimation failed:", error);
+      "Gas estimation failed:", error;
       return BigInt(3000000); // Conservative fallback
     }
   }

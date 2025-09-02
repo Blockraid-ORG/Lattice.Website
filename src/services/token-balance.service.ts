@@ -37,7 +37,7 @@ export class TokenBalanceService {
       this.walletAddress = address;
       return true;
     } catch (error) {
-      console.error("❌ Error initializing TokenBalanceService:", error);
+      "❌ Error initializing TokenBalanceService:", error;
       return false;
     }
   }
@@ -51,23 +51,24 @@ export class TokenBalanceService {
     }
 
     try {
-      console.log("🔍 Getting native balance for wallet:", this.walletAddress);
+      "🔍 Getting native balance for wallet:", this.walletAddress;
 
       const balanceWei = await this.provider.getBalance(this.walletAddress);
       const balanceEther = ethers.formatEther(balanceWei);
       const balanceBN = new BigNumber(balanceEther);
 
-      console.log("✅ Native balance fetched successfully:", {
-        wallet: this.walletAddress,
-        balanceWei: balanceWei.toString(),
-        balanceEther: balanceEther,
-        balanceBN: balanceBN.toString(),
-        formatted: balanceBN.toFormat(),
-      });
+      "✅ Native balance fetched successfully:",
+        {
+          wallet: this.walletAddress,
+          balanceWei: balanceWei.toString(),
+          balanceEther: balanceEther,
+          balanceBN: balanceBN.toString(),
+          formatted: balanceBN.toFormat(),
+        };
 
       return balanceBN;
     } catch (error) {
-      console.error("❌ Error getting native balance:", error);
+      "❌ Error getting native balance:", error;
       return new BigNumber(0);
     }
   }
@@ -82,7 +83,7 @@ export class TokenBalanceService {
       const code = await this.provider.getCode(address);
       return code !== "0x";
     } catch (error) {
-      console.warn(`⚠️ Cannot check contract code for ${address}:`, error);
+      `⚠️ Cannot check contract code for ${address}:`, error;
       return false;
     }
   }
@@ -100,7 +101,7 @@ export class TokenBalanceService {
 
     // Validate address format
     if (!tokenAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
-      console.warn(`⚠️ Invalid address format: ${tokenAddress}`);
+      `⚠️ Invalid address format: ${tokenAddress}`;
       return {
         symbol: "INVALID",
         decimals: 18,
@@ -115,15 +116,13 @@ export class TokenBalanceService {
       tokenAddress.toLowerCase() ===
       "0xc518fc545c14fc990f269f8f9be79d7fc471d13f"
     ) {
-      console.log(
-        "🎯 Processing BU project token with expected contract address"
-      );
+      ("🎯 Processing BU project token with expected contract address");
     }
 
     // Check if it's a valid contract
     const isValid = await this.isValidContract(tokenAddress);
     if (!isValid) {
-      console.warn(`⚠️ Address is not a valid contract: ${tokenAddress}`);
+      `⚠️ Address is not a valid contract: ${tokenAddress}`;
       return {
         symbol: "NO_CONTRACT",
         decimals: 18,
@@ -157,9 +156,7 @@ export class TokenBalanceService {
         timeoutPromise,
       ])) as [string, number, bigint];
 
-      console.log(
-        `✅ Successfully got token info for ${symbol} (${tokenAddress})`
-      );
+      `✅ Successfully got token info for ${symbol} (${tokenAddress})`;
 
       // Format total supply
       const totalSupply = new BigNumber(
@@ -172,12 +169,11 @@ export class TokenBalanceService {
         // Ambil balance dari wallet
         const balanceRaw = await tokenContract.balanceOf(this.walletAddress);
         balance = new BigNumber(ethers.formatUnits(balanceRaw, decimals));
-        console.log(`👛 Wallet balance for ${symbol}: ${balance.toString()}`);
+        `👛 Wallet balance for ${symbol}: ${balance.toString()}`;
       } else {
         // Untuk project token, gunakan total supply sebagai balance
         balance = totalSupply;
-        console.log(
-          `📊 Using total supply as balance for project token ${symbol}:`,
+        `📊 Using total supply as balance for project token ${symbol}:`,
           {
             contractAddress: tokenAddress,
             totalSupplyRaw: totalSupplyRaw.toString(),
@@ -186,8 +182,7 @@ export class TokenBalanceService {
             balance: balance.toString(),
             formatted: this.formatBalance(balance),
             expected: "Should be 10,000 for BU token",
-          }
-        );
+          };
       }
 
       return {
@@ -198,7 +193,7 @@ export class TokenBalanceService {
         isNative: false,
       };
     } catch (error: any) {
-      console.error(`❌ Error getting token info for ${tokenAddress}:`, error);
+      `❌ Error getting token info for ${tokenAddress}:`, error;
 
       // Determine error type untuk better user feedback
       let errorSymbol = "ERROR";
@@ -242,9 +237,7 @@ export class TokenBalanceService {
         try {
           if (token.isNative) {
             // Native token (BNB, ETH, MATIC, dll)
-            console.log(
-              `🪙 Fetching native token balance for ${token.symbol}...`
-            );
+            `🪙 Fetching native token balance for ${token.symbol}...`;
             const balance = await this.getNativeTokenBalance();
 
             results[token.symbol] = {
@@ -254,13 +247,11 @@ export class TokenBalanceService {
               isNative: true,
             };
 
-            console.log(
-              `✅ Native ${
-                token.symbol
-              } balance: ${balance.toString()} (formatted: ${this.formatBalance(
-                balance
-              )})`
-            );
+            `✅ Native ${
+              token.symbol
+            } balance: ${balance.toString()} (formatted: ${this.formatBalance(
+              balance
+            )})`;
           } else if (token.address) {
             // ERC20 token
             const tokenInfo = await this.getTokenBalance(
@@ -278,7 +269,7 @@ export class TokenBalanceService {
             };
           }
         } catch (error) {
-          console.error(`❌ Error getting balance for ${token.symbol}:`, error);
+          `❌ Error getting balance for ${token.symbol}:`, error;
           results[token.symbol] = {
             symbol: token.symbol,
             decimals: 18,
@@ -366,15 +357,16 @@ export class TokenBalanceService {
         ethers.formatUnits(allowanceRaw, tokenDecimals)
       );
 
-      console.log(`✅ Current allowance for ${tokenAddress}:`, {
-        allowanceRaw: allowanceRaw.toString(),
-        allowance: allowance.toString(),
-        formatted: this.formatBalance(allowance),
-      });
+      `✅ Current allowance for ${tokenAddress}:`,
+        {
+          allowanceRaw: allowanceRaw.toString(),
+          allowance: allowance.toString(),
+          formatted: this.formatBalance(allowance),
+        };
 
       return allowance;
     } catch (error) {
-      console.error("❌ Error checking allowance:", error);
+      "❌ Error checking allowance:", error;
       throw new Error(`Failed to check allowance: ${(error as Error).message}`);
     }
   }
@@ -407,29 +399,31 @@ export class TokenBalanceService {
         ? ethers.MaxUint256
         : ethers.parseUnits(amount.toFixed(), tokenDecimals);
 
-      console.log(`🔄 Approving ${tokenAddress} for Uniswap...`, {
-        spender: addresses.POSITION_MANAGER,
-        amount: useInfiniteApproval ? "INFINITE" : amount.toString(),
-        approvalAmount: approvalAmount.toString(),
-      });
+      `🔄 Approving ${tokenAddress} for Uniswap...`,
+        {
+          spender: addresses.POSITION_MANAGER,
+          amount: useInfiniteApproval ? "INFINITE" : amount.toString(),
+          approvalAmount: approvalAmount.toString(),
+        };
 
       const tx = await tokenContract.approve(
         addresses.POSITION_MANAGER,
         approvalAmount
       );
 
-      console.log("🚀 Approval transaction sent:", tx.hash);
+      "🚀 Approval transaction sent:", tx.hash;
       const receipt = await tx.wait();
 
-      console.log("✅ Token approval successful:", {
-        transactionHash: receipt.hash,
-        blockNumber: receipt.blockNumber,
-        gasUsed: receipt.gasUsed?.toString(),
-      });
+      "✅ Token approval successful:",
+        {
+          transactionHash: receipt.hash,
+          blockNumber: receipt.blockNumber,
+          gasUsed: receipt.gasUsed?.toString(),
+        };
 
       return receipt.hash;
     } catch (error) {
-      console.error("❌ Error approving token:", error);
+      "❌ Error approving token:", error;
       throw new Error(`Failed to approve token: ${(error as Error).message}`);
     }
   }
@@ -451,7 +445,7 @@ export class TokenBalanceService {
 
     const txHashes: string[] = [];
 
-    console.log(`🔄 Starting batch approval for ${tokens.length} tokens...`);
+    `🔄 Starting batch approval for ${tokens.length} tokens...`;
 
     for (const token of tokens) {
       try {
@@ -466,12 +460,12 @@ export class TokenBalanceService {
         // Add small delay antara transactions
         await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch (error) {
-        console.error(`❌ Failed to approve token ${token.address}:`, error);
+        `❌ Failed to approve token ${token.address}:`, error;
         throw error;
       }
     }
 
-    console.log(`✅ Batch approval completed for ${txHashes.length} tokens`);
+    `✅ Batch approval completed for ${txHashes.length} tokens`;
     return txHashes;
   }
 
@@ -487,15 +481,16 @@ export class TokenBalanceService {
       const currentAllowance = await this.checkAllowance(tokenAddress, chainId);
       const needsApproval = currentAllowance.lt(requiredAmount);
 
-      console.log(`🔍 Checking if ${tokenAddress} needs approval:`, {
-        currentAllowance: currentAllowance.toString(),
-        requiredAmount: requiredAmount.toString(),
-        needsApproval,
-      });
+      `🔍 Checking if ${tokenAddress} needs approval:`,
+        {
+          currentAllowance: currentAllowance.toString(),
+          requiredAmount: requiredAmount.toString(),
+          needsApproval,
+        };
 
       return needsApproval;
     } catch (error) {
-      console.error("❌ Error checking if approval needed:", error);
+      "❌ Error checking if approval needed:", error;
       return true; // Safe default - assume approval needed
     }
   }
@@ -534,7 +529,7 @@ export class TokenBalanceService {
       // Add 20% buffer
       return (estimatedGas * BigInt(120)) / BigInt(100);
     } catch (error) {
-      console.error("Gas estimation failed:", error);
+      "Gas estimation failed:", error;
       return BigInt(50000); // Conservative fallback untuk ERC20 approval
     }
   }
@@ -555,11 +550,11 @@ export class TokenBalanceService {
     );
 
     if (!needsApproval) {
-      console.log(`✅ ${tokenAddress} already has sufficient allowance`);
+      `✅ ${tokenAddress} already has sufficient allowance`;
       return null;
     }
 
-    console.log(`🔄 ${tokenAddress} needs approval, proceeding...`);
+    `🔄 ${tokenAddress} needs approval, proceeding...`;
     return await this.approveForUniswap(
       tokenAddress,
       requiredAmount,

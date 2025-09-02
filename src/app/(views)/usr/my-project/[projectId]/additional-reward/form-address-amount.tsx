@@ -14,11 +14,9 @@ import Link from "next/link";
 
 const itemSchema = z.object({
   address: z.string(),
-  amount: z
-    .coerce.number()
-    .refine((v) => !isNaN(Number(v)) && Number(v) > 0, {
-      message: "Amount must be a positive number",
-    }),
+  amount: z.coerce.number().refine((v) => !isNaN(Number(v)) && Number(v) > 0, {
+    message: "Amount must be a positive number",
+  }),
 });
 
 const formSchema = z.object({
@@ -38,8 +36,11 @@ export default function FormAddressAmount({ data }: { data: TProject }) {
 
   function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
     const text = e.clipboardData.getData("text");
-    const rows = text.split("\n").map(r => r.trim()).filter(Boolean);
-    const parsed = rows.map(r => {
+    const rows = text
+      .split("\n")
+      .map((r) => r.trim())
+      .filter(Boolean);
+    const parsed = rows.map((r) => {
       const [address, amount] = r.split(/\t|,/); // bisa tab atau koma
       return {
         address: address?.trim() ?? "",
@@ -49,10 +50,16 @@ export default function FormAddressAmount({ data }: { data: TProject }) {
 
     if (parsed.length > 0) {
       let existing = form.getValues("items") ?? [];
-      if (existing.length === 1 && !existing[0].address && !existing[0].amount) {
+      if (
+        existing.length === 1 &&
+        !existing[0].address &&
+        !existing[0].amount
+      ) {
         existing = [];
       }
-      form.setValue("items", [...existing, ...parsed], { shouldValidate: true });
+      form.setValue("items", [...existing, ...parsed], {
+        shouldValidate: true,
+      });
     }
   }
   const { fields, append } = useFieldArray({
@@ -60,9 +67,8 @@ export default function FormAddressAmount({ data }: { data: TProject }) {
     name: "items",
   });
 
-
   function handleSubmit(values: MultipleRecipientsFormValues) {
-    console.log({ data, values })
+    ({ data, values });
   }
 
   return (
@@ -75,7 +81,12 @@ export default function FormAddressAmount({ data }: { data: TProject }) {
           className="w-full border rounded-md p-2 text-sm"
         />
         <div className="flex justify-end">
-          <Link className="text-blue-500 font-semibold underline text-sm" href="https://terravest-storage.s3.ap-southeast-1.amazonaws.com/templates/template_reward.xlsx" target="_blank" rel="noopener noreferrer">
+          <Link
+            className="text-blue-500 font-semibold underline text-sm"
+            href="https://terravest-storage.s3.ap-southeast-1.amazonaws.com/templates/template_reward.xlsx"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Download Template
           </Link>
         </div>
@@ -112,14 +123,25 @@ export default function FormAddressAmount({ data }: { data: TProject }) {
         </div>
 
         <div className="flex items-center justify-end">
-          <Button className="py-3" type="button" size={'xs'} onClick={() => append(defaultRow)}>
+          <Button
+            className="py-3"
+            type="button"
+            size={"xs"}
+            onClick={() => append(defaultRow)}
+          >
             <Plus className="h-4 w-4" /> Add row
           </Button>
         </div>
         <Separator />
 
         <div className="flex gap-2 justify-end sticky bottom-0 py-4 backdrop-blur-lg">
-          <Button type="button" variant="outline" onClick={() => form.reset({ items: [defaultRow] })}>Reset</Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => form.reset({ items: [defaultRow] })}
+          >
+            Reset
+          </Button>
           <Button type="submit">
             {form.formState.isSubmitting ? "Submitting..." : "Submit"}
           </Button>

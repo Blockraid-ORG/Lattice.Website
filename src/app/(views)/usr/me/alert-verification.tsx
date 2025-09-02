@@ -35,7 +35,7 @@ export default function AlertVerification({
     },
     async getUserAccounts() {
       if (walletAddress) {
-        console.log("Using cached wallet address:", walletAddress);
+        "Using cached wallet address:", walletAddress;
         return [walletAddress];
       }
       return [];
@@ -60,9 +60,9 @@ export default function AlertVerification({
       widget.on("finished", handleFinished);
       setZkMeWidget(widget);
 
-      console.log("zkMe Widget initialized successfully");
+      ("zkMe Widget initialized successfully");
     } catch (error) {
-      console.error("Failed to initialize zkMe Widget:", error);
+      "Failed to initialize zkMe Widget:", error;
     }
   }
 
@@ -71,7 +71,7 @@ export default function AlertVerification({
     if (zkMeWidget) {
       zkMeWidget.launch();
     } else {
-      console.error("zkMe Widget not initialized");
+      ("zkMe Widget not initialized");
     }
   }
 

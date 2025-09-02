@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAccount, useWalletClient } from "wagmi";
-import { TokenBalanceService } from "@/services/token-balance.service";
 import BigNumber from "bignumber.js";
 
 interface TokenConfig {
@@ -142,14 +141,12 @@ export function useTokenBalances(
         const validTokenConfigs = tokenConfig.filter((token) => {
           if (token.isNative) return true;
           if (!token.address) {
-            console.warn(`⚠️ Token ${token.symbol} tidak memiliki address`);
+            `⚠️ Token ${token.symbol} tidak memiliki address`;
             return false;
           }
           // Basic address validation (harus dimulai dengan 0x dan panjang 42 karakter)
           if (!token.address.match(/^0x[a-fA-F0-9]{40}$/)) {
-            console.warn(
-              `⚠️ Token ${token.symbol} memiliki address tidak valid: ${token.address}`
-            );
+            `⚠️ Token ${token.symbol} memiliki address tidak valid: ${token.address}`;
             return false;
           }
           return true;
@@ -198,12 +195,12 @@ export function useTokenBalances(
 
         setBalances(formattedBalances);
         setLastUpdated(new Date());
-        console.log("✅ Balance fetch completed successfully");
+        ("✅ Balance fetch completed successfully");
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "Gagal mengambil balance token";
         setError(errorMessage);
-        console.error("❌ Error fetching token balances:", err);
+        "❌ Error fetching token balances:", err;
 
         // Set loading state untuk semua tokens ke false saat error
         const errorBalances: Record<string, TokenBalanceData> = {};
@@ -252,15 +249,15 @@ export function useTokenBalances(
     const interval = setInterval(() => {
       // Only refresh if not currently fetching
       if (!isFetching && !loading) {
-        console.log("🔄 Auto-refreshing token balances...");
+        ("🔄 Auto-refreshing token balances...");
         fetchBalances();
       } else {
-        console.log("⏭️ Skipping auto-refresh - already fetching");
+        ("⏭️ Skipping auto-refresh - already fetching");
       }
     }, actualInterval);
 
     return () => {
-      console.log("🧹 Cleaning up auto-refresh interval");
+      ("🧹 Cleaning up auto-refresh interval");
       clearInterval(interval);
     };
   }, [
@@ -283,24 +280,26 @@ export function useTokenBalances(
           symbol === "BU" || (!tokenData.isNative && tokenData.totalSupply);
 
         if (isProjectToken) {
-          console.log(`🎯 PROJECT TOKEN Balance updated for ${symbol}:`, {
-            symbol: tokenData.symbol,
-            isNative: tokenData.isNative,
-            balance: tokenData.balance.toString(),
-            formatted: tokenData.formatted,
-            totalSupply: tokenData.totalSupply?.toString(),
-            decimals: tokenData.decimals,
-            expectedForBU: "Should show 10,000",
-            isProjectToken: true,
-          });
+          `🎯 PROJECT TOKEN Balance updated for ${symbol}:`,
+            {
+              symbol: tokenData.symbol,
+              isNative: tokenData.isNative,
+              balance: tokenData.balance.toString(),
+              formatted: tokenData.formatted,
+              totalSupply: tokenData.totalSupply?.toString(),
+              decimals: tokenData.decimals,
+              expectedForBU: "Should show 10,000",
+              isProjectToken: true,
+            };
         } else {
-          console.log(`💰 Regular token balance updated for ${symbol}:`, {
-            symbol: tokenData.symbol,
-            isNative: tokenData.isNative,
-            balance: tokenData.balance.toString(),
-            formatted: tokenData.formatted,
-            decimals: tokenData.decimals,
-          });
+          `💰 Regular token balance updated for ${symbol}:`,
+            {
+              symbol: tokenData.symbol,
+              isNative: tokenData.isNative,
+              balance: tokenData.balance.toString(),
+              formatted: tokenData.formatted,
+              decimals: tokenData.decimals,
+            };
         }
       });
     }
@@ -309,7 +308,7 @@ export function useTokenBalances(
   // Reset balances when wallet disconnects dan cleanup
   useEffect(() => {
     if (!address || !walletClient) {
-      console.log("🔌 Wallet disconnected - cleaning up balances");
+      ("🔌 Wallet disconnected - cleaning up balances");
 
       // Clear any pending fetch timeouts
       if (fetchTimeoutId) {
@@ -330,7 +329,7 @@ export function useTokenBalances(
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      console.log("🧹 useTokenBalances cleanup");
+      ("🧹 useTokenBalances cleanup");
       if (fetchTimeoutId) {
         clearTimeout(fetchTimeoutId);
       }

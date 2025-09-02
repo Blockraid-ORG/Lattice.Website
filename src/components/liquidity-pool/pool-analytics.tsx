@@ -80,7 +80,6 @@ export function PoolAnalytics({
         setPoolInfo(null);
       }
     } catch (error: any) {
-      console.error("Error loading pool analytics:", error);
       setError(error.message || "Failed to load pool information");
     } finally {
       setIsLoading(false);
