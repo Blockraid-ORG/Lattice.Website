@@ -1,7 +1,11 @@
 import React from 'react'
+import PageContainer from '@/components/containers/page-container'
+import ActivePresale from './content'
 
-export default function PresalePage() {
+export default function ProjectPage() {
   return (
-    <div>PresalePage</div>
+    <PageContainer title='Presale' subtitle='Contribute now to get best price'>
+      <ActivePresale />
+    </PageContainer>
   )
 }

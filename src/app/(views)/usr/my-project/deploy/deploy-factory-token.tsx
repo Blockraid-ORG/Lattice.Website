@@ -21,7 +21,7 @@ import Image from "next/image";
 import { useState } from "react";
 
 export function DeployFactoryToken({ data }: { data: TProject }) {
-  const { deployFactoryBasic, deployFactoryWithAirdrop } = useDeployToken()
+  const { deployFactoryBasic } = useDeployToken()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { setData: setDataVesting } = useVestingStore()
   const { open, setOpen } = useStateModal()
@@ -33,11 +33,7 @@ export function DeployFactoryToken({ data }: { data: TProject }) {
 
   async function handleDeployContract() {
     setIsSubmitting(true)
-    if (data.isHashAirdrop) {
-      deployFactoryWithAirdrop(data).then(() => setOpen(false)).finally(() => setIsSubmitting(false))
-    } else {
-      deployFactoryBasic(data).then(() => setOpen(false)).finally(() => setIsSubmitting(false))
-    }
+    deployFactoryBasic(data).then(() => setOpen(false)).finally(() => setIsSubmitting(false))
   }
 
   return (
