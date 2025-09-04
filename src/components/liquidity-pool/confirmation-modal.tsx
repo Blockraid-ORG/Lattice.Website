@@ -11,11 +11,11 @@ import { Icon } from "@/components/icon";
 import { toast } from "sonner";
 import { ethers } from "ethers";
 import BigNumber from "bignumber.js";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useWeb3AuthConnect } from "@web3auth/modal/react";
 import { useUniswapV3SDK } from "@/hooks/useUniswapV3SDK";
-import { ARBITRUM_RPC_PROVIDERS } from "@/data/constants";
-import { cn } from "@/lib/utils";
+// import { ARBITRUM_RPC_PROVIDERS } from "@/data/constants";
+// import { cn } from "@/lib/utils";
 
 interface ConfirmationModalProps {
   showConfirmModal: boolean;
@@ -97,16 +97,8 @@ export function ConfirmationModal({
   const [showSuccess, setShowSuccess] = useState(false);
 
   const { connect, isConnected } = useWeb3AuthConnect();
-  const {
-    isLoading,
-    isConnecting,
-    isReady,
-    error,
-    mintPosition,
-    createPool,
-    clearError,
-    sdkService,
-  } = useUniswapV3SDK(chainId || 56);
+  const { isLoading, isConnecting, isReady, error, clearError } =
+    useUniswapV3SDK(chainId || 56);
 
   // 🎯 USER-TRIGGERED Network Switch Helper
   // This is triggered only when user clicks "Create Position" - safer approach
@@ -169,7 +161,7 @@ export function ConfirmationModal({
           });
 
           // Verify the switch worked
-          const newChainId = await walletProvider.request({
+          await walletProvider.request({
             method: "eth_chainId",
           });
         } catch (switchError: any) {
@@ -182,7 +174,7 @@ export function ConfirmationModal({
               });
 
               // Verify network was added and switched
-              const newChainId = await walletProvider.request({
+              await walletProvider.request({
                 method: "eth_chainId",
               });
             } catch (addError: any) {
@@ -238,7 +230,7 @@ export function ConfirmationModal({
         // Get fresh provider to ensure consistency
         const freshProvider = await connect();
         if (freshProvider) {
-          const verifyChainId = await freshProvider.request({
+          await freshProvider.request({
             method: "eth_chainId",
           });
         }
@@ -400,7 +392,7 @@ export function ConfirmationModal({
           });
 
           // Verify the switch worked
-          const newChainId = await walletProvider.request({
+          await walletProvider.request({
             method: "eth_chainId",
           });
         } catch (switchError: any) {
@@ -413,7 +405,7 @@ export function ConfirmationModal({
               });
 
               // Verify network was added and switched
-              const newChainId = await walletProvider.request({
+              await walletProvider.request({
                 method: "eth_chainId",
               });
             } catch (addError: any) {
@@ -476,9 +468,7 @@ export function ConfirmationModal({
         // Get fresh provider to ensure consistency
         const freshProvider = await connect();
         if (freshProvider) {
-          const verifyChainId = await freshProvider.request({
-            method: "eth_chainId",
-          });
+          await freshProvider.request({ method: "eth_chainId" });
         }
       }
     } catch (error) {
@@ -537,7 +527,7 @@ export function ConfirmationModal({
             finalUserAddress = accounts[0];
           }
         }
-      } catch (error) {}
+      } catch {}
     }
 
     if (!finalUserAddress) {
@@ -546,25 +536,6 @@ export function ConfirmationModal({
       );
       return;
     }
-
-    // Debug token data
-    /*console.log("🔍 Debug Token Data:", {
-      tokenAData: {
-        symbol: tokenAData?.symbol,
-        name: tokenAData?.name,
-        address: (tokenAData as any)?.address,
-        isNative: (tokenAData as any)?.isNative,
-        fullObject: tokenAData,
-      },
-      tokenBData: {
-        symbol: tokenBData?.symbol,
-        name: tokenBData?.name,
-        address: tokenBData?.address,
-        isNative: tokenBData?.isNative,
-        fullObject: tokenBData,
-      },
-    });*/
-
     // More flexible token validation
     const tokenAHasIdentifier = !!(
       tokenAData?.address ||
@@ -578,20 +549,6 @@ export function ConfirmationModal({
     );
     const tokenAHasSymbol = !!tokenAData?.symbol;
     const tokenBHasSymbol = !!tokenBData?.symbol;
-
-    /*console.log("🔍 Token Validation:", {
-      tokenAHasIdentifier,
-      tokenBHasIdentifier,
-      tokenAHasSymbol,
-      tokenBHasSymbol,
-      validationPassed:
-        tokenAHasIdentifier &&
-        tokenAHasSymbol &&
-        tokenBHasIdentifier &&
-        tokenBHasSymbol,
-      tokenASymbol: tokenAData?.symbol,
-      tokenBSymbol: tokenBData?.symbol,
-    });*/
 
     if (
       !(
@@ -631,24 +588,6 @@ export function ConfirmationModal({
             tokenData.address
           );
         }
-
-        // FIXED: Ensure correct token addresses for known tokens on Arbitrum
-        if (chainId === 42161) {
-          // Arbitrum
-          // Force correct USDC address for Arbitrum
-          if (tokenData.symbol?.toUpperCase() === "USDC") {
-            return "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"; // Native USDC Arbitrum
-          }
-          // Force correct TS address for Arbitrum
-          if (
-            tokenData.symbol?.toUpperCase() === "KM" ||
-            tokenData.name?.toLowerCase().includes("toko") ||
-            tokenData.name?.toLowerCase().includes("kulkas")
-          ) {
-            return "0xAe771AC9292c84ed2A6625Ae92380DedCF9A5076"; // KM Token Arbitrum
-          }
-        }
-
         return tokenData.address;
       };
 
@@ -671,88 +610,26 @@ export function ConfirmationModal({
         isNative: !!(tokenBData as any)?.isNative,
       };
 
-      // METAMASK DEBUG: Log token data being sent to SDK
-      /*console.log("🎯 METAMASK TOKEN DEBUG - DATA YANG AKAN DIKIRIM KE SDK:", {
-        tokenASDK: {
-          symbol: tokenASDK.symbol,
-          name: tokenASDK.name,
-          address: tokenASDK.address,
-          decimals: tokenASDK.decimals,
-          isNative: tokenASDK.isNative,
-        },
-        tokenBSDK: {
-          symbol: tokenBSDK.symbol,
-          name: tokenBSDK.name,
-          address: tokenBSDK.address,
-          decimals: tokenBSDK.decimals,
-          isNative: tokenBSDK.isNative,
-        },
-        amounts: {
-          tokenAAmount: `${tokenAAmount} ${tokenASDK.symbol}`,
-          tokenBAmount: `${tokenBAmount} ${tokenBSDK.symbol}`,
-          expectedDisplay: `MetaMask should show: -${tokenAAmount} ${tokenASDK.symbol} and -${tokenBAmount} ${tokenBSDK.symbol}`,
-        },
-        originalTokenBData: tokenBData,
-        chainId: chainId,
-      });*/
+      console.log("🔍 Token Data:", {
+        tokenASDK,
+        tokenBSDK,
+      });
 
       // Additional validation for project token (tokenB should have contract address)
       if (!tokenBSDK.isNative && !tokenBSDK.address) {
         toast.error(
           `Project token ${tokenBSDK.symbol} tidak memiliki contract address. Pastikan project token sudah di-deploy dengan benar.`
         );
-        /*console.error("❌ Project token missing contract address:", {
-          tokenBSDK,
-          originalTokenBData: tokenBData,
-        });*/
         return;
       }
 
       // TOKEN REGISTRATION DISABLED: Was causing MetaMask connection issues
-      /*console.log(
-        "🔧 Token registration disabled to prevent connection problems"
-      );*/
-
-      /*console.log("🚀 Creating position with SDK:", {
-        tokenASDK: {
-          ...tokenASDK,
-          type: tokenASDK.isNative ? "NATIVE" : "ERC20",
-        },
-        tokenBSDK: {
-          ...tokenBSDK,
-          type: tokenBSDK.isNative ? "NATIVE" : "ERC20",
-        },
-        amounts: {
-          tokenAAmount: `${tokenAAmount} ${tokenASDK.symbol}`,
-          tokenBAmount: `${tokenBAmount} ${tokenBSDK.symbol}`,
-        },
-        feeTier: `${feeTier}%`,
-        startingPrice,
-        chainId: chainId || 56,
-        poolPair: `${tokenASDK.symbol}/${tokenBSDK.symbol}`,
-      });*/
 
       // Check if pool exists and create if needed (for new pools)
       toast.info("Mengecek/membuat pool...");
-      /*console.log("🔍 Pool check - attempting to create/verify pool:", {
-        tokenA: tokenASDK.symbol,
-        tokenB: tokenBSDK.symbol,
-        fee: parseInt(feeTier) || 3000,
-        poolPair: `${tokenASDK.symbol}/${tokenBSDK.symbol}`,
-      });*/
 
-      const pool = await createPool(
-        tokenASDK,
-        tokenBSDK,
-        parseInt(feeTier) || 3000
-      );
-
-      /*console.log("✅ Pool ready:", {
-        token0: pool?.token0?.symbol || "N/A",
-        token1: pool?.token1?.symbol || "N/A",
-        fee: pool?.fee || "N/A",
-        poolReady: true,
-      });*/
+      // TODO: Uncomment this when pool creation is fixed
+      // await createPool(tokenASDK, tokenBSDK, parseInt(feeTier) || 3000);
 
       // Prepare parameters for SDK (following updated documentation)
       const fee = parseInt(feeTier) || 3000;
@@ -760,42 +637,11 @@ export function ConfirmationModal({
       // Calculate deadline (20 minutes from now)
       const deadline = Math.floor(Date.now() / 1000) + 20 * 60;
 
-      /*console.log(
-        `🎯 Creating ${tokenASDK.symbol}/${tokenBSDK.symbol} liquidity position with parameters:`,
-        {
-          pairType: `${tokenASDK.symbol}/${tokenBSDK.symbol} ${
-            chainId === 42161
-              ? "Arbitrum"
-              : chainId === 56
-              ? "BSC"
-              : "Chain " + chainId
-          }`,
-          tokenA: {
-            symbol: tokenASDK.symbol,
-            address: tokenASDK.address,
-            amount: tokenAAmount,
-          },
-          tokenB: {
-            symbol: tokenBSDK.symbol,
-            address: tokenBSDK.address,
-            amount: tokenBAmount,
-          },
-          fee: fee,
-          recipient: finalUserAddress,
-          deadline,
-          slippageTolerance: 0.01,
-          rangeType,
-          chainId: chainId || 56,
-        }
-      );*/
-
       // 🎯 STEP 1: ENSURE CORRECT NETWORK FIRST (USER-TRIGGERED)
       try {
-        const networkName = chainId === 42161 ? "Arbitrum One" : "BSC";
-
         // This will auto-switch if needed, triggered by user clicking Create Position
         await ensureCorrectNetworkOnUserAction();
-      } catch (networkError) {
+      } catch {
         return; // Stop execution if network switch fails
       }
 
@@ -835,37 +681,21 @@ export function ConfirmationModal({
 
       // Test RPC connectivity
       try {
-        const rpcNetwork = await dedicatedRpcProvider.getNetwork();
-        /*console.log("✅ RPC Provider verified:", {
-          chainId: Number(rpcNetwork.chainId),
-          networkName: rpcNetwork.name,
-          rpcWorking: true,
-        });*/
+        await dedicatedRpcProvider.getNetwork();
       } catch (rpcError) {
-        //console.error("❌ RPC Provider test failed:", rpcError);
         throw new Error(
           `RPC connection failed for ${networkName}: ${rpcError}`
         );
       }
 
       // Additional stabilization wait
-      //console.log("⏳ Step 1c: Provider stabilization wait...");
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Verify wallet is on correct network
-      const walletChainId = parseInt(
-        (await walletProvider.request({ method: "eth_chainId" })) as string,
-        16
-      );
-
-      /*console.log("🔍 Step 1d: Final network verification:", {
-        walletChainId,
-        expectedChainId: chainId || 56,
-        rpcChainId: chainId,
-        networkMatch: walletChainId === (chainId || 56),
-        networkName,
-        providerReady: true,
-      });*/
+      const walletChainIdHex = (await walletProvider.request({
+        method: "eth_chainId",
+      })) as string;
+      const walletChainId = parseInt(walletChainIdHex, 16);
 
       if (walletChainId !== (chainId || 56)) {
         throw new Error(
@@ -921,58 +751,21 @@ export function ConfirmationModal({
           //console.log("✅ SDK ready after retry");
 
           // Additional verification that SDK is ready for the correct network
-          //console.log("🔍 Verifying SDK network readiness...");
           try {
             // Use wallet provider as source of truth since SDK provider is private
             const walletProvider = await connect();
             if (walletProvider) {
-              const walletChainId = parseInt(
-                (await walletProvider.request({
-                  method: "eth_chainId",
-                })) as string,
-                16
-              );
-              /*console.log("🔍 SDK Network readiness verification:", {
-                walletChainId,
-                expectedChainId: chainId || 56,
-                networkMatch: walletChainId === (chainId || 56),
-                sdkReady: isReady,
-              });*/
+              await walletProvider.request({ method: "eth_chainId" });
             }
-          } catch (sdkNetworkError) {}
+          } catch {}
 
           toast.success("SDK ready!", { duration: 2000 });
         }
       }
 
-      // 🔍 Additional validation for Arbitrum specific contracts
-      if (walletChainId === 42161) {
-        //console.log("🔍 Step 1b: Validating Arbitrum contracts...");
-
-        // Validate USDC contract address for Arbitrum
-        const tokenAAddress = (tokenASDK as any).address;
-        const tokenBAddress = (tokenBSDK as any).address;
-
-        /*console.log("🔍 Contract validation:", {
-          tokenA: { symbol: tokenASDK.symbol, address: tokenAAddress },
-          tokenB: { symbol: tokenBSDK.symbol, address: tokenBAddress },
-          chainId: walletChainId,
-          network: "Arbitrum One",
-        });*/
-
-        // Specific validation for Native USDC on Arbitrum
-        if (
-          tokenASDK.symbol === "USDC" &&
-          tokenAAddress === "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-        ) {
-          //console.log("✅ Using Native USDC on Arbitrum One");
-        }
-      }
-
-      //console.log("✅ Step 1: Network stable and SDK ready");
+      console.log("✅ Step 1: Network stable and SDK ready");
 
       // 🎯 STEP 3: CREATE LIQUIDITY POSITION (after everything is validated)
-      //console.log("🚀 Step 2: Starting liquidity position creation...");
       toast.info(
         `Creating ${tokenASDK.symbol}/${tokenBSDK.symbol} liquidity position...`,
         {
@@ -980,7 +773,6 @@ export function ConfirmationModal({
         }
       );
       // 🎯 STEP 4: Final pre-execution validations
-      //console.log("🔍 Step 2a: Final pre-execution validations...");
 
       // One final network check before execution
       const preExecProvider = await connect();
@@ -999,12 +791,6 @@ export function ConfirmationModal({
         );
       }
 
-      /*console.log("✅ Step 2a: Final validations passed:", {
-        networkId: preExecChainId,
-        sdkReady: isReady,
-        allValidationsPass: true,
-      });*/
-
       // 🎯 STEP 5: FORCE SDK RE-INITIALIZATION WITH DEDICATED RPC
 
       // Create browser provider for signing only
@@ -1012,7 +798,6 @@ export function ConfirmationModal({
       const signer = await signingProvider.getSigner();
 
       // Force re-initialize SDK service with dedicated RPC provider
-      //console.log("🔄 Forcing SDK service to use dedicated RPC...");
 
       // Import SDK service directly to bypass hook's provider issues
       const { UniswapV3SDKService } = await import(
@@ -1026,18 +811,7 @@ export function ConfirmationModal({
         signer
       );
 
-      //console.log("✅ Fresh SDK service initialized with dedicated RPC");
-      /*console.log("🔍 Provider verification:", {
-        rpcProviderChainId: chainId,
-        signerChainId: Number(
-          await signer.provider.getNetwork().then((n) => n.chainId)
-        ),
-        rpcUrl: rpcUrl.substring(0, 40) + "...",
-        sdkReady: true,
-      });*/
-
       // 🎯 STEP 6: Check if pool exists, create if needed
-      //console.log("🔍 Step 3a: Checking if USDC/KN pool exists...");
 
       try {
         // Check if pool exists for this token pair and fee
@@ -1047,16 +821,7 @@ export function ConfirmationModal({
           fee: fee,
         });
 
-        /*console.log("🔍 Pool existence check:", {
-          tokenPair: `${tokenASDK.symbol}/${tokenBSDK.symbol}`,
-          feePercent: `${fee / 10000}%`,
-          poolExists: poolExists,
-          needsCreation: !poolExists,
-        });*/
-
         if (!poolExists) {
-          //console.log("🚀 Step 3b: Pool tidak ada, creating new pool...");
-
           toast.info(
             `Creating new ${tokenASDK.symbol}/${tokenBSDK.symbol} pool...`,
             {
@@ -1072,11 +837,6 @@ export function ConfirmationModal({
             initialPrice: "1", // Starting price 1 KN = 1 USDC
           });
 
-          /*console.log("✅ Pool creation successful:", {
-            poolAddress: createPoolResult.poolAddress,
-            transactionHash: createPoolResult.hash,
-          });*/
-
           toast.success(
             `🎉 ${tokenASDK.symbol}/${tokenBSDK.symbol} pool created!`,
             {
@@ -1089,11 +849,9 @@ export function ConfirmationModal({
           );
 
           // Wait a moment for pool to be indexed
-          //console.log("⏳ Waiting for pool indexing...");
           await new Promise((resolve) => setTimeout(resolve, 3000));
         }
       } catch (poolCheckError: any) {
-        //console.error("❌ Pool check/creation failed:", poolCheckError);
         toast.error("Failed to check/create pool", {
           description: poolCheckError.message || "Please try again",
           duration: 8000,
@@ -1162,14 +920,12 @@ export function ConfirmationModal({
         }
 
         // Use fresh SDK service with validated parameters
-        const result = await freshSDKService.mintPosition({
+        const params = {
           tokenA: tokenASDK,
           tokenB: tokenBSDK,
           fee: fee,
-          amount0: tokenAAmount.toString(), // Ensure string format
-          amount1: tokenBAmount.toString(), // Ensure string format
-          // tickLower and tickUpper are now optional - SDK will auto-calculate for full range
-          // Only specify if custom range is needed
+          amount0: tokenAAmount.toString(),
+          amount1: tokenBAmount.toString(),
           ...(rangeType === "custom" && {
             tickLower: Math.round(parseFloat(minPrice || "0")),
             tickUpper: Math.round(parseFloat(maxPrice || "887220")),
@@ -1177,14 +933,10 @@ export function ConfirmationModal({
           recipient: finalUserAddress,
           deadline,
           slippageTolerance: 0.02, // Increased to 2% for better success rate
-        });
+        };
 
-        /*console.log("🎉 Position creation successful:", {
-          transactionHash: result.hash,
-          tokenId: result.tokenId?.toString(),
-          networkUsed: networkName,
-          rpcUsed: rpcUrl.substring(0, 40) + "...",
-        });*/
+        console.log("🔍 Mint position parameters:", params);
+        const result = await freshSDKService.mintPosition(params);
 
         setTransactionHash(result.hash);
         setNftTokenId(result.tokenId.toString());
@@ -1210,8 +962,6 @@ export function ConfirmationModal({
           }
         );
       } catch (positionError: any) {
-        //console.error("❌ mintPosition failed:", positionError);
-
         // Enhanced error handling for common issues
         if (positionError.message.includes("NETWORK_ERROR")) {
           toast.error("Network connection issue detected", {
@@ -1558,8 +1308,8 @@ export function ConfirmationModal({
                   <div className="text-yellow-700">
                     <p className="mb-2">
                       MetaMask may show incorrect token amounts (like
-                      "-&lt;0.000001 {tokenBData.symbol}") for Uniswap V3
-                      transactions. This is a{" "}
+                      &quot;-&lt;0.000001 {tokenBData.symbol}&quot;) for Uniswap
+                      V3 transactions. This is a{" "}
                       <strong>display limitation only</strong>.
                     </p>
                     <p className="font-medium">

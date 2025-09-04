@@ -376,6 +376,7 @@ export function useUniswapV3SDK(chainId: number = 56) {
           isLoading: false,
         });
         toast.error(`Failed to create position: ${errorMessage}`);
+        console.error("Failed to create position:", error);
         throw error;
       }
     },

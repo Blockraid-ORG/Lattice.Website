@@ -34,7 +34,6 @@ import {
 import { toast } from "sonner";
 import { TokenSelectionModal } from "./token-selection-modal";
 import { useTokenPrices } from "@/hooks/useTokenPrices";
-import { useLiquidityTokenBalances } from "@/hooks/useTokenBalances";
 import { useUniswapV3SDK } from "@/hooks/useUniswapV3SDK";
 
 interface ModalLiquidityProps {
@@ -720,24 +719,24 @@ export function ModalLiquidity({
   }, [projectData?.chains]);
 
   // Debug logging untuk chain ID dan token addresses
-  useEffect(() => {
-    if (projectData?.chains[0]?.chain) {
-      console.log("🔗 Project Chain Info:", {
-        chainName: projectData.chains[0].chain.name,
-        chainId: projectData.chains[0].chain.chainid,
-        projectChainString: projectChain,
-        contractAddress: projectData.contractAddress,
-        selectedTokenA,
-        selectedTokenB,
-      });
-    }
-  }, [
-    projectData,
-    projectChain,
-    selectedTokenA,
-    selectedTokenB,
-    tokenAddressMap,
-  ]);
+  // useEffect(() => {
+  //   if (projectData?.chains[0]?.chain) {
+  //     console.log("🔗 Project Chain Info:", {
+  //       chainName: projectData.chains[0].chain.name,
+  //       chainId: projectData.chains[0].chain.chainid,
+  //       projectChainString: projectChain,
+  //       contractAddress: projectData.contractAddress,
+  //       selectedTokenA,
+  //       selectedTokenB,
+  //     });
+  //   }
+  // }, [
+  //   projectData,
+  //   projectChain,
+  //   selectedTokenA,
+  //   selectedTokenB,
+  //   tokenAddressMap,
+  // ]);
 
   // ROBUST: Process tokenAData with simple native token logic
   const processedTokenAData = useMemo(() => {
