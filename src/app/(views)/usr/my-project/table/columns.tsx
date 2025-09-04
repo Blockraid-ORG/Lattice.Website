@@ -29,6 +29,15 @@ export const columns: ColumnDef<TProject>[] = [
     }
   },
   {
+    accessorKey: 'projectType',
+    header: 'Type',
+    cell: ({ row }) => {
+      return (
+        <div>{row.original.projectType?.name ?? "-"}</div>
+      )
+    }
+  },
+  {
     accessorKey: 'chain',
     header: 'Chain',
     cell: ({ row }) => {

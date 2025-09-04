@@ -35,6 +35,7 @@ export const formCreateProjectSchema = z.object({
   status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'DEPLOYED']),
   detail: z.string().min(1),
   categoryId: z.string().uuid(),
+  projectTypeId: z.string().uuid(),
   chainId: z.string().uuid(),
   allocations: z.array(allocationSchema).refine((allocs) => {
     const total = allocs.reduce((sum, a) => sum + a.supply, 0)

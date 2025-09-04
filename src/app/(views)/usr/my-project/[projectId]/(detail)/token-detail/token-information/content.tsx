@@ -140,6 +140,11 @@ export default function TokenInformation({ data }: { data: TProject }) {
                   label="Category"
                   value={data.category.name}
                 />
+                <RowItem
+                  labelWidth="w-1/3"
+                  label="Project Type"
+                  value={data.projectType?.name}
+                />
                 <div className="flex py-2 border-t">
                   <div className="w-1/3">Contract</div>
                   <div className="w-3 shrink-0">:</div>

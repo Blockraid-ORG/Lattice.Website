@@ -25,6 +25,7 @@ import { Fragment, useRef, useState } from "react"
 import { useFieldArray, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { defaultValues } from "./default-value"
+import { useProjectTypeList } from "@/modules/project-types/project-types.query"
 
 type TTokenUnit = {
   value: string
@@ -43,6 +44,7 @@ export default function FormCreate() {
   const { data: chains } = useChainList()
   const { data: categories } = useCategoryList()
   const { data: socials } = useSocialList()
+  const { data: projectTypes } = useProjectTypeList()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const form = useForm<TFormProject>({
@@ -200,22 +202,6 @@ export default function FormCreate() {
       setLoading(false)
     }
   }
-  async function onCheckedChangeAirdrop(state: boolean) {
-    if (state) {
-      append({
-        name: "Airdrop",
-        supply: 0,
-        vesting: 0,
-        startDate: new Date().toISOString(),
-        isPresale: false,
-      });
-    } else {
-      const index = allocations.findIndex((a:any) => a.name.toLowerCase() === "airdrop");
-      if (index !== -1) {
-        remove(index);
-      }
-    }
-  }
   return (
     <div>
       <div className='max-w-5xl mx-auto py-12 px-3'>
@@ -263,7 +249,7 @@ export default function FormCreate() {
                 </div>
               </div>
 
-              <div className="grid lg:grid-cols-3 gap-3">
+              <div className="grid lg:grid-cols-2 gap-3 my-6">
                 {
                   chains && (
                     <FormSelect
@@ -297,6 +283,26 @@ export default function FormCreate() {
                       groups={[{
                         label: 'Category',
                         options: categories.map(i => {
+                          return {
+                            ...i,
+                            iconName: i.icon
+                          }
+                        })
+                      }]}
+                    />
+
+                  )
+                }
+                {
+                  projectTypes && (
+                    <FormSelect
+                      control={form.control}
+                      name="projectTypeId"
+                      label="Select Type"
+                      placeholder="select type"
+                      groups={[{
+                        label: 'Project Type',
+                        options: projectTypes.map(i => {
                           return {
                             ...i,
                             iconName: i.icon
@@ -385,9 +391,9 @@ export default function FormCreate() {
                         <FormInput
                           control={form.control}
                           name={`allocations.${index}.name`}
-                          label="Allocation"
+                          label={"Allocation"}
                           placeholder="e.g. Team"
-                          disabled={field.name === "Airdrop"}
+                          disabled={field.name === "Presale"}
                         />
                       </div>
                       <div className="flex-1">
@@ -403,7 +409,7 @@ export default function FormCreate() {
                         <FormSelect
                           control={form.control}
                           name={`allocations.${index}.vesting`}
-                          label="Vesting (mo)"
+                          label={"Vesting (mo)"}
                           placeholder="select vesting"
                           groups={vestingCounts ? [{
                             label: 'Vesting',
@@ -420,7 +426,14 @@ export default function FormCreate() {
                           type="date"
                         />
                       </div>
-                      <Button disabled={index < 1} className='ms-auto' size={"icon"} type="button" variant="destructive" onClick={() => remove(index)}>
+                      <Button
+                        disabled={field.name === "Presale" || field.name === "Airdrop"}
+                        className='ms-auto'
+                        size={"icon"}
+                        type="button"
+                        variant="destructive"
+                        onClick={() => remove(index)}
+                      >
                         <Icon name='tabler:trash' />
                       </Button>
                     </div>
@@ -437,10 +450,6 @@ export default function FormCreate() {
                 <Button variant="secondary" disabled={totalPercent >= 100} type="button" onClick={() => append({ allocation: "", supply: 0, start_date: "", vesting: 0 })}>
                   + Allocation
                 </Button>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch onCheckedChange={onCheckedChangeAirdrop} id="enable-airdrop" />
-                <Label htmlFor="enable-airdrop">Enable Airdrop</Label>
               </div>
             </div>
             <div className='bg-form-token-gradient p-4 md:p-8 rounded-2xl'>

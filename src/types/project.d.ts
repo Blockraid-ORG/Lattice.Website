@@ -8,6 +8,7 @@ import {
 import { TCategory } from "./category";
 import { TSocial } from "./social";
 import { TChain } from "./chain";
+import { TProjectType } from "./project-type";
 
 export type TFormProject = z.infer<typeof formCreateProjectSchema>;
 export type TFormProjectAllocation = z.infer<typeof allocationSchema>;
@@ -69,13 +70,15 @@ export type TAdditionalReward = {
     id: string
     name: string
   },
+  project: TProject,
   user: {
     id: string
     walletAddress: string
   },
-  startDateCliam: string 
-  endDateCliam: string
+  startDateClaim: string 
+  endDateClaim: string
   isClaimed: boolean
+  contactAddress: string
 }
 export type TProject = {
   id: string
@@ -99,6 +102,7 @@ export type TProject = {
   }[];
   presales: TPresale;
   category: TCategory;
+  projectType: TProjectType;
   chains: {
     chain: TChain;
   }[];

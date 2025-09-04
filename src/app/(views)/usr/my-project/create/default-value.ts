@@ -9,6 +9,7 @@ export const defaultValues = {
   detail: '',
   status: 'PENDING',
   categoryId: '',
+  projectTypeId: '',
   allocations: [
     {
       name: "Presale",

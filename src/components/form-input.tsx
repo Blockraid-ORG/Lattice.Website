@@ -20,6 +20,7 @@ type FormInputProps<T extends FieldValues> = {
   type?: string,
   rows?: number
   disabled?: boolean
+  onPaste?: React.ClipboardEventHandler<HTMLInputElement | HTMLTextAreaElement>
 } & { isLongText?: boolean }
 
 export function FormInput<T extends FieldValues>({
@@ -30,7 +31,8 @@ export function FormInput<T extends FieldValues>({
   type = 'text',
   isLongText,
   rows,
-  disabled
+  disabled,
+  onPaste
 }: FormInputProps<T>) {
   return (
     <FormField
@@ -50,6 +52,7 @@ export function FormInput<T extends FieldValues>({
                     fieldState.error ? 'bg-red-200/10 ring-1 ring-red-300' : 'bg-blue-100/30 dark:bg-primary-foreground'
                   )}
                   placeholder={placeholder} {...field}
+                  onPaste={onPaste}
                 />
               ) : (
 
@@ -59,7 +62,10 @@ export function FormInput<T extends FieldValues>({
                     'focus-visible:ring-blue-200/50 focus-visible:border-blue-200/50',
                     fieldState.error ? 'bg-red-200/10 ring-1 ring-red-300' : 'bg-blue-100/30 dark:bg-primary-foreground'
                   )}
-                  placeholder={placeholder} type={type} {...field}
+                    placeholder={placeholder}
+                    onPaste={onPaste}
+                    type={type}
+                    {...field}
                 />
               )
             }
