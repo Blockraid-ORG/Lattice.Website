@@ -11,6 +11,7 @@ import {
   SheetTitle,
   SheetTrigger
 } from "@/components/ui/sheet"
+import { useDetailReward } from "@/modules/additional-rewards/additional-reward.query"
 import { useAirdrop } from "@/modules/deploy/deploy.airdrop"
 import { TAdditionalReward } from "@/types/project"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -40,6 +41,7 @@ export function FormAddress({ data }: { data: TAdditionalReward }) {
   const [open, setOpen] = useState(false)
   const [submitting, setIsSubmiting] = useState(false)
   const { setAllocations } = useAirdrop()
+  const { data: detail} = useDetailReward(data.id)
   const form = useForm<MultipleRecipientsFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: { items: [defaultRow] },
@@ -52,17 +54,23 @@ export function FormAddress({ data }: { data: TAdditionalReward }) {
     const parsed = rows.map(r => {
       const [address, amount] = r.split(/\t|,/); // bisa tab atau koma
       return {
-        address: address?.trim() ?? "",
+        address: address?.trim().toLowerCase() ?? "",
         amount: Number(amount?.trim() ?? 0),
       };
     });
 
     if (parsed.length > 0) {
       let existing = form.getValues("items") ?? [];
+      const uniqueParsed = parsed.filter((item) => {
+        return !existing.some((existingItem) => existingItem.address === item.address);
+      });
+
       if (existing.length === 1 && !existing[0].address && !existing[0].amount) {
         existing = [];
       }
-      form.setValue("items", [...existing, ...parsed], { shouldValidate: true });
+      if (uniqueParsed.length > 0) {
+        form.setValue("items", [...existing, ...uniqueParsed], { shouldValidate: true });
+      }
     }
   }
   const { fields, append, remove } = useFieldArray({
@@ -77,8 +85,20 @@ export function FormAddress({ data }: { data: TAdditionalReward }) {
       setIsSubmiting(false)
     });
   }
+  function onOpenChange(open: boolean) { 
+    setOpen(open);
+    if (detail && detail.userAdditionalReward.length > 0) {
+      const defaultItems = detail.userAdditionalReward.map((allocation) => ({
+        address: allocation.address.toLowerCase(),
+        amount: Number(allocation.amount)
+      }));
+      form.setValue("items", defaultItems, { shouldValidate: true });
+    } else {
+      form.setValue("items", [{ address: "", amount: 0 }], { shouldValidate: true });
+    }
+  }
   return (
-    <Sheet onOpenChange={() => setOpen(!open)} open={open}>
+    <Sheet onOpenChange={onOpenChange} open={open}>
       <SheetTrigger asChild>
         <Button
           disabled={!data.contactAddress}
@@ -115,7 +135,7 @@ export function FormAddress({ data }: { data: TAdditionalReward }) {
                           label=""
                           placeholder="0x..."
                           type="text"
-                          onPaste={idx === 0 ? handlePaste : undefined}
+                          onPaste={handlePaste}
                         />
                       </div>
                       <div className="flex-1">

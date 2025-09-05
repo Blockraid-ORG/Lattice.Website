@@ -38,13 +38,15 @@ export function FormCreateAirdrop({ projectId }: { projectId: string }) {
     const newValues = {
       ...values,
       projectId,
-      typeId: "4ae33a0f-52c3-4167-a782-f66c084ee5de",
       startDateClaim: dayjs(values.startDateClaim).format(),
       endDateClaim: dayjs(values.startDateClaim).add(values.duration, values.unitTime).format(),
     }
-    createAdditionalReward(newValues)
-    form.reset()
-    setOpen(false)
+    createAdditionalReward(newValues, {
+      onSuccess() {
+        form.reset()
+        setOpen(false)
+      }
+    })
   }
   function onOpenChange(state: boolean) {
     setOpen(state)

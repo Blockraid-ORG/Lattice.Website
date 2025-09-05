@@ -61,7 +61,15 @@ export type TProjectReviewLog = {
   createdAt: string;
   createdBy: string;
 };
-
+export type TUserAdditionalReward = {
+  id: string
+  address: string
+  amount: string
+  isClaimed: false,
+  user?: {
+    fullname: string
+  }
+}
 export type TAdditionalReward = {
   id: string
   address: string
@@ -79,6 +87,7 @@ export type TAdditionalReward = {
   endDateClaim: string
   isClaimed: boolean
   contactAddress: string
+  userAdditionalReward: TUserAdditionalReward[] | []
 }
 export type TProject = {
   id: string
