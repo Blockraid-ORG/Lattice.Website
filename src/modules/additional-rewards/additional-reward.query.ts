@@ -103,3 +103,11 @@ export const useRemoveAllocations = () => {
     }
   });
 };
+export const useDetailReward = (id: string) => {
+  const queryChain = useQuery({
+    queryKey: ["get_additional_reward_id", id],
+    queryFn: () => additionalRewardService.DETAIL(id),
+    enabled: true
+  });
+  return queryChain
+}

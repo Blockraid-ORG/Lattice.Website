@@ -16,5 +16,5 @@ export type TAdditionalReward = {
   project: {
     id: string
     name: string
-  }
+  },
 }
