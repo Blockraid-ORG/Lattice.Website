@@ -7,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Icon } from "@/components/icon";
 import {
@@ -164,38 +163,38 @@ export function TokenSelectionModal({
           address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
           chain: "arbitrum",
         },
-        {
-          symbol: "USDC.e",
-          name: "USD Coin (Bridged)",
-          icon: "cryptocurrency-color:usdc",
-          price: "$1.00",
-          address: "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
-          chain: "arbitrum",
-        },
-        {
-          symbol: "KM",
-          name: "KOSAN AN",
-          icon: "mdi:home-city-outline",
-          price: "$0.001",
-          address: "0xAe771AC9292c84ed2A6625Ae92380DedCF9A5076",
-          chain: "arbitrum",
-        },
-        {
-          symbol: "WETH",
-          name: "Wrapped Ethereum",
-          icon: "cryptocurrency-color:eth",
-          price: "$2,850.00",
-          address: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
-          chain: "arbitrum",
-        },
-        {
-          symbol: "ARB",
-          name: "Arbitrum",
-          icon: "cryptocurrency-color:arb",
-          price: "$0.85",
-          address: "0x912CE59144191C1204E64559FE8253a0e49E6548",
-          chain: "arbitrum",
-        },
+        // {
+        //   symbol: "USDC.e",
+        //   name: "USD Coin (Bridged)",
+        //   icon: "cryptocurrency-color:usdc",
+        //   price: "$1.00",
+        //   address: "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
+        //   chain: "arbitrum",
+        // },
+        // {
+        //   symbol: "KM",
+        //   name: "KOSAN AN",
+        //   icon: "mdi:home-city-outline",
+        //   price: "$0.001",
+        //   address: "0xAe771AC9292c84ed2A6625Ae92380DedCF9A5076",
+        //   chain: "arbitrum",
+        // },
+        // {
+        //   symbol: "WETH",
+        //   name: "Wrapped Ethereum",
+        //   icon: "cryptocurrency-color:eth",
+        //   price: "$2,850.00",
+        //   address: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+        //   chain: "arbitrum",
+        // },
+        // {
+        //   symbol: "ARB",
+        //   name: "Arbitrum",
+        //   icon: "cryptocurrency-color:arb",
+        //   price: "$0.85",
+        //   address: "0x912CE59144191C1204E64559FE8253a0e49E6548",
+        //   chain: "arbitrum",
+        // },
       ],
     },
     {

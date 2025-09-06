@@ -11,7 +11,6 @@ import {
   MintOptions,
   computePoolAddress,
   FeeAmount,
-  maxLiquidityForAmounts,
 } from "@uniswap/v3-sdk";
 import { Token, CurrencyAmount, Percent } from "@uniswap/sdk-core";
 import JSBI from "jsbi";
@@ -80,26 +79,26 @@ export class UniswapV3SDKService {
   /**
    * 🔧 Validate provider untuk BSC dengan circuit breaker detection
    */
-  private async validateProviderForBSC(): Promise<void> {
-    try {
-      console.log(
-        "🔍 Validating BSC provider for circuit breaker resilience..."
-      );
+  // private async validateProviderForBSC(): Promise<void> {
+  //   try {
+  //     console.log(
+  //       "🔍 Validating BSC provider for circuit breaker resilience..."
+  //     );
 
-      // Quick network test
-      const network = await this.provider.getNetwork();
-      console.debug("Provider network:", network.chainId, network.name);
-      const blockNumber = await this.provider.getBlockNumber();
-      console.debug("Provider latest block:", blockNumber);
+  //     // Quick network test
+  //     const network = await this.provider.getNetwork();
+  //     console.debug("Provider network:", network.chainId, network.name);
+  //     const blockNumber = await this.provider.getBlockNumber();
+  //     console.debug("Provider latest block:", blockNumber);
 
-      // Test with actual contract calls to ensure approval will work
-      await this.testContractCalls();
-    } catch (error) {
-      throw new Error(
-        `Provider validation failed: ${(error as Error).message}`
-      );
-    }
-  }
+  //     // Test with actual contract calls to ensure approval will work
+  //     await this.testContractCalls();
+  //   } catch (error) {
+  //     throw new Error(
+  //       `Provider validation failed: ${(error as Error).message}`
+  //     );
+  //   }
+  // }
 
   /**
    * 🔧 Quick provider health check untuk circuit breaker detection
@@ -129,60 +128,60 @@ export class UniswapV3SDKService {
   /**
    * Test contract calls untuk memastikan provider dapat melakukan contract interactions
    */
-  private async testContractCalls(): Promise<void> {
-    try {
-      console.debug(
-        "🔍 Testing contract calls for circuit breaker protection..."
-      );
+  // private async testContractCalls(): Promise<void> {
+  //   try {
+  //     console.debug(
+  //       "🔍 Testing contract calls for circuit breaker protection..."
+  //     );
 
-      // Test dengan KS token contract call
-      const ksTokenAddress = "0xC327D83686f6B491B1D93755fCEe036aBd4877Dc";
-      const usdcTokenAddress = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d";
+  //     // Test dengan KS token contract call
+  //     const ksTokenAddress = "0xC327D83686f6B491B1D93755fCEe036aBd4877Dc";
+  //     const usdcTokenAddress = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d";
 
-      // Quick getCode test untuk both tokens
-      const [ksCode, usdcCode] = await Promise.all([
-        this.provider.getCode(ksTokenAddress),
-        this.provider.getCode(usdcTokenAddress),
-      ]);
-      console.debug("KS bytecode length:", ksCode?.length || 0);
-      console.debug("USDC bytecode length:", usdcCode?.length || 0);
-    } catch (error) {
-      // Don't throw, provider might still work for basic operations
-      console.debug(
-        "testContractCalls encountered an error (non-fatal):",
-        error
-      );
-    }
-  }
+  //     // Quick getCode test untuk both tokens
+  //     const [ksCode, usdcCode] = await Promise.all([
+  //       this.provider.getCode(ksTokenAddress),
+  //       this.provider.getCode(usdcTokenAddress),
+  //     ]);
+  //     console.debug("KS bytecode length:", ksCode?.length || 0);
+  //     console.debug("USDC bytecode length:", usdcCode?.length || 0);
+  //   } catch (error) {
+  //     // Don't throw, provider might still work for basic operations
+  //     console.debug(
+  //       "testContractCalls encountered an error (non-fatal):",
+  //       error
+  //     );
+  //   }
+  // }
 
   /**
    * Test provider RPC endpoint untuk BSC debugging
    */
-  private async testProviderRPC(): Promise<void> {
-    try {
-      console.debug("🧪 Testing provider RPC for BSC...");
+  // private async testProviderRPC(): Promise<void> {
+  //   try {
+  //     console.debug("🧪 Testing provider RPC for BSC...");
 
-      // Test 1: Basic network info
-      const network = await this.provider.getNetwork();
-      console.debug("Provider network:", network.chainId, network.name);
+  //     // Test 1: Basic network info
+  //     const network = await this.provider.getNetwork();
+  //     console.debug("Provider network:", network.chainId, network.name);
 
-      // Test 2: Get block number
-      const blockNumber = await this.provider.getBlockNumber();
-      console.debug("Provider latest block:", blockNumber);
+  //     // Test 2: Get block number
+  //     const blockNumber = await this.provider.getBlockNumber();
+  //     console.debug("Provider latest block:", blockNumber);
 
-      // Test 3: Direct contract test on KS token
-      const ksTokenAddress = "0xC327D83686f6B491B1D93755fCEe036aBd4877Dc";
-      const code = await this.provider.getCode(ksTokenAddress);
-      console.debug("KS token code length:", code?.length || 0);
+  //     // Test 3: Direct contract test on KS token
+  //     const ksTokenAddress = "0xC327D83686f6B491B1D93755fCEe036aBd4877Dc";
+  //     const code = await this.provider.getCode(ksTokenAddress);
+  //     console.debug("KS token code length:", code?.length || 0);
 
-      // Test 4: Direct contract test on USDC token
-      const usdcTokenAddress = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d";
-      const usdcCode = await this.provider.getCode(usdcTokenAddress);
-      console.debug("USDC code length:", usdcCode?.length || 0);
-    } catch (error) {
-      console.debug("testProviderRPC encountered an error (non-fatal):", error);
-    }
-  }
+  //     // Test 4: Direct contract test on USDC token
+  //     const usdcTokenAddress = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d";
+  //     const usdcCode = await this.provider.getCode(usdcTokenAddress);
+  //     console.debug("USDC code length:", usdcCode?.length || 0);
+  //   } catch (error) {
+  //     console.debug("testProviderRPC encountered an error (non-fatal):", error);
+  //   }
+  // }
 
   /**
    * Create Token instance for USDC/KS pair on BSC
@@ -1686,19 +1685,19 @@ export class UniswapV3SDKService {
       // 8. CREATE MINT OPTIONS AND CALLDATA (Official pattern)
       console.log("📋 Creating mint options...");
 
-      const deadline =
-        Math.floor(Date.now() / 1000) +
-        (params.deadline > 0 ? params.deadline : 1200); // 20 minutes default
-      const slippageTolerance = new Percent(
-        Math.floor(params.slippageTolerance * 10000),
-        10_000
-      );
+      // const deadline =
+      //   Math.floor(Date.now() / 1000) +
+      //   (params.deadline > 0 ? params.deadline : 1200); // 20 minutes default
+      // const slippageTolerance = new Percent(
+      //   Math.floor(params.slippageTolerance * 10000),
+      //   10_000
+      // );
 
-      const mintOptions: MintOptions = {
-        recipient: params.recipient,
-        deadline,
-        slippageTolerance,
-      };
+      // const mintOptions: MintOptions = {
+      //   recipient: params.recipient,
+      //   deadline,
+      //   slippageTolerance,
+      // };
 
       // CRITICAL FIX: Use Position.fromAmounts but with better tick range
       console.log("🔧 Using Position.fromAmounts with optimized approach...");
@@ -3167,20 +3166,20 @@ export class UniswapV3SDKService {
   /**
    * Setup a router instance - Following docs step 1
    */
-  private async setupRouterInstance(): Promise<any> {
-    // Note: This would require @uniswap/smart-order-router package
-    // For now, we'll implement a basic version following the docs pattern
-    console.debug("🔄 Setting up router instance...");
+  // private async setupRouterInstance(): Promise<any> {
+  //   // Note: This would require @uniswap/smart-order-router package
+  //   // For now, we'll implement a basic version following the docs pattern
+  //   console.debug("🔄 Setting up router instance...");
 
-    // In production, this would be:
-    // import { AlphaRouter } from '@uniswap/smart-order-router'
-    // const provider = new ethers.providers.JsonRpcProvider(rpcUrl)
-    // const router = new AlphaRouter({ chainId: 1, provider })
+  //   // In production, this would be:
+  //   // import { AlphaRouter } from '@uniswap/smart-order-router'
+  //   // const provider = new ethers.providers.JsonRpcProvider(rpcUrl)
+  //   // const router = new AlphaRouter({ chainId: 1, provider })
 
-    throw new Error(
-      "AlphaRouter not implemented - requires @uniswap/smart-order-router package"
-    );
-  }
+  //   throw new Error(
+  //     "AlphaRouter not implemented - requires @uniswap/smart-order-router package"
+  //   );
+  // }
 
   /**
    * Get token transfer approval for SwapRouter - Following docs

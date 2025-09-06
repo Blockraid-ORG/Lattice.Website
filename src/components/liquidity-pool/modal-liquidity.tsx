@@ -142,10 +142,10 @@ export function ModalLiquidity({
               setUserAddress(null);
             }
           } else {
-            ("⚠️ Web3 provider not available");
+            console.error("⚠️ Web3 provider not available");
             setUserAddress(null);
           }
-        } catch (error) {
+        } catch {
           setUserAddress(null);
         }
       } else {
@@ -222,21 +222,12 @@ export function ModalLiquidity({
 
   // Extract primitive values to prevent object reference loops
   const tokenASymbol = tokenAData.symbol;
-  const tokenAName = tokenAData.name;
   const tokenAIcon = tokenAData.icon;
 
   const tokenBSymbol = tokenBData.symbol;
-  const tokenBName = tokenBData.name;
   const tokenBIcon = tokenBData.icon;
 
   // Inline token configurations to prevent callback dependency issues
-  // TEMPORARILY USE STATIC token A config to isolate infinite loop
-  const tokenAConfig = {
-    symbol: "",
-    address: "", // native token
-    isNative: true,
-    useWalletBalance: true,
-  };
 
   // Original code commented out:
   // const tokenAConfig = useMemo(() => {
@@ -245,12 +236,6 @@ export function ModalLiquidity({
   // }, [tokenASymbol]);
 
   // TEMPORARILY USE STATIC token B config to isolate infinite loop
-  const tokenBConfig = {
-    symbol: projectData?.ticker,
-    address: projectData?.contractAddress,
-    isNative: false,
-    useWalletBalance: false, // use total supply for project token
-  };
 
   // Original code commented out:
   // const tokenBConfig = useMemo(() => {
@@ -606,7 +591,7 @@ export function ModalLiquidity({
   // Token selection modals
   const [showTokenAModal, setShowTokenAModal] = useState(false);
   const [showTokenBModal, setShowTokenBModal] = useState(false);
-  const [showTokenHelper, setShowTokenHelper] = useState(false);
+  const [, setShowTokenHelper] = useState(false);
 
   // RE-ENABLE dynamic token symbols (Fix for token selection lag)
   const allTokenSymbols = useMemo(() => {
@@ -623,14 +608,11 @@ export function ModalLiquidity({
   }, [tokenASymbol, tokenBSymbol, selectedTokenA]);
 
   // RE-ENABLE price fetching (Step 1 of isolation test)
-  const { prices: realTimePrices, loading: pricesLoading } = useTokenPrices(
-    allTokenSymbols,
-    {
-      refreshInterval: 5 * 60 * 1000, // 5 minutes
-      autoRefresh: true,
-      enabled: open, // Only fetch when modal is open
-    }
-  );
+  const { prices: realTimePrices } = useTokenPrices(allTokenSymbols, {
+    refreshInterval: 5 * 60 * 1000, // 5 minutes
+    autoRefresh: true,
+    enabled: open, // Only fetch when modal is open
+  });
 
   // RE-ENABLE dynamic price processing (Step 2 of isolation test)
   const tokenPrices = useMemo(() => {
@@ -815,7 +797,7 @@ export function ModalLiquidity({
 
       return zeroPrice;
     }
-  }, [startingPrice, tokenASymbol, baseToken, tokenBSymbol, realTimePrices]);
+  }, [startingPrice, tokenASymbol, baseToken, realTimePrices]);
 
   // Trigger calculation when relevant values change
   useEffect(() => {
@@ -874,14 +856,6 @@ export function ModalLiquidity({
     }
   }, [open]);
 
-  const tokens = [
-    { symbol: "ETH", name: "Ethereum", icon: "cryptocurrency-color:eth" },
-    { symbol: "BTC", name: "Bitcoin", icon: "cryptocurrency-color:btc" },
-    { symbol: "USDC", name: "USD Coin", icon: "cryptocurrency-color:usdc" },
-    { symbol: "USDT", name: "Tether", icon: "cryptocurrency-color:usdt" },
-    { symbol: "BNB", name: "BNB", icon: "cryptocurrency-color:bnb" },
-  ];
-
   const feeTiers = [
     { value: "0.01", label: "0.01%", description: "For stablecoins" },
     { value: "0.05", label: "0.05%", description: "For standard trading" },
@@ -922,7 +896,7 @@ export function ModalLiquidity({
         });
       }
     },
-    [projectData?.ticker]
+    [projectData]
   );
 
   // Handler for Token A amount changes
@@ -1003,13 +977,6 @@ export function ModalLiquidity({
         }
       }
     }
-  };
-
-  // Helper function untuk menentukan decimal places berdasarkan nilai
-  const getDecimalPlaces = (value: number) => {
-    if (value === 0) return 2;
-    if (value < 0.001) return 8; // Angka sangat kecil seperti 0.00000022
-    return 2; // Angka normal seperti 1.00003254
   };
 
   // Helper function untuk format USD tanpa pembulatan menggunakan BigNumber
@@ -1225,8 +1192,8 @@ export function ModalLiquidity({
                   <div>
                     <h2 className="text-lg font-semibold mb-6">Select Pair</h2>
                     <p className="text-sm text-muted-foreground mb-6">
-                      Choose tokens you'd like to provide liquidity for. You can
-                      select tokens across all supported networks.
+                      Choose tokens you&apos;d like to provide liquidity for.
+                      You can select tokens across all supported networks.
                     </p>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -1380,7 +1347,7 @@ export function ModalLiquidity({
                             }
                           </div>
                           <div className="text-xs text-muted-foreground mt-1">
-                            % you'll earn in fees
+                            % you&apos;ll earn in fees
                           </div>
                         </div>
                         {/* <Select
