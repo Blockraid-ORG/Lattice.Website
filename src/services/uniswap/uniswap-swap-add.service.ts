@@ -344,7 +344,7 @@ export class UniswapSwapAndAddService {
   ): Promise<MethodParameters | null> {
     try {
       // Find the best route (simplified - should use routing algorithm)
-      const fee = 3000; // Default to 0.3% fee tier
+      const fee = 500; // Default to 0.05% fee tier
 
       // Get pool for swap
       const swapPool = await this.getPool(

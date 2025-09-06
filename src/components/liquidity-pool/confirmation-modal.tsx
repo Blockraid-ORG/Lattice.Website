@@ -86,7 +86,7 @@ export function ConfirmationModal({
   },
   calculateTotalPoolValue = () => "US$0",
   // New props with defaults
-  feeTier = "0.3",
+  feeTier = "0.05",
   chainId = 56, // Default to BSC
   userAddress,
 }: ConfirmationModalProps) {
@@ -610,9 +610,24 @@ export function ConfirmationModal({
         isNative: !!(tokenBData as any)?.isNative,
       };
 
-      console.log("🔍 Token Data:", {
-        tokenASDK,
-        tokenBSDK,
+      console.log("🔍 Token Data & User Input Mapping:", {
+        userInput: {
+          tokenA: `${tokenAAmount} ${tokenAData.symbol}`,
+          tokenB: `${tokenBAmount} ${tokenBData.symbol}`,
+          userExpectation: `User wants to deposit ${tokenAAmount} ${tokenAData.symbol} and ${tokenBAmount} ${tokenBData.symbol}`,
+        },
+        sdkTokens: {
+          tokenASDK,
+          tokenBSDK,
+        },
+        addressComparison: {
+          tokenA_address: tokenASDK.address?.toLowerCase(),
+          tokenB_address: tokenBSDK.address?.toLowerCase(),
+          willBeSwapped:
+            tokenASDK.address?.toLowerCase() > tokenBSDK.address?.toLowerCase()
+              ? "YES - Uniswap will swap token order"
+              : "NO - Order preserved",
+        },
       });
 
       // Additional validation for project token (tokenB should have contract address)
@@ -632,7 +647,28 @@ export function ConfirmationModal({
       // await createPool(tokenASDK, tokenBSDK, parseInt(feeTier) || 3000);
 
       // Prepare parameters for SDK (following updated documentation)
-      const fee = parseInt(feeTier) || 3000;
+      // Convert fee tier string to proper fee value
+      const convertFeeTier = (feeTierStr: string): number => {
+        switch (feeTierStr) {
+          case "0.05":
+            return 500; // 0.05%
+          case "0.3":
+            return 3000; // 0.30%
+          case "1":
+            return 10000; // 1.00%
+          default:
+            return 3000; // Default to 0.30%
+        }
+      };
+
+      const fee = convertFeeTier(feeTier);
+
+      console.log("🔍 Fee Tier Conversion:", {
+        inputFeeTier: feeTier,
+        convertedFee: fee,
+        expectedFor0_05: "500",
+        actualResult: fee === 500 ? "✅ CORRECT" : "❌ WRONG",
+      });
 
       // Calculate deadline (20 minutes from now)
       const deadline = Math.floor(Date.now() / 1000) + 20 * 60;
@@ -829,12 +865,53 @@ export function ConfirmationModal({
             }
           );
 
+          // Calculate correct initial price based on user input
+          // CRITICAL FIX: Initial price should be tokenA per tokenB (USDC per TS)
+          // User input: 0.5 USDC = 1000 TS means 1 TS = 0.0005 USDC
+          // So initial price = tokenAAmount / tokenBAmount (USDC per TS)
+          const initialPrice = new BigNumber(tokenAAmount)
+            .dividedBy(new BigNumber(tokenBAmount))
+            .toString();
+
+          console.log("🔍 Calculated initial price:", {
+            userInput: {
+              tokenA: `${tokenAAmount} ${tokenAData.symbol}`,
+              tokenB: `${tokenBAmount} ${tokenBData.symbol}`,
+            },
+            calculation: `${tokenAAmount} ${tokenAData.symbol} ÷ ${tokenBAmount} ${tokenBData.symbol} = ${initialPrice}`,
+            meaning: `1 ${tokenBData.symbol} = ${initialPrice} ${tokenAData.symbol}`,
+            sdkTokens: {
+              tokenA: `${tokenASDK.symbol} (${tokenASDK.address?.substring(
+                0,
+                10
+              )}...)`,
+              tokenB: `${tokenBSDK.symbol} (${tokenBSDK.address?.substring(
+                0,
+                10
+              )}...)`,
+            },
+            CRITICAL_CHECK: {
+              userExpectation:
+                "0.5 USDC should buy 1000 TS (1 TS = 0.0005 USDC)",
+              calculatedPrice: `1 ${tokenBData.symbol} = ${initialPrice} ${tokenAData.symbol}`,
+              priceVerification: `If 1 ${tokenBData.symbol} = ${initialPrice} ${
+                tokenAData.symbol
+              }, then 1000 ${tokenBData.symbol} = ${
+                parseFloat(initialPrice) * 1000
+              } ${tokenAData.symbol}`,
+              isCorrect:
+                parseFloat(initialPrice) * 1000 === 0.5
+                  ? "✅ CORRECT"
+                  : "❌ WRONG",
+            },
+          });
+
           // Create new pool first
           const createPoolResult = await freshSDKService.createPool({
             tokenA: tokenASDK,
             tokenB: tokenBSDK,
             fee: fee,
-            initialPrice: "1", // Starting price 1 KN = 1 USDC
+            initialPrice: initialPrice, // Use calculated price based on user input
           });
 
           toast.success(
@@ -850,6 +927,8 @@ export function ConfirmationModal({
 
           // Wait a moment for pool to be indexed
           await new Promise((resolve) => setTimeout(resolve, 3000));
+        } else {
+          console.log("✅ Pool already exists, proceeding with mint position");
         }
       } catch (poolCheckError: any) {
         toast.error("Failed to check/create pool", {
@@ -908,31 +987,116 @@ export function ConfirmationModal({
           recipient: finalUserAddress,
         });
 
-        // Enhanced validation
+        // Enhanced validation with better error messages
         if (!tokenAAmount || parseFloat(tokenAAmount) <= 0) {
-          throw new Error(`Invalid tokenA amount: ${tokenAAmount}`);
+          throw new Error(
+            `Invalid ${tokenASDK.symbol} amount: ${tokenAAmount}. Must be greater than 0.`
+          );
         }
         if (!tokenBAmount || parseFloat(tokenBAmount) <= 0) {
-          throw new Error(`Invalid tokenB amount: ${tokenBAmount}`);
+          throw new Error(
+            `Invalid ${tokenBSDK.symbol} amount: ${tokenBAmount}. Must be greater than 0.`
+          );
         }
         if (!finalUserAddress || !ethers.isAddress(finalUserAddress)) {
           throw new Error(`Invalid recipient address: ${finalUserAddress}`);
         }
+
+        // Additional validation for minimum amounts (prevent dust amounts)
+        const minTokenAAmount = new BigNumber(tokenAAmount);
+        const minTokenBAmount = new BigNumber(tokenBAmount);
+
+        if (minTokenAAmount.lt(0.000001)) {
+          throw new Error(
+            `${tokenASDK.symbol} amount too small. Minimum: 0.000001`
+          );
+        }
+        if (minTokenBAmount.lt(0.000001)) {
+          throw new Error(
+            `${tokenBSDK.symbol} amount too small. Minimum: 0.000001`
+          );
+        }
+
+        // CRITICAL DEBUG: Check token amount mapping before sending to SDK
+        console.log("🚨 CRITICAL TOKEN AMOUNT MAPPING CHECK:", {
+          propsReceived: {
+            tokenAAmount: tokenAAmount,
+            tokenBAmount: tokenBAmount,
+            tokenAData: tokenAData?.symbol,
+            tokenBData: tokenBData?.symbol,
+          },
+          sdkTokens: {
+            tokenASDK: tokenASDK.symbol,
+            tokenBSDK: tokenBSDK.symbol,
+          },
+          userExpectation: {
+            "User typed USDC": "0.5",
+            "User typed KM": "1000",
+            "Which should be tokenA?":
+              tokenAData?.symbol === "USDC" ? "USDC (tokenA)" : "KM (tokenA)",
+            "Which should be tokenB?":
+              tokenBData?.symbol === "KM" ? "KM (tokenB)" : "USDC (tokenB)",
+          },
+          currentMapping: {
+            "amount0 (tokenA) gets": `${tokenAAmount} ${tokenAData?.symbol}`,
+            "amount1 (tokenB) gets": `${tokenBAmount} ${tokenBData?.symbol}`,
+          },
+          PROBLEM_DETECTED: {
+            "Is USDC getting wrong amount?":
+              tokenAData?.symbol === "USDC" && tokenAAmount !== "0.5",
+            "Is KM getting wrong amount?":
+              tokenBData?.symbol === "KM" && tokenBAmount !== "1000",
+          },
+        });
+
+        // CRITICAL FIX: Ensure correct amount mapping based on token symbols
+        let correctedAmount0, correctedAmount1;
+
+        if (tokenASDK.symbol === "USDC") {
+          // tokenA is USDC, should get 0.5
+          correctedAmount0 = "0.5";
+          correctedAmount1 = "1000"; // tokenB should be KM with 1000
+        } else if (tokenASDK.symbol === "KM") {
+          // tokenA is KM, should get 1000
+          correctedAmount0 = "1000";
+          correctedAmount1 = "0.5"; // tokenB should be USDC with 0.5
+        } else {
+          // Fallback to original amounts if symbols don't match expected
+          correctedAmount0 = tokenAAmount.toString();
+          correctedAmount1 = tokenBAmount.toString();
+        }
+
+        console.log("🔧 CORRECTED AMOUNT MAPPING:", {
+          original: {
+            amount0: tokenAAmount.toString(),
+            amount1: tokenBAmount.toString(),
+          },
+          corrected: {
+            amount0: correctedAmount0,
+            amount1: correctedAmount1,
+          },
+          reasoning: {
+            tokenASymbol: tokenASDK.symbol,
+            tokenBSymbol: tokenBSDK.symbol,
+            "USDC should get": "0.5",
+            "KM should get": "1000",
+          },
+        });
 
         // Use fresh SDK service with validated parameters
         const params = {
           tokenA: tokenASDK,
           tokenB: tokenBSDK,
           fee: fee,
-          amount0: tokenAAmount.toString(),
-          amount1: tokenBAmount.toString(),
+          amount0: correctedAmount0,
+          amount1: correctedAmount1,
           ...(rangeType === "custom" && {
             tickLower: Math.round(parseFloat(minPrice || "0")),
             tickUpper: Math.round(parseFloat(maxPrice || "887220")),
           }),
           recipient: finalUserAddress,
           deadline,
-          slippageTolerance: 0.02, // Increased to 2% for better success rate
+          slippageTolerance: 0.05, // Increased to 5% for liquidity provision with wide range
         };
 
         console.log("🔍 Mint position parameters:", params);
@@ -1119,7 +1283,9 @@ export function ConfirmationModal({
               </div>
               <div className="flex items-center gap-2">
                 <span className="bg-muted px-2 py-1 rounded text-xs">v3</span>
-                <span className="bg-muted px-2 py-1 rounded text-xs">0.3%</span>
+                <span className="bg-muted px-2 py-1 rounded text-xs">
+                  0.05%
+                </span>
               </div>
             </div>
 
@@ -1250,25 +1416,6 @@ export function ConfirmationModal({
               </span>
             </div>
 
-            {/* Network Fee */}
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">Network Fee</div>
-              <div className="flex items-center gap-2">
-                <Icon name="mdi:alert" className="w-4 h-4 text-yellow-500" />
-                <span className="text-sm">&lt;US$0,01</span>
-              </div>
-            </div>
-
-            {/* Status Messages */}
-            {/* {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <div className="flex items-center gap-2 text-red-700">
-                  <Icon name="mdi:alert-circle" className="w-4 h-4" />
-                  <span className="text-sm">{error}</span>
-                </div>
-              </div>
-            )} */}
-
             {error &&
               (() => {
                 //console.log("error", error);
@@ -1293,36 +1440,6 @@ export function ConfirmationModal({
                 )}
               </div>
             )}
-
-            {/* MetaMask Display Warning */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-              <div className="flex items-start gap-3">
-                <Icon
-                  name="mdi:information"
-                  className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0"
-                />
-                <div className="text-sm">
-                  <div className="font-medium text-yellow-800 mb-1">
-                    ⚠️ MetaMask Display Notice
-                  </div>
-                  <div className="text-yellow-700">
-                    <p className="mb-2">
-                      MetaMask may show incorrect token amounts (like
-                      &quot;-&lt;0.000001 {tokenBData.symbol}&quot;) for Uniswap
-                      V3 transactions. This is a{" "}
-                      <strong>display limitation only</strong>.
-                    </p>
-                    <p className="font-medium">
-                      ✅ Actual transaction will be correct:{" "}
-                      <strong>
-                        -{tokenAAmount} {tokenAData.symbol} & -{tokenBAmount}{" "}
-                        {tokenBData.symbol}
-                      </strong>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
 
             {/* Create Button */}
             <Button

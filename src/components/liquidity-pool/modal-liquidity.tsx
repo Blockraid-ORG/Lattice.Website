@@ -70,7 +70,7 @@ export function ModalLiquidity({
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedTokenA, setSelectedTokenA] = useState("");
   const [selectedTokenB, setSelectedTokenB] = useState(projectData?.ticker);
-  const [selectedFeeTier, setSelectedFeeTier] = useState("0.3");
+  const [selectedFeeTier, setSelectedFeeTier] = useState("0.05");
   const [hookEnabled, setHookEnabled] = useState(false);
   const [startingPrice, setStartingPrice] = useState(""); // Default starting price for testing
   const [rangeType, setRangeType] = useState("full"); // "full" or "custom"
@@ -1060,7 +1060,7 @@ export function ModalLiquidity({
   const resetForm = () => {
     setSelectedTokenA("");
     setSelectedTokenB("");
-    setSelectedFeeTier("0.3");
+    setSelectedFeeTier("0.05");
     setHookEnabled(false);
     setCurrentStep(1);
     setBaseToken("TokenA");

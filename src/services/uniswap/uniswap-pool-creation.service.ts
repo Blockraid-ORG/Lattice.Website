@@ -153,7 +153,6 @@ export class UniswapPoolCreationService {
         walletClient,
       });
     } catch (error) {
-      "Error ensuring pool exists:", error;
       throw error;
     }
   }
