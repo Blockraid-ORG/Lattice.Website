@@ -137,14 +137,6 @@ export default function FormCreate() {
           .split(",")
           .map((addr: string) => addr.trim())
           .filter((addr: string) => addr !== "");
-        // const verifiedAddressArray = verifiedAddress?.map(i => i.walletAddress)
-        // const anyErrorAddr = arrayAddress?.filter((i: string) => !verifiedAddressArray?.includes(i))
-        // if (anyErrorAddr.length > 0) {
-        //   toast.error('Ups!', {
-        //     description: `${anyErrorAddr} \nis not verified address`
-        //   })
-        //   return
-        // }
       }
 
       setLoading(true);
@@ -201,9 +193,9 @@ export default function FormCreate() {
           router.push("/usr/my-project");
         },
       });
-    } catch (error: any) {
-      error;
-      toast.error("Failed to save token");
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : String(error);
+      toast.error("Failed to save token", { description: errMsg });
     } finally {
       setLoading(false);
     }

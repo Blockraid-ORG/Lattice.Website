@@ -51,14 +51,6 @@ export default function FormWhitelistAddress({
       .split(",")
       .map((addr: string) => addr.trim())
       .filter((addr: string) => addr !== "");
-    // const verifiedAddressArray = verifiedAddress?.map(i => i.walletAddress)
-    // const anyErrorAddr = arrayAddress?.filter((i: string) => !verifiedAddressArray?.includes(i))
-    // if (anyErrorAddr.length > 0) {
-    //   toast.error('Ups!', {
-    //     description: `${anyErrorAddr} is not verified address`
-    //   })
-    //   return
-    // }
     const newValues = {
       ...values,
       walletAddress: arrayAddress,
@@ -84,10 +76,11 @@ export default function FormWhitelistAddress({
           await tx.wait();
         }
         updatePresaleWhitelist(newValues);
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errMsg = error instanceof Error ? error.message : String(error);
         toast.error("Ups!", {
-          description: `Failed to ${formType} whitelist`,
-        })(error);
+          description: `Failed to ${formType} whitelist: ${errMsg}`,
+        });
       } finally {
         setIsSubmiting(false);
         setOpen(false);
