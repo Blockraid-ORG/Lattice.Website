@@ -1,15 +1,17 @@
 'use client'
 import { MultipleRecipientsFormValues } from '@/app/(views)/usr/my-project/[projectId]/additional-reward/form-add-address';
 import AirdropAbi from '@/lib/abis/airdrop.abi.json';
-import { TAdditionalReward } from '@/types/project';
+import { TAdditionalReward, TAirdropItem } from '@/types/project';
 import dayjs from 'dayjs';
 import { BrowserProvider, ethers } from 'ethers';
 import { useCallback } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
-import { useRemoveAllocations, useSetAllocations } from '../additional-rewards/additional-reward.query';
+import { useRemoveAllocations, useSetAllocations, useSetClaimedAirdrop } from '../additional-rewards/additional-reward.query';
+import { toast } from 'sonner';
 export function useAirdrop() {
   const { mutate: createSetAllocations } = useSetAllocations()
   const { mutate: createRemoveAllocations } = useRemoveAllocations()
+  const { mutate: setClaimedAirdrop } = useSetClaimedAirdrop()
   const { data: walletClient } = useWalletClient()
   const { address } = useAccount()
   const deployAirdrop = useCallback(async (
@@ -90,9 +92,47 @@ export function useAirdrop() {
     console.log("Clear allocations successfully!");
   }, [address, createRemoveAllocations, walletClient])
 
+  const claimMyAirdrop = useCallback(async (
+    data: TAirdropItem,
+    contractAddress: string
+  ) => {
+    if (typeof window === 'undefined') return
+    if (!walletClient || !address) throw new Error('Wallet not connected')
+    const provider = new BrowserProvider(walletClient as any)
+    const signer = await provider.getSigner(address)
+    // console.log({
+    //   address: data.address,
+    //   contractAddress: contractAddress
+    // })
+    // return
+    const airdropContract = new ethers.Contract(
+      contractAddress,
+      AirdropAbi.abi,
+      signer
+    );
+    try {
+      const isClaimWindowActive = await airdropContract.claimWindowActive();
+      if (!isClaimWindowActive) {
+        console.log("Claim window is not active.");
+        return;
+      }
+      const tx = await airdropContract.claim();
+      console.log("Claiming tokens...");
+
+      await tx.wait();
+      setClaimedAirdrop(data);
+      console.log("Claim successful!");
+    } catch (error: any) {
+      toast.error(`${error.code || 'Error'}`, {
+        description: `${error.shortMessage}  ": Fail to claim airdrop"`
+      })
+      console.error({error})
+    }
+  }, [address, setClaimedAirdrop, walletClient])
   return {
     deployAirdrop,
     setAllocations,
-    clearAllocations
+    clearAllocations,
+    claimMyAirdrop
   }
 }
