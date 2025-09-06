@@ -1,7 +1,8 @@
 import axiosInstance from "@/lib/axios"
 import { BaseService } from "@/services/base.service"
 import { TFormAdditionalReward } from "@/types/additional-reward"
-import { TAdditionalReward } from "@/types/project"
+import { TAdditionalReward, TEligibleAirdrop } from "@/types/project"
+import { TQueryParam } from "@/types/query"
 
 class AdditionalRewardService extends BaseService<TAdditionalReward, TFormAdditionalReward> {
   protected endpoint = 'additional-asset-rewards'
@@ -31,6 +32,22 @@ class AdditionalRewardService extends BaseService<TAdditionalReward, TFormAdditi
       data: {
         contactAddress: data.contractAddress
       }
+    })
+    return response.data.data
+  }
+  async GET_ELIGIBLE_AIRDROP(query: TQueryParam): Promise<TEligibleAirdrop[]> {
+    const response = await axiosInstance({
+      method: 'GET',
+      url: `${this.endpoint}/get-eligible-airdrop`,
+      params: query
+    })
+    return response.data.data
+  }
+  async SET_AIRDROP_CLAIMED(id: string, data: { isClaimed: boolean }) {
+    const response = await axiosInstance({
+      method: 'PATCH',
+      url: `${this.endpoint}/${id}`,
+      data: data
     })
     return response.data.data
   }

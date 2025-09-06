@@ -144,3 +144,26 @@ export type TFormClaimPresale = {
 export type TResponsePresale = TPresale & {
   project: TProject
 }
+
+// Eligible Airdrop List
+export type TEligibleAirdrop = {
+  id: string
+  name: string
+  ticker: string
+  contractAddress: string
+  decimals: number
+  banner: string
+  logo: string
+  chains: {
+    chain: TChain;
+  }[];
+  airdrop: TAirdropItem[]
+  totalEligible: number
+}
+
+export type TAirdropItem = {
+  id: string
+  address: string
+  amount: number
+  isClaimed: boolean
+}

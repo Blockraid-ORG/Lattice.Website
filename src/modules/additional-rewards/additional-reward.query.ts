@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import additionalRewardService from "./additional-reward.service";
 import { TFormAdditionalReward } from "@/types/additional-reward";
 import { toast } from "sonner";
+import { TAirdropItem } from "@/types/project";
 
 
 export const useAdditionalReward = (projectId: string) => {
@@ -111,3 +112,31 @@ export const useDetailReward = (id: string) => {
   });
   return queryChain
 }
+export const useEligibleAirdrop = () => {
+  const searchString = useSearchParams();
+  const query = toObjectQuery(searchString)
+  return useQuery({
+    queryKey: ["get_eligible_airdrop", query],
+    queryFn: () => additionalRewardService.GET_ELIGIBLE_AIRDROP(query),
+    enabled: true
+  });
+}
+export const useSetClaimedAirdrop = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: TAirdropItem) => additionalRewardService.SET_AIRDROP_CLAIMED(data.id, { isClaimed: true }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get_additional_reward"]
+      });
+      toast.success('Success', {
+        description: "Success create data!"
+      })
+    },
+    onError: () => {
+      toast.error('Error', {
+        description: "Fail to submit data!"
+      })
+    }
+  });
+};
