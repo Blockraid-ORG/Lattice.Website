@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { NumberComma } from '@/lib/utils'
 import { useAirdrop } from '@/modules/deploy/deploy.airdrop'
 import { TAirdropItem, TEligibleAirdrop } from '@/types/project'
-import { ethers } from 'ethers'
+// import { ethers } from 'ethers'
 import React, { useState } from 'react'
 import { useSwitchChain } from 'wagmi'
 
@@ -32,7 +32,8 @@ export default function DetailAirdropList({ data }: { data: TEligibleAirdrop }) 
               {data.airdrop.map((item, index) => (
                 <div key={index} className='flex justify-between border-t pt-2'>
                   <div className='font-semibold'>{
-                    NumberComma(Number(ethers.parseUnits(item.amount.toString(), data.decimals).toString()))
+                    NumberComma(Number(item.amount))
+                    // NumberComma(Number(ethers.parseUnits(item.amount.toString(), data.decimals).toString()))
                   } {data.ticker}
                   </div>
                   <div>

@@ -4,7 +4,6 @@ import PresaleAbi from '@/lib/abis/presale.abi.json';
 
 import { useVestingStore } from '@/store/useVestingStore';
 import { TProject } from '@/types/project';
-// import { Dayjs } from 'dayjs';
 import { BrowserProvider, ethers } from "ethers";
 import { useCallback } from 'react';
 import { toast } from 'sonner';
@@ -19,16 +18,6 @@ import {
   useDeployProject,
   useDeployWhitelist
 } from './deploy.query';
-
-// export type TAirdrop = {
-//   projectId: string
-//   airdrops: {
-//     address: string
-//     amount: number
-//     startDateCliam: string | Dayjs
-//     endDateCliam: string | Dayjs
-//   }[]
-// }
 
 export function useDeployToken() {
   const { data: walletClient } = useWalletClient()
@@ -57,6 +46,7 @@ export function useDeployToken() {
     await contract.waitForDeployment();
     return contract;
   }, [address, walletClient]);
+  
   const lockAndDistribute = useCallback(async (project: TProject) => {
     if (typeof window === 'undefined') return
     if (!walletClient || !address) throw new Error('Wallet not connected')
@@ -81,8 +71,7 @@ export function useDeployToken() {
 
     }
 
-  }, [address, setDistributedLocker, vestings, walletClient])
-
+  }, [address, setDistributedLocker, vestings, walletClient]) 
 
   const deployFactoryBasic = useCallback(async (project: TProject) => {
     try {
