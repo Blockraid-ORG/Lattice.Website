@@ -1,21 +1,24 @@
 'use client'
 import { cn } from '@/lib/utils'
-import { useWeb3AuthConnect, useWeb3AuthDisconnect } from '@web3auth/modal/react'
+import { useWeb3Auth, useWeb3AuthConnect, useWeb3AuthDisconnect } from '@web3auth/modal/react'
 import { Icon } from './icon'
 import { Button } from './ui/button'
 import { WalletButtonConnected } from './wallet-button-connected'
 
-import { useRequestNonce, useVerifySignature } from '@/modules/auth/auth.query'
+import { useLogout, useRequestNonce, useVerifySignature } from '@/modules/auth/auth.query'
 import { Web3Provider } from '@ethersproject/providers'
 import { useRouter } from 'next/navigation'
+
 export default function WalletButton({ withText }: { withText?: boolean }) {
   const router = useRouter()
+  const {provider} = useWeb3Auth()
   const {
     connect,
     isConnected,
     loading: connecting,
   } = useWeb3AuthConnect();
   const { disconnect } = useWeb3AuthDisconnect()
+
   const { mutate: requestNonce } = useRequestNonce()
   const { mutate: verifySignature } = useVerifySignature()
 
@@ -57,7 +60,7 @@ You understand that participation is subject to all applicable laws and regulati
           }
         }
       })
-    } catch (error:any) {
+    } catch (error: any) {
       if (error.code === 4001) {
         console.warn("🛑 User rejected wallet connection");
       } else {
@@ -66,6 +69,12 @@ You understand that participation is subject to all applicable laws and regulati
     }
 
   }
+  const { mutate: logout } = useLogout()
+  provider?.on("accountsChanged", async() => {
+    await disconnect()
+    await logout()
+    window.location.reload()
+  });
   return (
     <div>
       <>
