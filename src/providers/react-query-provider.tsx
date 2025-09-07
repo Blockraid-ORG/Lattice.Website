@@ -15,6 +15,7 @@ const envNetwork = process.env.W3AUTH_NETWORK ?? "SAPPHIRE_DEVNET";
 const web3AuthNetwork: WEB3AUTH_NETWORK_TYPE = WEB3AUTH_NETWORK[envNetwork as keyof typeof WEB3AUTH_NETWORK];
 const queryClient = new QueryClient();
 const web3AuthContextConfig: Web3AuthContextConfig = {
+  
   web3AuthOptions: {
     clientId,
     web3AuthNetwork: web3AuthNetwork,

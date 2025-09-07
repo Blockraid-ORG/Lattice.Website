@@ -106,20 +106,59 @@ export function useDeployToken() {
         const presaleAllocation = project.allocations.find(i => i.isPresale)
         const lockerNames = vestings.map(i => i.name);
         const amountSupply = project.totalSupply
-        const amounts = vestings.map(i => ethers.parseUnits((Number(amountSupply) * i.supply / 100).toString(), project.decimals));
+        const amounts = vestings.map(i =>
+          ethers.parseUnits(
+            (Number(amountSupply) * i.supply / 100).toString(),
+            project.decimals).toString());
+        // const schedulesA = vestings.map(i => {
+        //   const valueScedule = Math.round(100 / i.vesting * 100)
+        //   const schedule = Array(i.vesting).fill(valueScedule);
+        //   return schedule
+        // })
         const schedules = vestings.map(i => {
-          const valueScedule = Math.round(100 / i.vesting * 100)
-          const schedule = Array(i.vesting).fill(valueScedule);
-          return schedule
+          if (i.vesting === 0) {
+            return ["10000"];
+          }
+          const totalBasisPoints = 10000;
+          const base = Math.floor(totalBasisPoints / i.vesting);
+          const remainder = totalBasisPoints - (base * i.vesting);
+          const schedule = Array(i.vesting).fill(base);
+          schedule[i.vesting - 1] += remainder;
+          // return schedule;
+          return schedule.map(v => v.toString());
         })
-
-        const durations = vestings.map(i => i.vesting * 30 * second);
+        // const durations = vestings.map(i => i.vesting * 30 * second);
+        const durations = vestings.map(i => {
+          if (i.vesting === 0) return "1"; // jangan kasih 0, kasih 1 detik minimal
+          // return i.vesting * 30 * second;
+          return (i.vesting * 30 * second).toString();
+        });
         const startTimes = vestings.map(i => {
+          if (i.vesting === 0) {
+            return Math.floor(Date.now() / 1000).toString();
+          }
           const originalDate = new Date(i.startDate);
           const newDate = new Date(originalDate);
           newDate.setDate(newDate.getDate() + (Number(i.vesting) * 30));
-          return Math.floor(newDate.getTime() / 1000);
+          // return Math.floor(newDate.getTime() / 1000);
+          return Math.floor(newDate.getTime() / 1000).toString();
         })
+
+        console.log({
+          schedules,
+          durations,
+          startTimes,
+          amounts,
+          lockerNames
+        })
+        console.log(JSON.stringify({
+          schedules,
+          durations,
+          startTimes,
+          amounts,
+          lockerNames
+        }))
+        // return
         const tx = await factory.deployAll(
           tokenName,
           symbol,
