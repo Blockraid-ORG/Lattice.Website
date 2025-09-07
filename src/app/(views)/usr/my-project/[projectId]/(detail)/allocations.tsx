@@ -29,7 +29,7 @@ export default function Allocations({
               <TableHead>#</TableHead>
               <TableHead>NAME</TableHead>
               <TableHead>AMOUNT</TableHead>
-              <TableHead>VESTING</TableHead>
+              <TableHead>VESTING/DURATION</TableHead>
               <TableHead>CONTRACT</TableHead>
               <TableHead className="text-right">START DATE</TableHead>
             </TableRow>

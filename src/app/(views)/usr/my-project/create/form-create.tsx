@@ -29,6 +29,7 @@ import { Fragment, useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { defaultValues } from "./default-value";
+import { useProjectTypeList } from "@/modules/project-types/project-types.query";
 
 type TTokenUnit = {
   value: string;
@@ -47,13 +48,14 @@ export default function FormCreate() {
   const { data: chains } = useChainList();
   const { data: categories } = useCategoryList();
   const { data: socials } = useSocialList();
+  const { data: projectTypes } = useProjectTypeList();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const form = useForm<TFormProject>({
     resolver: zodResolver(formCreateProjectSchema),
     defaultValues: defaultValues,
   });
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove } = useFieldArray<TFormProjectAllocation>({
     control: form.control,
     name: "allocations",
   });
@@ -255,7 +257,7 @@ export default function FormCreate() {
                 </div>
               </div>
 
-              <div className="grid lg:grid-cols-3 gap-3">
+              <div className="grid lg:grid-cols-2 gap-3 my-6">
                 {chains && (
                   <FormSelect
                     control={form.control}
@@ -286,6 +288,25 @@ export default function FormCreate() {
                       {
                         label: "Category",
                         options: categories.map((i) => {
+                          return {
+                            ...i,
+                            iconName: i.icon,
+                          };
+                        }),
+                      },
+                    ]}
+                  />
+                )}
+                {projectTypes && (
+                  <FormSelect
+                    control={form.control}
+                    name="projectTypeId"
+                    label="Select Type"
+                    placeholder="select type"
+                    groups={[
+                      {
+                        label: "Project Type",
+                        options: projectTypes.map((i) => {
                           return {
                             ...i,
                             iconName: i.icon,
@@ -382,8 +403,9 @@ export default function FormCreate() {
                         <FormInput
                           control={form.control}
                           name={`allocations.${index}.name`}
-                          label="Allocation"
+                          label={"Allocation"}
                           placeholder="e.g. Team"
+                          disabled={field.name === "Presale"}
                         />
                       </div>
                       <div className="flex-1">
@@ -399,7 +421,7 @@ export default function FormCreate() {
                         <FormSelect
                           control={form.control}
                           name={`allocations.${index}.vesting`}
-                          label="Vesting (mo)"
+                          label={"Vesting (mo)"}
                           placeholder="select vesting"
                           groups={
                             vestingCounts
@@ -423,7 +445,9 @@ export default function FormCreate() {
                         />
                       </div>
                       <Button
-                        disabled={index < 1}
+                        disabled={
+                          field.name === "Presale" || field.name === "Airdrop"
+                        }
                         className="ms-auto"
                         size={"icon"}
                         type="button"

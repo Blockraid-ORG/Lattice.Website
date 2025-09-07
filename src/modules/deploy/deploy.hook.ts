@@ -30,7 +30,7 @@ export function useDeployToken() {
   const { mutate: deployWhitelist } = useDeployWhitelist();
   const { mutate: deployPresale } = useDeployPresale();
 
-  const deployFactoryContract = useCallback(async () => {
+  const deployFactoryContractBasic = useCallback(async () => {
     if (typeof window === "undefined") return;
     if (!walletClient || !address) throw new Error("Wallet not connected");
     const provider = new BrowserProvider(walletClient as any);
@@ -46,6 +46,7 @@ export function useDeployToken() {
     await contract.waitForDeployment();
     return contract;
   }, [address, walletClient]);
+
   const lockAndDistribute = useCallback(
     async (project: TProject) => {
       if (typeof window === "undefined") return;
@@ -75,7 +76,7 @@ export function useDeployToken() {
     [address, setDistributedLocker, vestings, walletClient]
   );
 
-  const deployTokenAll = useCallback(
+  const deployFactoryBasic = useCallback(
     async (project: TProject) => {
       try {
         if (typeof window === "undefined") return;
@@ -90,7 +91,7 @@ export function useDeployToken() {
           signer
         );
 
-        const factoryContract = await deployFactoryContract();
+        const factoryContract = await deployFactoryContractBasic();
 
         if (factoryContract?.target) {
           setAllocationDeploy({
@@ -256,24 +257,24 @@ export function useDeployToken() {
           );
         }
       } catch (error: any) {
-        ({ error: error.message });
+        console.error({ error: error.message });
         toast.error("Something went wrong during deployment.");
       }
     },
     [
-      address,
-      deployFactoryContract,
+      deployFactoryContractBasic,
       deployPresale,
       deployProject,
       deployWhitelist,
       setAllocationDeploy,
       updateAllocation,
+      address,
       vestings,
       walletClient,
     ]
   );
   return {
     lockAndDistribute,
-    deployTokenAll,
+    deployFactoryBasic,
   };
 }

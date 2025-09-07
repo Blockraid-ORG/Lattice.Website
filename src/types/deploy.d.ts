@@ -1,4 +1,4 @@
-import { formUpdateWhitelistSchema } from "@/modules/deploy/deploy.schema"
+import { formRemoveAllocationSchema, formUpdateWhitelistSchema } from "@/modules/deploy/deploy.schema"
 
 export type TBalance = {
   decimals: number
@@ -26,3 +26,4 @@ export type TSetPresale = {
 }
 
 export type TFormUpdateWhitelist = z.infer<typeof formUpdateWhitelistSchema>
+export type TFormRemoveAllocation = z.infer<typeof formRemoveAllocationSchema>
