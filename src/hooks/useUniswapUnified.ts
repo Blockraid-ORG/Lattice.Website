@@ -62,10 +62,8 @@ export function useUniswapUnified(chainId: number = 56) {
             setTimeout(() => reject(new Error("Timeout")), 5000)
           ),
         ]);
-        console.log(`✅ Connected to ${rpcUrl}`);
         return provider;
       } catch (error) {
-        console.warn(`❌ Failed to connect to ${rpcUrl}`);
         continue;
       }
     }
@@ -106,8 +104,6 @@ export function useUniswapUnified(chainId: number = 56) {
           isConnecting: false,
           isReady: true,
         });
-
-        console.log("✅ Uniswap services initialized successfully");
       } catch (error) {
         console.error("❌ Error initializing services:", error);
         updateState({

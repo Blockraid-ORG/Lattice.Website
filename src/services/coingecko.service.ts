@@ -151,8 +151,6 @@ export class CoinGeckoService {
 
       return result;
     } catch (error) {
-      "Error fetching token prices:", error;
-
       // Kembalikan fallback prices jika API gagal
       const fallback: Record<string, TokenPriceData> = {};
       for (const symbol of symbols) {

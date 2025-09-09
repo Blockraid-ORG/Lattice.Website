@@ -409,13 +409,6 @@ export function ConfirmationModal({
                 method: "eth_chainId",
               });
             } catch (addError: any) {
-              console.log({
-                code: addError.code,
-                message: addError.message,
-                data: addError.data,
-                stack: addError.stack,
-                name: addError.name,
-              });
               throw new Error(
                 `Failed to add ${targetNetworkName}: ${
                   addError.message || "Unknown error"
@@ -610,26 +603,6 @@ export function ConfirmationModal({
         isNative: !!(tokenBData as any)?.isNative,
       };
 
-      console.log("🔍 Token Data & User Input Mapping:", {
-        userInput: {
-          tokenA: `${tokenAAmount} ${tokenAData.symbol}`,
-          tokenB: `${tokenBAmount} ${tokenBData.symbol}`,
-          userExpectation: `User wants to deposit ${tokenAAmount} ${tokenAData.symbol} and ${tokenBAmount} ${tokenBData.symbol}`,
-        },
-        sdkTokens: {
-          tokenASDK,
-          tokenBSDK,
-        },
-        addressComparison: {
-          tokenA_address: tokenASDK.address?.toLowerCase(),
-          tokenB_address: tokenBSDK.address?.toLowerCase(),
-          willBeSwapped:
-            tokenASDK.address?.toLowerCase() > tokenBSDK.address?.toLowerCase()
-              ? "YES - Uniswap will swap token order"
-              : "NO - Order preserved",
-        },
-      });
-
       // Additional validation for project token (tokenB should have contract address)
       if (!tokenBSDK.isNative && !tokenBSDK.address) {
         toast.error(
@@ -663,13 +636,6 @@ export function ConfirmationModal({
 
       const fee = convertFeeTier(feeTier);
 
-      console.log("🔍 Fee Tier Conversion:", {
-        inputFeeTier: feeTier,
-        convertedFee: fee,
-        expectedFor0_05: "500",
-        actualResult: fee === 500 ? "✅ CORRECT" : "❌ WRONG",
-      });
-
       // Calculate deadline (20 minutes from now)
       const deadline = Math.floor(Date.now() / 1000) + 20 * 60;
 
@@ -681,17 +647,11 @@ export function ConfirmationModal({
         return; // Stop execution if network switch fails
       }
 
-      // 🎯 STEP 2: ENHANCED PROVIDER INITIALIZATION WITH CORRECT RPC
-
-      // Get wallet provider
-      //console.log("🔄 Step 1a: Getting wallet provider...");
       const walletProvider = await connect();
       if (!walletProvider) {
         throw new Error("Wallet provider not available after network switch");
       }
 
-      // 🔧 CRITICAL FIX: Create dedicated RPC provider to prevent network switching issues
-      //console.log("🔧 Step 1b: Creating dedicated RPC provider...");
       let rpcUrl: string;
       let networkName: string;
 
@@ -740,7 +700,6 @@ export function ConfirmationModal({
       }
 
       // 🎯 Critical: Ensure SDK uses the dedicated RPC provider
-      //console.log("🔧 Step 1e: Ensuring SDK uses dedicated RPC...");
       if (typeof window !== "undefined" && (window as any).ethereum) {
         // Force update any cached providers
         window.dispatchEvent(new Event("ethereum#chainChanged"));
@@ -784,8 +743,6 @@ export function ConfirmationModal({
             "Uniswap SDK initialization timeout after network switch"
           );
         } else {
-          //console.log("✅ SDK ready after retry");
-
           // Additional verification that SDK is ready for the correct network
           try {
             // Use wallet provider as source of truth since SDK provider is private
@@ -798,8 +755,6 @@ export function ConfirmationModal({
           toast.success("SDK ready!", { duration: 2000 });
         }
       }
-
-      console.log("✅ Step 1: Network stable and SDK ready");
 
       // 🎯 STEP 3: CREATE LIQUIDITY POSITION (after everything is validated)
       toast.info(
@@ -873,39 +828,6 @@ export function ConfirmationModal({
             .dividedBy(new BigNumber(tokenBAmount))
             .toString();
 
-          console.log("🔍 Calculated initial price:", {
-            userInput: {
-              tokenA: `${tokenAAmount} ${tokenAData.symbol}`,
-              tokenB: `${tokenBAmount} ${tokenBData.symbol}`,
-            },
-            calculation: `${tokenAAmount} ${tokenAData.symbol} ÷ ${tokenBAmount} ${tokenBData.symbol} = ${initialPrice}`,
-            meaning: `1 ${tokenBData.symbol} = ${initialPrice} ${tokenAData.symbol}`,
-            sdkTokens: {
-              tokenA: `${tokenASDK.symbol} (${tokenASDK.address?.substring(
-                0,
-                10
-              )}...)`,
-              tokenB: `${tokenBSDK.symbol} (${tokenBSDK.address?.substring(
-                0,
-                10
-              )}...)`,
-            },
-            CRITICAL_CHECK: {
-              userExpectation:
-                "0.5 USDC should buy 1000 TS (1 TS = 0.0005 USDC)",
-              calculatedPrice: `1 ${tokenBData.symbol} = ${initialPrice} ${tokenAData.symbol}`,
-              priceVerification: `If 1 ${tokenBData.symbol} = ${initialPrice} ${
-                tokenAData.symbol
-              }, then 1000 ${tokenBData.symbol} = ${
-                parseFloat(initialPrice) * 1000
-              } ${tokenAData.symbol}`,
-              isCorrect:
-                parseFloat(initialPrice) * 1000 === 0.5
-                  ? "✅ CORRECT"
-                  : "❌ WRONG",
-            },
-          });
-
           // Create new pool first
           const createPoolResult = await freshSDKService.createPool({
             tokenA: tokenASDK,
@@ -941,52 +863,6 @@ export function ConfirmationModal({
       // 🎯 STEP 7: Execute mintPosition with fresh SDK
 
       try {
-        // ADDED: Debug logging for token amounts being passed
-        console.log("🔍 Token amounts being passed to mintPosition:", {
-          tokenAData: {
-            symbol: tokenASDK.symbol,
-            address: tokenASDK.address,
-            decimals: tokenASDK.decimals,
-          },
-          tokenBData: {
-            symbol: tokenBSDK.symbol,
-            address: tokenBSDK.address,
-            decimals: tokenBSDK.decimals,
-          },
-          amountMapping: {
-            amount0_is_tokenA: tokenAAmount, // amount0 goes to tokenA
-            amount1_is_tokenB: tokenBAmount, // amount1 goes to tokenB
-          },
-          uiDisplayedAmounts: {
-            [`${tokenAData?.symbol}`]: tokenAAmount,
-            [`${tokenBData?.symbol}`]: tokenBAmount,
-          },
-          fee: fee,
-          CRITICAL_CHECK: {
-            "Is USDC tokenA?": tokenASDK.symbol === "USDC",
-            "Is KM tokenB?": tokenBSDK.symbol === "KM",
-            "USDC amount":
-              tokenASDK.symbol === "USDC" ? tokenAAmount : tokenBAmount,
-            "KM amount":
-              tokenBSDK.symbol === "KM"
-                ? tokenBSDK.symbol === tokenBData?.symbol
-                  ? tokenBAmount
-                  : tokenAAmount
-                : "NOT_FOUND",
-          },
-        });
-
-        // Validate parameters before sending to SDK
-        console.log("🔍 Validating mint position parameters...", {
-          tokenA: tokenASDK?.symbol,
-          tokenB: tokenBSDK?.symbol,
-          amount0: tokenAAmount,
-          amount1: tokenBAmount,
-          fee,
-          rangeType,
-          recipient: finalUserAddress,
-        });
-
         // Enhanced validation with better error messages
         if (!tokenAAmount || parseFloat(tokenAAmount) <= 0) {
           throw new Error(
@@ -1017,38 +893,6 @@ export function ConfirmationModal({
           );
         }
 
-        // CRITICAL DEBUG: Check token amount mapping before sending to SDK
-        console.log("🚨 CRITICAL TOKEN AMOUNT MAPPING CHECK:", {
-          propsReceived: {
-            tokenAAmount: tokenAAmount,
-            tokenBAmount: tokenBAmount,
-            tokenAData: tokenAData?.symbol,
-            tokenBData: tokenBData?.symbol,
-          },
-          sdkTokens: {
-            tokenASDK: tokenASDK.symbol,
-            tokenBSDK: tokenBSDK.symbol,
-          },
-          userExpectation: {
-            "User typed USDC": "0.5",
-            "User typed KM": "1000",
-            "Which should be tokenA?":
-              tokenAData?.symbol === "USDC" ? "USDC (tokenA)" : "KM (tokenA)",
-            "Which should be tokenB?":
-              tokenBData?.symbol === "KM" ? "KM (tokenB)" : "USDC (tokenB)",
-          },
-          currentMapping: {
-            "amount0 (tokenA) gets": `${tokenAAmount} ${tokenAData?.symbol}`,
-            "amount1 (tokenB) gets": `${tokenBAmount} ${tokenBData?.symbol}`,
-          },
-          PROBLEM_DETECTED: {
-            "Is USDC getting wrong amount?":
-              tokenAData?.symbol === "USDC" && tokenAAmount !== "0.5",
-            "Is KM getting wrong amount?":
-              tokenBData?.symbol === "KM" && tokenBAmount !== "1000",
-          },
-        });
-
         // CRITICAL FIX: Ensure correct amount mapping based on token symbols
         let correctedAmount0, correctedAmount1;
 
@@ -1066,23 +910,6 @@ export function ConfirmationModal({
           correctedAmount1 = tokenBAmount.toString();
         }
 
-        console.log("🔧 CORRECTED AMOUNT MAPPING:", {
-          original: {
-            amount0: tokenAAmount.toString(),
-            amount1: tokenBAmount.toString(),
-          },
-          corrected: {
-            amount0: correctedAmount0,
-            amount1: correctedAmount1,
-          },
-          reasoning: {
-            tokenASymbol: tokenASDK.symbol,
-            tokenBSymbol: tokenBSDK.symbol,
-            "USDC should get": "0.5",
-            "KM should get": "1000",
-          },
-        });
-
         // Use fresh SDK service with validated parameters
         const params = {
           tokenA: tokenASDK,
@@ -1099,7 +926,6 @@ export function ConfirmationModal({
           slippageTolerance: 0.05, // Increased to 5% for liquidity provision with wide range
         };
 
-        console.log("🔍 Mint position parameters:", params);
         const result = await freshSDKService.mintPosition(params);
 
         setTransactionHash(result.hash);
@@ -1418,7 +1244,6 @@ export function ConfirmationModal({
 
             {error &&
               (() => {
-                //console.log("error", error);
                 return null;
               })()}
 

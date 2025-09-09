@@ -37,7 +37,6 @@ export class TokenBalanceService {
       this.walletAddress = address;
       return true;
     } catch (error) {
-      "❌ Error initializing TokenBalanceService:", error;
       return false;
     }
   }
@@ -51,24 +50,12 @@ export class TokenBalanceService {
     }
 
     try {
-      "🔍 Getting native balance for wallet:", this.walletAddress;
-
       const balanceWei = await this.provider.getBalance(this.walletAddress);
       const balanceEther = ethers.formatEther(balanceWei);
       const balanceBN = new BigNumber(balanceEther);
 
-      "✅ Native balance fetched successfully:",
-        {
-          wallet: this.walletAddress,
-          balanceWei: balanceWei.toString(),
-          balanceEther: balanceEther,
-          balanceBN: balanceBN.toString(),
-          formatted: balanceBN.toFormat(),
-        };
-
       return balanceBN;
     } catch (error) {
-      "❌ Error getting native balance:", error;
       return new BigNumber(0);
     }
   }
@@ -83,7 +70,6 @@ export class TokenBalanceService {
       const code = await this.provider.getCode(address);
       return code !== "0x";
     } catch (error) {
-      `⚠️ Cannot check contract code for ${address}:`, error;
       return false;
     }
   }
@@ -101,30 +87,8 @@ export class TokenBalanceService {
 
     // Validate address format
     if (!tokenAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
-      `⚠️ Invalid address format: ${tokenAddress}`;
       return {
         symbol: "INVALID",
-        decimals: 18,
-        balance: new BigNumber(0),
-        totalSupply: new BigNumber(0),
-        isNative: false,
-      };
-    }
-
-    // Special validation for expected BU token
-    if (
-      tokenAddress.toLowerCase() ===
-      "0xc518fc545c14fc990f269f8f9be79d7fc471d13f"
-    ) {
-      ("🎯 Processing BU project token with expected contract address");
-    }
-
-    // Check if it's a valid contract
-    const isValid = await this.isValidContract(tokenAddress);
-    if (!isValid) {
-      `⚠️ Address is not a valid contract: ${tokenAddress}`;
-      return {
-        symbol: "NO_CONTRACT",
         decimals: 18,
         balance: new BigNumber(0),
         totalSupply: new BigNumber(0),
@@ -156,8 +120,6 @@ export class TokenBalanceService {
         timeoutPromise,
       ])) as [string, number, bigint];
 
-      `✅ Successfully got token info for ${symbol} (${tokenAddress})`;
-
       // Format total supply
       const totalSupply = new BigNumber(
         ethers.formatUnits(totalSupplyRaw, decimals)
@@ -169,20 +131,9 @@ export class TokenBalanceService {
         // Ambil balance dari wallet
         const balanceRaw = await tokenContract.balanceOf(this.walletAddress);
         balance = new BigNumber(ethers.formatUnits(balanceRaw, decimals));
-        `👛 Wallet balance for ${symbol}: ${balance.toString()}`;
       } else {
         // Untuk project token, gunakan total supply sebagai balance
         balance = totalSupply;
-        `📊 Using total supply as balance for project token ${symbol}:`,
-          {
-            contractAddress: tokenAddress,
-            totalSupplyRaw: totalSupplyRaw.toString(),
-            decimals,
-            totalSupply: totalSupply.toString(),
-            balance: balance.toString(),
-            formatted: this.formatBalance(balance),
-            expected: "Should be 10,000 for BU token",
-          };
       }
 
       return {
@@ -193,8 +144,6 @@ export class TokenBalanceService {
         isNative: false,
       };
     } catch (error: any) {
-      `❌ Error getting token info for ${tokenAddress}:`, error;
-
       // Determine error type untuk better user feedback
       let errorSymbol = "ERROR";
       if (error.message?.includes("could not decode result")) {
@@ -237,7 +186,6 @@ export class TokenBalanceService {
         try {
           if (token.isNative) {
             // Native token (BNB, ETH, MATIC, dll)
-            `🪙 Fetching native token balance for ${token.symbol}...`;
             const balance = await this.getNativeTokenBalance();
 
             results[token.symbol] = {
@@ -246,12 +194,6 @@ export class TokenBalanceService {
               balance,
               isNative: true,
             };
-
-            `✅ Native ${
-              token.symbol
-            } balance: ${balance.toString()} (formatted: ${this.formatBalance(
-              balance
-            )})`;
           } else if (token.address) {
             // ERC20 token
             const tokenInfo = await this.getTokenBalance(
@@ -269,7 +211,6 @@ export class TokenBalanceService {
             };
           }
         } catch (error) {
-          `❌ Error getting balance for ${token.symbol}:`, error;
           results[token.symbol] = {
             symbol: token.symbol,
             decimals: 18,
@@ -357,16 +298,8 @@ export class TokenBalanceService {
         ethers.formatUnits(allowanceRaw, tokenDecimals)
       );
 
-      `✅ Current allowance for ${tokenAddress}:`,
-        {
-          allowanceRaw: allowanceRaw.toString(),
-          allowance: allowance.toString(),
-          formatted: this.formatBalance(allowance),
-        };
-
       return allowance;
     } catch (error) {
-      "❌ Error checking allowance:", error;
       throw new Error(`Failed to check allowance: ${(error as Error).message}`);
     }
   }
@@ -399,31 +332,15 @@ export class TokenBalanceService {
         ? ethers.MaxUint256
         : ethers.parseUnits(amount.toFixed(), tokenDecimals);
 
-      `🔄 Approving ${tokenAddress} for Uniswap...`,
-        {
-          spender: addresses.POSITION_MANAGER,
-          amount: useInfiniteApproval ? "INFINITE" : amount.toString(),
-          approvalAmount: approvalAmount.toString(),
-        };
-
       const tx = await tokenContract.approve(
         addresses.POSITION_MANAGER,
         approvalAmount
       );
 
-      "🚀 Approval transaction sent:", tx.hash;
       const receipt = await tx.wait();
-
-      "✅ Token approval successful:",
-        {
-          transactionHash: receipt.hash,
-          blockNumber: receipt.blockNumber,
-          gasUsed: receipt.gasUsed?.toString(),
-        };
 
       return receipt.hash;
     } catch (error) {
-      "❌ Error approving token:", error;
       throw new Error(`Failed to approve token: ${(error as Error).message}`);
     }
   }
@@ -445,8 +362,6 @@ export class TokenBalanceService {
 
     const txHashes: string[] = [];
 
-    `🔄 Starting batch approval for ${tokens.length} tokens...`;
-
     for (const token of tokens) {
       try {
         const txHash = await this.approveForUniswap(
@@ -460,12 +375,10 @@ export class TokenBalanceService {
         // Add small delay antara transactions
         await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch (error) {
-        `❌ Failed to approve token ${token.address}:`, error;
         throw error;
       }
     }
 
-    `✅ Batch approval completed for ${txHashes.length} tokens`;
     return txHashes;
   }
 
@@ -481,16 +394,8 @@ export class TokenBalanceService {
       const currentAllowance = await this.checkAllowance(tokenAddress, chainId);
       const needsApproval = currentAllowance.lt(requiredAmount);
 
-      `🔍 Checking if ${tokenAddress} needs approval:`,
-        {
-          currentAllowance: currentAllowance.toString(),
-          requiredAmount: requiredAmount.toString(),
-          needsApproval,
-        };
-
       return needsApproval;
     } catch (error) {
-      "❌ Error checking if approval needed:", error;
       return true; // Safe default - assume approval needed
     }
   }
@@ -529,7 +434,6 @@ export class TokenBalanceService {
       // Add 20% buffer
       return (estimatedGas * BigInt(120)) / BigInt(100);
     } catch (error) {
-      "Gas estimation failed:", error;
       return BigInt(50000); // Conservative fallback untuk ERC20 approval
     }
   }
@@ -550,11 +454,9 @@ export class TokenBalanceService {
     );
 
     if (!needsApproval) {
-      `✅ ${tokenAddress} already has sufficient allowance`;
       return null;
     }
 
-    `🔄 ${tokenAddress} needs approval, proceeding...`;
     return await this.approveForUniswap(
       tokenAddress,
       requiredAmount,

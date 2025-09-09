@@ -9,6 +9,7 @@ import {
   type LiquidityResult,
 } from "@/services/uniswap/uniswap-liquidity.service";
 import { FEE_TIERS } from "@/lib/uniswap/constants";
+import { TokenBalanceService } from "@/services/token-balance.service";
 
 interface UniswapIntegrationState {
   isLoading: boolean;
@@ -206,7 +207,6 @@ export function useUniswapIntegration() {
         );
         return initialized;
       } catch (error) {
-        "Error initializing services:", error;
         return false;
       }
     },
@@ -250,8 +250,6 @@ export function useUniswapIntegration() {
           useFullRange: true, // Default ke full range
         };
 
-        "🚀 Adding liquidity with params:", params;
-
         // Execute add liquidity
         const result = await UniswapLiquidityService.addLiquidity(params);
 
@@ -286,7 +284,6 @@ export function useUniswapIntegration() {
         }
 
         toast.error(userMessage);
-        "Error adding liquidity:", error;
         return null;
       }
     },
@@ -310,7 +307,6 @@ export function useUniswapIntegration() {
         );
         return positions;
       } catch (error) {
-        "Error fetching user positions:", error;
         return [];
       }
     },

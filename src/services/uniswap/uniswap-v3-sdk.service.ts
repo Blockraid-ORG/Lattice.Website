@@ -59,7 +59,7 @@ export class UniswapV3SDKService {
         try {
           const fallbackProvider = new ethers.JsonRpcProvider(rpc);
           await fallbackProvider.getBlockNumber(); // Test connection
-          console.log(`✅ Fallback provider connected: ${rpc}`);
+
           return fallbackProvider;
         } catch (error: any) {
           console.error(`❌ Fallback provider failed: ${rpc}`, error.message);
@@ -70,35 +70,6 @@ export class UniswapV3SDKService {
 
     throw new Error("No working fallback provider available");
   }
-
-  /**
-   * 1. LIQUIDITY POSITIONS - Following official docs
-   * https://docs.uniswap.org/sdk/v3/guides/liquidity/position-data
-   */
-
-  /**
-   * 🔧 Validate provider untuk BSC dengan circuit breaker detection
-   */
-  // private async validateProviderForBSC(): Promise<void> {
-  //   try {
-  //     console.log(
-  //       "🔍 Validating BSC provider for circuit breaker resilience..."
-  //     );
-
-  //     // Quick network test
-  //     const network = await this.provider.getNetwork();
-  //     console.debug("Provider network:", network.chainId, network.name);
-  //     const blockNumber = await this.provider.getBlockNumber();
-  //     console.debug("Provider latest block:", blockNumber);
-
-  //     // Test with actual contract calls to ensure approval will work
-  //     await this.testContractCalls();
-  //   } catch (error) {
-  //     throw new Error(
-  //       `Provider validation failed: ${(error as Error).message}`
-  //     );
-  //   }
-  // }
 
   /**
    * 🔧 Quick provider health check untuk circuit breaker detection
@@ -301,9 +272,6 @@ export class UniswapV3SDKService {
 
     // Handle native tokens (but for USDC/TS pair, both should be ERC20)
     if (tokenData.isNative && this.chainId === 56) {
-      console.warn("⚠️ WARNING: Native token detected in USDC/TS pair setup");
-      console.debug("🔄 Converting to WBNB for BSC compatibility");
-
       const WBNB_ADDRESS = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c";
       return new Token(56, WBNB_ADDRESS, 18, "WBNB", "Wrapped BNB");
     }
@@ -357,11 +325,6 @@ export class UniswapV3SDKService {
     fee: number
   ): Promise<Pool | null> {
     try {
-      console.log("🔍 Getting pool for:", {
-        token0Data,
-        token1Data,
-        fee,
-      });
       const token0 = await this.createToken(token0Data);
       const token1 = await this.createToken(token1Data);
 
@@ -1070,10 +1033,6 @@ export class UniswapV3SDKService {
       const MAX_TICK = 887272;
 
       if (validTick < MIN_TICK || validTick > MAX_TICK || isNaN(validTick)) {
-        console.warn(
-          "⚠️ Invalid tick detected, calculating from sqrtPriceX96..."
-        );
-
         // Calculate tick from sqrtPriceX96 if tick is invalid
         try {
           // const sqrtPriceX96JSBI = JSBI.BigInt(slot0.sqrtPriceX96.toString());
@@ -1176,8 +1135,6 @@ export class UniswapV3SDKService {
     }
 
     try {
-      console.log("🚀 Minting position following official Uniswap V3 SDK docs");
-
       // 1. INPUT VALIDATION (Following official validation pattern)
       if (!params.amount0 || !params.amount1) {
         throw new Error("Both token amounts are required");
@@ -1205,14 +1162,12 @@ export class UniswapV3SDKService {
       const approvals: Promise<any>[] = [];
 
       if (!params.tokenA.isNative) {
-        console.log(`📋 Approving ${token0.symbol}...`);
         approvals.push(
           this.getTokenTransferApproval(token0.address, amount0Raw.toString())
         );
       }
 
       if (!params.tokenB.isNative) {
-        console.log(`📋 Approving ${token1.symbol}...`);
         approvals.push(
           this.getTokenTransferApproval(token1.address, amount1Raw.toString())
         );
@@ -1220,51 +1175,13 @@ export class UniswapV3SDKService {
 
       if (approvals.length > 0) {
         await Promise.all(approvals);
-        console.log("✅ Token approvals completed");
         // Wait for confirmation
         await new Promise((resolve) => setTimeout(resolve, 2000));
       }
 
-      // 5. CREATE OR GET POOL INSTANCE (Following official pattern)
-      console.log("📋 Creating pool instance...");
-      console.log("🔍 Token data:", {
-        token0,
-        token1,
-        fee: params.fee,
-      });
       let pool = await this.createPoolInstance(token0, token1, params.fee);
 
-      console.log("🔍 Pool:", pool);
-
       if (!pool) {
-        console.log("🔄 Pool doesn't exist, creating...");
-
-        // CRITICAL FIX: Calculate initial price correctly for pool ordering
-        // User wants: 1 USDC = 2500 TS (price per TS = 1/2500 = 0.0004 USDC)
-        // Pool tokens are ordered by address: token0 < token1
-        // We need to calculate price as token1/token0 for Uniswap V3
-
-        console.log("🔍 INITIAL PRICE CALCULATION DEBUG:", {
-          inputAmounts: { amount0: params.amount0, amount1: params.amount1 },
-          tokenAddresses: {
-            tokenA: { symbol: params.tokenA.symbol, address: token0.address },
-            tokenB: { symbol: params.tokenB.symbol, address: token1.address },
-          },
-          addressComparison: {
-            tokenA_address: token0.address.toLowerCase(),
-            tokenB_address: token1.address.toLowerCase(),
-            tokenA_vs_tokenB: `${token0.address.toLowerCase()} < ${token1.address.toLowerCase()} = ${
-              token0.address.toLowerCase() < token1.address.toLowerCase()
-            }`,
-          },
-          userExpectation: `1 ${params.tokenA.symbol} = ${params.amount1} ${params.tokenB.symbol}`,
-        });
-
-        // For pool creation, we need to calculate based on final sorted token order
-        // But since pool doesn't exist yet, calculate based on user input expectation
-        // User: 1 USDC = 2500 TS → Price of TS in USDC = 1/2500 = 0.0004
-        // But Uniswap needs token1/token0 ratio after address sorting
-
         // CRITICAL: Determine correct token order for pool (Uniswap sorts by address)
         // tokenA = USDC, tokenB = TH
         const tokenAAmount = new BigNumber(params.amount0); // 1 USDC
@@ -1303,29 +1220,6 @@ export class UniswapV3SDKService {
         // User wants: 1 USDC = 2500 TH
         const initialPrice = sorted1Amount.dividedBy(sorted0Amount).toString();
 
-        console.log("📊 EXPLICIT TOKEN SORTING & PRICE CALCULATION:", {
-          originalInput: {
-            tokenA: `${params.amount0} ${params.tokenA.symbol}`,
-            tokenB: `${params.amount1} ${params.tokenB.symbol}`,
-          },
-          afterSorting: {
-            poolToken0: `${sorted0Amount} ${
-              sortedToken0.symbol
-            } (${sortedToken0.address.substring(0, 10)}...)`,
-            poolToken1: `${sorted1Amount} ${
-              sortedToken1.symbol
-            } (${sortedToken1.address.substring(0, 10)}...)`,
-          },
-          priceCalculation: `${sorted1Amount} ${sortedToken1.symbol} ÷ ${sorted0Amount} ${sortedToken0.symbol} = ${initialPrice}`,
-          userIntention: "1 USDC should buy 2500 TS",
-          willResult:
-            sorted0Amount.toString() === "1"
-              ? "1 USDC → 2500 TS ✅"
-              : "2500 TS → 1 USDC ✅",
-        });
-
-        // SAFETY CHECK: Verify pool doesn't already exist with different price
-        console.log("🔍 CHECKING FOR EXISTING POOLS...");
         try {
           const addresses =
             UNISWAP_V3_ADDRESSES[
@@ -1352,20 +1246,7 @@ export class UniswapV3SDKService {
               existingPoolAddress &&
               existingPoolAddress !== ethers.ZeroAddress
             ) {
-              console.warn(`⚠️ POOL ALREADY EXISTS:`, {
-                poolAddress: existingPoolAddress,
-                feeTier: feeToCheck,
-                tokenPair: `${params.tokenA.symbol}/${params.tokenB.symbol}`,
-                action:
-                  feeToCheck === params.fee
-                    ? "Will use existing pool"
-                    : "Different fee tier exists",
-              });
-
               if (feeToCheck === params.fee) {
-                console.log(
-                  "🔄 Using existing pool instead of creating new one"
-                );
                 // Skip pool creation since it already exists
                 const existingPool = await this.createPoolInstance(
                   token0,
@@ -1379,15 +1260,10 @@ export class UniswapV3SDKService {
               }
             }
           }
-        } catch {
-          console.log(
-            "ℹ️ Pool existence check failed, proceeding with creation"
-          );
-        }
+        } catch {}
 
         // Only create pool if we didn't find an existing one
         if (!pool) {
-          console.log("🚀 Creating new pool with correct price...");
           await this.createPool({
             tokenA: params.tokenA,
             tokenB: params.tokenB,
@@ -1400,7 +1276,6 @@ export class UniswapV3SDKService {
 
           pool = await this.createPoolInstance(token0, token1, params.fee);
         } else {
-          console.log("✅ Using existing pool found during safety check");
         }
 
         if (!pool) {
@@ -1424,14 +1299,6 @@ export class UniswapV3SDKService {
         (currentPoolPrice - expectedPrice) / expectedPrice
       );
 
-      if (priceRatio > priceTolerance) {
-        console.warn("⚠️ POOL PRICE MISMATCH:", {
-          issue: "Pool exists but has wrong price ratio",
-          solution: "Pool price will be corrected by liquidity addition",
-          note: "This is expected if pool was created with wrong initial price before",
-        });
-      }
-
       // 6. CALCULATE TICKS FOR POSITION (Following official pattern)
       const tickSpacing = this.getTickSpacing(params.fee);
 
@@ -1450,54 +1317,7 @@ export class UniswapV3SDKService {
         const MAX_TICK = 887272;
         tickLower = nearestUsableTick(MIN_TICK, tickSpacing);
         tickUpper = nearestUsableTick(MAX_TICK, tickSpacing);
-
-        console.log("🔧 Using FULL RANGE to preserve exact token amounts");
       }
-
-      console.log("📊 Tick range:", {
-        tickLower,
-        tickUpper,
-        spacing: tickSpacing,
-      });
-
-      // 7. CREATE POSITION USING POSITION.FROMAMOUNTS (Official pattern)
-      console.log("🏗️ Creating position with amounts...");
-
-      // CRITICAL DEBUG: Show detailed token mapping
-      console.log("🔍 DETAILED TOKEN MAPPING:", {
-        inputTokens: {
-          tokenA: {
-            symbol: params.tokenA.symbol,
-            address: token0.address,
-            amount: params.amount0,
-            rawAmount: amount0Raw,
-          },
-          tokenB: {
-            symbol: params.tokenB.symbol,
-            address: token1.address,
-            amount: params.amount1,
-            rawAmount: amount1Raw,
-          },
-        },
-        poolTokens: {
-          token0: { symbol: pool.token0.symbol, address: pool.token0.address },
-          token1: { symbol: pool.token1.symbol, address: pool.token1.address },
-        },
-        addressComparison: {
-          inputTokenA_vs_poolToken0: `${token0.address.toLowerCase()} === ${pool.token0.address.toLowerCase()} => ${
-            token0.address.toLowerCase() === pool.token0.address.toLowerCase()
-          }`,
-          inputTokenA_vs_poolToken1: `${token0.address.toLowerCase()} === ${pool.token1.address.toLowerCase()} => ${
-            token0.address.toLowerCase() === pool.token1.address.toLowerCase()
-          }`,
-          inputTokenB_vs_poolToken0: `${token1.address.toLowerCase()} === ${pool.token0.address.toLowerCase()} => ${
-            token1.address.toLowerCase() === pool.token0.address.toLowerCase()
-          }`,
-          inputTokenB_vs_poolToken1: `${token1.address.toLowerCase()} === ${pool.token1.address.toLowerCase()} => ${
-            token1.address.toLowerCase() === pool.token1.address.toLowerCase()
-          }`,
-        },
-      });
 
       // FIXED: Better token mapping logic
       let finalAmount0: string, finalAmount1: string;
@@ -1507,18 +1327,12 @@ export class UniswapV3SDKService {
         // tokenA(token0) maps to pool.token0, tokenB(token1) maps to pool.token1
         finalAmount0 = amount0Raw.toString(); // tokenA amount goes to pool.token0
         finalAmount1 = amount1Raw.toString(); // tokenB amount goes to pool.token1
-        console.log(
-          "✅ Direct mapping: tokenA->pool.token0, tokenB->pool.token1"
-        );
       } else if (
         token0.address.toLowerCase() === pool.token1.address.toLowerCase()
       ) {
         // tokenA(token0) maps to pool.token1, tokenB(token1) maps to pool.token0
         finalAmount0 = amount1Raw.toString(); // tokenB amount goes to pool.token0
         finalAmount1 = amount0Raw.toString(); // tokenA amount goes to pool.token1
-        console.log(
-          "🔄 Swapped mapping: tokenA->pool.token1, tokenB->pool.token0"
-        );
       } else {
         throw new Error(
           `Token mapping failed! Input tokens don't match pool tokens.\n` +
@@ -1526,110 +1340,6 @@ export class UniswapV3SDKService {
             `Pool: ${pool.token0.symbol}(${pool.token0.address}) / ${pool.token1.symbol}(${pool.token1.address})`
         );
       }
-
-      console.log("💰 FINAL AMOUNTS FOR POOL:", {
-        userOriginalInput: {
-          tokenA: `${params.amount0} ${params.tokenA.symbol}`,
-          tokenB: `${params.amount1} ${params.tokenB.symbol}`,
-        },
-        rawAmountsInWei: {
-          amount0Raw: `${amount0Raw.toString()} (${params.tokenA.symbol})`,
-          amount1Raw: `${amount1Raw.toString()} (${params.tokenB.symbol})`,
-        },
-        poolToken0: {
-          symbol: pool.token0.symbol,
-          amount: finalAmount0,
-          humanReadable: new BigNumber(finalAmount0)
-            .dividedBy(new BigNumber(10).pow(pool.token0.decimals))
-            .toString(),
-        },
-        poolToken1: {
-          symbol: pool.token1.symbol,
-          amount: finalAmount1,
-          humanReadable: new BigNumber(finalAmount1)
-            .dividedBy(new BigNumber(10).pow(pool.token1.decimals))
-            .toString(),
-        },
-        expectedMetaMaskDisplay: {
-          shouldShow: `${new BigNumber(finalAmount0)
-            .dividedBy(new BigNumber(10).pow(pool.token0.decimals))
-            .toString()} ${pool.token0.symbol} and ${new BigNumber(finalAmount1)
-            .dividedBy(new BigNumber(10).pow(pool.token1.decimals))
-            .toString()} ${pool.token1.symbol}`,
-        },
-        USDC_ANALYSIS: {
-          "USDC is token0?": pool.token0.symbol === "USDC",
-          "USDC is token1?": pool.token1.symbol === "USDC",
-          "USDC finalAmount":
-            pool.token0.symbol === "USDC" ? finalAmount0 : finalAmount1,
-          "USDC humanReadable":
-            pool.token0.symbol === "USDC"
-              ? new BigNumber(finalAmount0)
-                  .dividedBy(new BigNumber(10).pow(pool.token0.decimals))
-                  .toString()
-              : new BigNumber(finalAmount1)
-                  .dividedBy(new BigNumber(10).pow(pool.token1.decimals))
-                  .toString(),
-          "Expected USDC": "0.5",
-          "USDC Match":
-            (pool.token0.symbol === "USDC"
-              ? new BigNumber(finalAmount0)
-                  .dividedBy(new BigNumber(10).pow(pool.token0.decimals))
-                  .toString()
-              : new BigNumber(finalAmount1)
-                  .dividedBy(new BigNumber(10).pow(pool.token1.decimals))
-                  .toString()) === "0.5"
-              ? "✅ CORRECT"
-              : "❌ WRONG",
-        },
-      });
-
-      // const amount0BigInt = JSBI.BigInt(finalAmount0);
-      // const amount1BigInt = JSBI.BigInt(finalAmount1);
-
-      // if (
-      //   JSBI.equal(amount0BigInt, JSBI.BigInt(0)) &&
-      //   JSBI.equal(amount1BigInt, JSBI.BigInt(0))
-      // ) {
-      //   throw new Error("Both amounts cannot be zero");
-      // }
-
-      // CRITICAL: Force correct amounts regardless of pool price
-      // Position.fromAmounts might adjust amounts based on pool's current price
-      // But we want EXACT user input amounts
-      console.log("🔧 FORCING EXACT USER INPUT AMOUNTS:", {
-        userWants: {
-          amount0_exact: new BigNumber(finalAmount0)
-            .dividedBy(new BigNumber(10).pow(pool.token0.decimals))
-            .toString(),
-          amount1_exact: new BigNumber(finalAmount1)
-            .dividedBy(new BigNumber(10).pow(pool.token1.decimals))
-            .toString(),
-        },
-        poolCurrentState: {
-          token0Price: pool.token0Price.toFixed(8),
-          token1Price: pool.token1Price.toFixed(8),
-          tickCurrent: pool.tickCurrent,
-        },
-      });
-
-      // CRITICAL FIX: Use Position.fromAmounts with exact amounts
-      // Force the position to use our exact input amounts
-      console.log("🔧 Creating position with exact user amounts...");
-
-      console.log("🔍 PRE-POSITION CREATION DEBUG:", {
-        finalAmount0: finalAmount0,
-        finalAmount1: finalAmount1,
-        finalAmount0_BigInt: JSBI.BigInt(finalAmount0).toString(),
-        finalAmount1_BigInt: JSBI.BigInt(finalAmount1).toString(),
-        tickLower: tickLower,
-        tickUpper: tickUpper,
-        poolCurrentPrice: pool.token1Price.toFixed(8),
-        poolTickCurrent: pool.tickCurrent,
-      });
-
-      // CRITICAL: Try different approach - use exact amounts with manual calculation
-      console.log("🔧 Using Position.fromAmounts with corrected calculation");
 
       // Calculate liquidity manually to ensure exact amounts
       const position = Position.fromAmounts({
@@ -1640,67 +1350,6 @@ export class UniswapV3SDKService {
         amount1: JSBI.BigInt(finalAmount1),
         useFullPrecision: false, // Don't adjust amounts
       });
-
-      console.log("✅ Position created:", {
-        liquidity: position.liquidity.toString(),
-        inputAmounts: {
-          amount0_input: new BigNumber(finalAmount0)
-            .dividedBy(new BigNumber(10).pow(pool.token0.decimals))
-            .toString(),
-          amount1_input: new BigNumber(finalAmount1)
-            .dividedBy(new BigNumber(10).pow(pool.token1.decimals))
-            .toString(),
-        },
-        positionAmounts: {
-          amount0_position: position.amount0.toExact(),
-          amount1_position: position.amount1.toExact(),
-        },
-        positionAmountsRaw: {
-          amount0_raw: position.amount0.quotient.toString(),
-          amount1_raw: position.amount1.quotient.toString(),
-        },
-        metamaskWillShow: {
-          amount0Desired: position.amount0.quotient.toString(),
-          amount1Desired: position.amount1.quotient.toString(),
-          amount0Desired_human: position.amount0.toExact(),
-          amount1Desired_human: position.amount1.toExact(),
-        },
-        verification: {
-          userWanted: `${new BigNumber(finalAmount0)
-            .dividedBy(new BigNumber(10).pow(pool.token0.decimals))
-            .toString()} ${pool.token0.symbol} + ${new BigNumber(finalAmount1)
-            .dividedBy(new BigNumber(10).pow(pool.token1.decimals))
-            .toString()} ${pool.token1.symbol}`,
-          positionWillUse: `${position.amount0.toExact()} ${
-            pool.token0.symbol
-          } + ${position.amount1.toExact()} ${pool.token1.symbol}`,
-          isExactMatch:
-            position.amount0.quotient.toString() === finalAmount0 &&
-            position.amount1.quotient.toString() === finalAmount1
-              ? "✅ EXACT"
-              : "❌ ADJUSTED",
-        },
-      });
-
-      // 8. CREATE MINT OPTIONS AND CALLDATA (Official pattern)
-      console.log("📋 Creating mint options...");
-
-      // const deadline =
-      //   Math.floor(Date.now() / 1000) +
-      //   (params.deadline > 0 ? params.deadline : 1200); // 20 minutes default
-      // const slippageTolerance = new Percent(
-      //   Math.floor(params.slippageTolerance * 10000),
-      //   10_000
-      // );
-
-      // const mintOptions: MintOptions = {
-      //   recipient: params.recipient,
-      //   deadline,
-      //   slippageTolerance,
-      // };
-
-      // CRITICAL FIX: Use Position.fromAmounts but with better tick range
-      console.log("🔧 Using Position.fromAmounts with optimized approach...");
 
       // CRITICAL FIX: Use wide but realistic range around current price
       const optimizedTickSpacing = this.getTickSpacing(params.fee);
@@ -1717,69 +1366,6 @@ export class UniswapV3SDKService {
         optimizedTickSpacing
       );
 
-      console.log(
-        "🔧 USING WIDE RANGE around current price to preserve amounts"
-      );
-
-      console.log("🔍 WIDE RANGE TICK SETUP:", {
-        poolCurrentTick: pool.tickCurrent,
-        originalTickLower: tickLower,
-        originalTickUpper: tickUpper,
-        wideRangeTickLower: optimizedTickLower,
-        wideRangeTickUpper: optimizedTickUpper,
-        wideRangeWidth: wideRangeWidth,
-        tickSpacing: optimizedTickSpacing,
-      });
-
-      // BACK TO SDK APPROACH: Use Position.fromAmounts with better slippage handling
-      console.log(
-        "🔧 Using Position.fromAmounts with improved slippage handling..."
-      );
-
-      // CRITICAL: Log inputs to Position.fromAmounts for USDC analysis
-      console.log("🔍 POSITION.FROMAMOUNTS INPUT ANALYSIS:", {
-        poolCurrentPrice: {
-          token0Price: pool.token0Price.toFixed(8),
-          token1Price: pool.token1Price.toFixed(8),
-          sqrtPriceX96: pool.sqrtRatioX96.toString(),
-        },
-        tickRange: {
-          tickLower: optimizedTickLower,
-          tickUpper: optimizedTickUpper,
-          currentTick: pool.tickCurrent,
-          rangeWidth: optimizedTickUpper - optimizedTickLower,
-        },
-        inputAmounts: {
-          amount0_wei: finalAmount0,
-          amount1_wei: finalAmount1,
-          amount0_human: new BigNumber(finalAmount0)
-            .dividedBy(new BigNumber(10).pow(pool.token0.decimals))
-            .toString(),
-          amount1_human: new BigNumber(finalAmount1)
-            .dividedBy(new BigNumber(10).pow(pool.token1.decimals))
-            .toString(),
-        },
-        USDC_INPUT_CHECK: {
-          "USDC is which token?":
-            pool.token0.symbol === "USDC" ? "token0" : "token1",
-          "USDC input amount":
-            pool.token0.symbol === "USDC"
-              ? new BigNumber(finalAmount0)
-                  .dividedBy(new BigNumber(10).pow(pool.token0.decimals))
-                  .toString()
-              : new BigNumber(finalAmount1)
-                  .dividedBy(new BigNumber(10).pow(pool.token1.decimals))
-                  .toString(),
-          "Expected USDC": "0.5",
-        },
-      });
-
-      // CRITICAL FIX: Use full range ticks to minimize pool price impact
-      // This should preserve both USDC and project token amounts better
-      console.log(
-        "🔧 Using Position.fromAmounts with FULL RANGE to preserve both amounts"
-      );
-
       // Use absolute full range to minimize price impact
       const fullRangeTickSpacing = this.getTickSpacing(params.fee);
       const MIN_TICK = -887272;
@@ -1793,15 +1379,6 @@ export class UniswapV3SDKService {
         fullRangeTickSpacing
       );
 
-      console.log("🔍 FULL RANGE SETUP:", {
-        originalTickLower: optimizedTickLower,
-        originalTickUpper: optimizedTickUpper,
-        fullRangeTickLower: fullRangeTickLower,
-        fullRangeTickUpper: fullRangeTickUpper,
-        poolCurrentTick: pool.tickCurrent,
-        rangeWidth: fullRangeTickUpper - fullRangeTickLower,
-      });
-
       const exactPosition = Position.fromAmounts({
         pool,
         tickLower: fullRangeTickLower,
@@ -1809,109 +1386,6 @@ export class UniswapV3SDKService {
         amount0: JSBI.BigInt(finalAmount0),
         amount1: JSBI.BigInt(finalAmount1),
         useFullPrecision: true,
-      });
-
-      console.log("✅ Position.fromAmounts with FULL RANGE completed");
-
-      console.log("🔍 POSITION RESULT WITH IMPROVED SLIPPAGE:", {
-        resultAmount0: exactPosition.amount0.quotient.toString(),
-        resultAmount1: exactPosition.amount1.quotient.toString(),
-        resultAmount0_human: exactPosition.amount0.toExact(),
-        resultAmount1_human: exactPosition.amount1.toExact(),
-        userWantedAmount0: new BigNumber(finalAmount0)
-          .dividedBy(new BigNumber(10).pow(pool.token0.decimals))
-          .toString(),
-        userWantedAmount1: new BigNumber(finalAmount1)
-          .dividedBy(new BigNumber(10).pow(pool.token1.decimals))
-          .toString(),
-        amount0Match:
-          exactPosition.amount0.quotient.toString() === finalAmount0
-            ? "✅ EXACT"
-            : "❌ ADJUSTED",
-        amount1Match:
-          exactPosition.amount1.quotient.toString() === finalAmount1
-            ? "✅ EXACT"
-            : "❌ ADJUSTED",
-        CRITICAL_METAMASK_ANALYSIS: {
-          "Expected in MetaMask": {
-            [`Amount 0 (${pool.token0.symbol})`]:
-              exactPosition.amount0.toExact(),
-            [`Amount 1 (${pool.token1.symbol})`]:
-              exactPosition.amount1.toExact(),
-          },
-          "User Input Analysis": {
-            [`User wants ${params.tokenA.symbol}`]: `${
-              params.amount0
-            } (${new BigNumber(finalAmount0)
-              .dividedBy(new BigNumber(10).pow(pool.token0.decimals))
-              .toString()} after mapping)`,
-            [`User wants ${params.tokenB.symbol}`]: `${
-              params.amount1
-            } (${new BigNumber(finalAmount1)
-              .dividedBy(new BigNumber(10).pow(pool.token1.decimals))
-              .toString()} after mapping)`,
-          },
-          "Discrepancy Check": {
-            [`${pool.token0.symbol} difference`]: new BigNumber(
-              exactPosition.amount0.toExact()
-            )
-              .minus(
-                new BigNumber(finalAmount0).dividedBy(
-                  new BigNumber(10).pow(pool.token0.decimals)
-                )
-              )
-              .toString(),
-            [`${pool.token1.symbol} difference`]: new BigNumber(
-              exactPosition.amount1.toExact()
-            )
-              .minus(
-                new BigNumber(finalAmount1).dividedBy(
-                  new BigNumber(10).pow(pool.token1.decimals)
-                )
-              )
-              .toString(),
-          },
-          BOTH_AMOUNTS_ANALYSIS: {
-            "Method Used": "Position.fromAmounts with FULL RANGE",
-            "USDC Result":
-              pool.token0.symbol === "USDC"
-                ? exactPosition.amount0.toExact()
-                : exactPosition.amount1.toExact(),
-            "Project Token Result":
-              pool.token0.symbol === "USDC"
-                ? exactPosition.amount1.toExact()
-                : exactPosition.amount0.toExact(),
-            Expected: {
-              USDC: "0.5",
-              "Project Token": "1000",
-            },
-            "Exact Match Check": {
-              "USDC Match":
-                (pool.token0.symbol === "USDC"
-                  ? exactPosition.amount0.toExact()
-                  : exactPosition.amount1.toExact()) === "0.5"
-                  ? "✅ PERFECT"
-                  : "❌ ADJUSTED",
-              "Project Token Match":
-                (pool.token0.symbol === "USDC"
-                  ? exactPosition.amount1.toExact()
-                  : exactPosition.amount0.toExact()) === "1000"
-                  ? "✅ PERFECT"
-                  : "❌ ADJUSTED",
-            },
-            "MetaMask Will Show": {
-              "USDC Amount":
-                pool.token0.symbol === "USDC"
-                  ? exactPosition.amount0.toExact()
-                  : exactPosition.amount1.toExact(),
-              "Project Token Amount":
-                pool.token0.symbol === "USDC"
-                  ? exactPosition.amount1.toExact()
-                  : exactPosition.amount0.toExact(),
-              Target: "USDC: 0.5, Project Token: 1000",
-            },
-          },
-        },
       });
 
       // Use improved slippage tolerance for mint options
@@ -1927,30 +1401,12 @@ export class UniswapV3SDKService {
         slippageTolerance: improvedSlippageTolerance,
       };
 
-      console.log("🔍 IMPROVED SLIPPAGE SETTINGS:", {
-        originalSlippage: params.slippageTolerance,
-        effectiveSlippage: effectiveSlippage,
-        slippagePercentage: `${effectiveSlippage * 100}%`,
-        mintOptionsSlippage: improvedSlippageTolerance.toFixed(4),
-      });
-
-      // Generate calldata using SDK with improved slippage
-      console.log(
-        "🔧 Generating calldata with NonfungiblePositionManager.addCallParameters..."
-      );
-
       try {
         const { calldata, value } =
           NonfungiblePositionManager.addCallParameters(
             exactPosition,
             improvedMintOptions
           );
-
-        console.log("✅ Calldata generated successfully:", {
-          calldataLength: calldata.length,
-          value: value || "0",
-          positionLiquidity: exactPosition.liquidity.toString(),
-        });
 
         // Continue with transaction
         const transaction = {
@@ -1959,21 +1415,12 @@ export class UniswapV3SDKService {
           value: value || "0",
         };
 
-        console.log("🚀 Sending mint transaction...", {
-          to: transaction.to,
-          dataLength: transaction.data.length,
-          value: transaction.value,
-        });
-
         const txResponse = await this.signer.sendTransaction(transaction);
-        console.log("✅ Transaction sent:", txResponse.hash);
 
         const receipt = await txResponse.wait();
         if (!receipt) {
           throw new Error("Transaction receipt not available");
         }
-
-        console.log("✅ Transaction confirmed:", receipt.hash);
 
         // Parse result and return
         const result = this.parseMintResult(receipt);
@@ -1983,30 +1430,6 @@ export class UniswapV3SDKService {
             "Position creation failed: No NFT position was minted"
           );
         }
-
-        // FINAL SUCCESS CONFIRMATION
-        console.log("🎉 LIQUIDITY POOL CREATION SUCCESSFUL:", {
-          success: true,
-          transactionHash: receipt.hash,
-          nftTokenId: result.tokenId.toString(),
-          finalPoolRate: {
-            description: `Pool created with rate: 1 ${params.tokenA.symbol} = ${params.amount1} ${params.tokenB.symbol}`,
-            userDeposited: `${params.amount0} ${params.tokenA.symbol} + ${params.amount1} ${params.tokenB.symbol}`,
-          },
-          nextSteps: [
-            "1. ✅ Position NFT minted successfully",
-            "2. ✅ NFT position should appear in Uniswap V3 positions",
-            "3. ✅ Pool should be tradeable at correct rate",
-            "4. 🧹 If multiple pools exist with wrong rates, they can be ignored",
-          ],
-          warningResolution: {
-            multiplePoolsIssue:
-              "Previous pools may have wrong rates - use the latest one",
-            metamaskDisplay:
-              "MetaMask estimation may show wrong amounts - ignore the preview",
-            actualResult: `Real transaction deducted correct amounts: -${params.amount0} ${params.tokenA.symbol} & -${params.amount1} ${params.tokenB.symbol}`,
-          },
-        });
 
         return result;
       } catch (calldataError) {
@@ -2350,7 +1773,6 @@ export class UniswapV3SDKService {
           }
         } else {
           // Try with higher fixed gas limit as fallback
-          console.warn("⚠️ Using fixed high gas limit as fallback...");
 
           createPoolTx = await factoryContract.createPool(
             sortedToken0.address,
@@ -2816,9 +2238,6 @@ export class UniswapV3SDKService {
       // If fractionToAdd is provided, multiply by existing amounts (docs pattern)
       let finalAmount0 = amount0Increased;
       let finalAmount1 = amount1Increased;
-
-      console.log("finalAmount0", finalAmount0);
-      console.log("finalAmount1", finalAmount1);
 
       if (params.fractionToAdd !== undefined) {
         console.debug(
@@ -3302,77 +2721,6 @@ export class UniswapV3SDKService {
         params.tickUpper ||
         this.calculateTicks(pool.tickCurrent, params.fee, 1.2).tickUpper;
 
-      // const placeholderPosition = new Position({
-      //   pool,
-      //   liquidity: JSBI.BigInt(1), // Following docs: liquidity = 1
-      //   tickLower: nearestUsableTick(
-      //     tickLower,
-      //     this.getTickSpacing(params.fee)
-      //   ),
-      //   tickUpper: nearestUsableTick(
-      //     tickUpper,
-      //     this.getTickSpacing(params.fee)
-      //   ),
-      // });
-
-      console.debug("✅ Placeholder position created with liquidity = 1");
-
-      // Step 3: SwapAndAddConfig and SwapAndAddOptions (following docs exactly)
-
-      // Note: This would require @uniswap/smart-order-router
-      // const swapAndAddConfig: SwapAndAddConfig = {
-      //   ratioErrorTolerance: new Fraction(1, 100), // 1% error tolerance
-      //   maxIterations: 6, // Maximum iterations
-      // };
-
-      // const swapAndAddOptions: SwapAndAddOptions = {
-      //   swapOptions: {
-      //     type: SwapType.SWAP_ROUTER_02,
-      //     recipient: address,
-      //     slippageTolerance: new Percent(50, 10_000), // 0.50%
-      //     deadline: Math.floor(Date.now() / 1000) + 60 * 20, // 20 minutes
-      //   },
-      //   addLiquidityOptions: {
-      //     tokenId: positionId, // If adding to existing position
-      //   },
-      // };
-
-      // For now, return a simulation result since AlphaRouter is not available
-      console.warn(
-        "⚠️  AlphaRouter integration required for full implementation"
-      );
-      console.debug("📊 Swap and Add parameters configured:");
-      console.debug(`   - Input: ${params.inputAmount} ${inputToken.symbol}`);
-      console.debug(
-        `   - Pool: ${tokenA.symbol}/${tokenB.symbol} (${params.fee / 10000}%)`
-      );
-      console.debug(`   - Tick range: ${tickLower} to ${tickUpper}`);
-
-      // This would be the actual implementation with AlphaRouter:
-      // Step 4: Calculating currency ratio
-      // const routeToRatioResponse = await router.routeToRatio(
-      //   inputCurrencyAmount,
-      //   placeholderPosition,
-      //   swapAndAddConfig,
-      //   swapAndAddOptions
-      // );
-
-      // Step 5: Constructing and executing transaction
-      // if (!routeToRatioResponse || routeToRatioResponse.status !== SwapToRatioStatus.SUCCESS) {
-      //   throw new Error("Failed to find optimal swap route");
-      // }
-
-      // const route: SwapToRatioRoute = routeToRatioResponse.result;
-      // const transaction = {
-      //   data: route.methodParameters?.calldata,
-      //   to: addresses.SWAP_ROUTER,
-      //   value: route.methodParameters?.value,
-      //   from: address,
-      // };
-
-      // const txResponse = await this.signer.sendTransaction(transaction);
-      // const receipt = await txResponse.wait();
-
       throw new Error(
         "Full swap-and-add implementation requires @uniswap/smart-order-router package. Please install and configure AlphaRouter."
       );
@@ -3445,17 +2793,6 @@ export class UniswapV3SDKService {
           // Continue parsing other logs if one fails
           continue;
         }
-      }
-
-      // Validate parsing results
-      if (tokenId === 0) {
-        console.warn("❌ No NFT token ID found in transaction logs!");
-
-        // Log first few topics for debugging
-        // if (receipt.logs?.length > 0) {
-        //   console.debug("First 3 log topics for debugging:");
-        //   receipt.logs.slice(0, 3).forEach((_log: any, _index: number) => {});
-        // }
       }
 
       const result: MintResult = {

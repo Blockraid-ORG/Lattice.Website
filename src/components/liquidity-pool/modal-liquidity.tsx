@@ -700,26 +700,6 @@ export function ModalLiquidity({
       : "binance";
   }, [projectData?.chains]);
 
-  // Debug logging untuk chain ID dan token addresses
-  // useEffect(() => {
-  //   if (projectData?.chains[0]?.chain) {
-  //     console.log("🔗 Project Chain Info:", {
-  //       chainName: projectData.chains[0].chain.name,
-  //       chainId: projectData.chains[0].chain.chainid,
-  //       projectChainString: projectChain,
-  //       contractAddress: projectData.contractAddress,
-  //       selectedTokenA,
-  //       selectedTokenB,
-  //     });
-  //   }
-  // }, [
-  //   projectData,
-  //   projectChain,
-  //   selectedTokenA,
-  //   selectedTokenB,
-  //   tokenAddressMap,
-  // ]);
-
   // ROBUST: Process tokenAData with simple native token logic
   const processedTokenAData = useMemo(() => {
     // EARLY EXIT DEBUG

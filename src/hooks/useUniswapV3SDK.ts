@@ -40,8 +40,6 @@ export function useUniswapV3SDK(chainId: number = 56) {
   // 🔧 BSC Network Switching Helper (Simple Version)
   const switchToBSC = async (provider: any) => {
     try {
-      console.log("🔄 Switching to BSC network...");
-
       // BSC Mainnet Configuration
       const bscConfig = {
         chainId: "0x38", // 56 in hex
@@ -64,25 +62,17 @@ export function useUniswapV3SDK(chainId: number = 56) {
           method: "wallet_switchEthereumChain",
           params: [{ chainId: "0x38" }],
         });
-
-        console.log("✅ Successfully switched to BSC");
       } catch (switchError: any) {
         // If BSC network not added, add it first
         if (switchError.code === 4902) {
-          console.log("🔄 BSC network not found, adding it...");
-
           await provider.request({
             method: "wallet_addEthereumChain",
             params: [bscConfig],
           });
-
-          console.log("✅ BSC network added and switched");
         } else {
           throw switchError;
         }
       }
-
-      console.log("✅ BSC network switch completed successfully");
     } catch (error) {
       console.error("❌ Failed to switch to BSC:", error);
       throw new Error(`Failed to switch to BSC: ${(error as Error).message}`);
@@ -118,10 +108,6 @@ export function useUniswapV3SDK(chainId: number = 56) {
         // 🔧 CRITICAL FIX: Override provider dengan Circuit Breaker Protection
         let finalProvider = ethersProvider;
         if (chainId === 56) {
-          console.log(
-            "🔧 FIXING BSC PROVIDER: Testing multiple RPC endpoints for reliability"
-          );
-
           // 🔧 Load comprehensive RPC providers dari constants
           const { BSC_RPC_PROVIDERS } = await import("@/data/constants");
           const rpcProviders = [...BSC_RPC_PROVIDERS];
@@ -137,8 +123,6 @@ export function useUniswapV3SDK(chainId: number = 56) {
                 : rpcUrl.includes("ankr")
                 ? "Ankr"
                 : "PublicNode";
-
-              console.log(`🔍 Testing RPC provider: ${providerName}`);
 
               const testProvider = new ethers.JsonRpcProvider(rpcUrl);
 
@@ -195,7 +179,6 @@ export function useUniswapV3SDK(chainId: number = 56) {
           if (Number(network.chainId) !== chainId) {
             // 🔄 AUTOMATIC NETWORK SWITCHING untuk BSC
             if (chainId === 56) {
-              console.log("🔄 Attempting to switch to BSC for USDC/KS pair...");
               await switchToBSC(provider);
             }
           }
@@ -220,8 +203,6 @@ export function useUniswapV3SDK(chainId: number = 56) {
           swapAddService,
           isConnecting: false,
         });
-
-        console.log("✅ Uniswap V3 SDK services initialized");
       } catch (error) {
         console.error("❌ Error initializing SDK services:", error);
         updateState({
