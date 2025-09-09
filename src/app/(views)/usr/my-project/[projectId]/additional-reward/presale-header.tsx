@@ -44,6 +44,15 @@ export default function PresaleHeader({ data }: { data: TProject }) {
               </a>
             </div>
           </div>
+          <div className="flex">
+            <div className="w-32 md:w-1/3">Contract Airdrop</div>
+            <div className='w-3 shrink-0'>:</div>
+            <div className="flex-1 text-sm break-all">
+              <a className="text-xs font-semibold underline text-blue-500 block break-all" href={`${data.chains[0].chain.urlScanner}/address/${data.rewardContractAddress}`} target="_blank" rel="noopener noreferrer">
+                {data.rewardContractAddress}
+              </a>
+            </div>
+          </div>
         </div>
       </div>
       <div className="space-y-2">

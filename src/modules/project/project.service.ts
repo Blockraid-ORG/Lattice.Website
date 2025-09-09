@@ -63,6 +63,28 @@ class ProjectService extends BaseService<TProject, TFormProject> {
     })
     return response.data.data
   }
+  async SET_REWARD_CONTRACT_ADDRESS(data: {
+    id: string,
+    rewardContractAddress: string
+  }) {
+    const response = await axiosInstance({
+      method: 'POST',
+      url: this.endpoint + '/set-reward-contract-address',
+      data,
+    })
+    return response.data.data
+  }
+  async SET_REWARD_SCHEDULE_ID(data: {
+    id: string,
+    scheduleId: string
+  }) {
+    const response = await axiosInstance({
+      method: 'POST',
+      url: this.endpoint + '/set-reward-schedule-id',
+      data,
+    })
+    return response.data.data
+  }
 }
 
 const projectService = new ProjectService()

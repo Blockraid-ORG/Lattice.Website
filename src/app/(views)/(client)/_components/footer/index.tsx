@@ -45,8 +45,8 @@ export default function MainFooter() {
               <Link className='flex text-sm' href="/">
                 Privacy Policy
               </Link>
-              <Link className='flex text-sm' href="/">
-                Terms of Service
+              <Link className='flex text-sm' href="/term-and-condition">
+                Terms and Conditions
               </Link>
             </div>
           </div>

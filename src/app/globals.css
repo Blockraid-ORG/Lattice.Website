@@ -82,7 +82,7 @@
     }
 }
 
-@layer base{
+@layer base {
     .bg-card-gradient {
         @apply bg-gradient-to-tr from-[#00AEEF]/20 via-white/5 to-[#4057F7]/20;
         @apply dark:from-[#00AEEF]/20 dark:via-[#4057F7]/20 dark:to-[#00C292]/20;
@@ -93,10 +93,24 @@
         @apply dark:from-[#00AEEF]/5 dark:via-[#4057F7]/5 dark:to-[#00C292]/5;
         @apply dark:text-white shadow-md;
     }
-    .bg-form-token-gradient{
+    .bg-form-token-gradient {
         @apply bg-gradient-to-tr from-[#FFF]/10 via-[#FFF]/10 to-[#FFF]/10;
         @apply dark:border dark:from-[#000]/40 dark:via-[#000]/40 dark:to-[#000]/40;
         @apply dark:text-white shadow-md;
+    }
+    ol.risk-factors {
+        counter-reset: riskitem;
+        list-style: none;
+        padding-left: 1rem;
+    }
+    ol.risk-factors li {
+        counter-increment: riskitem;
+        margin-bottom: 0.5rem;
+    }
+    ol.risk-factors li::before {
+        content: "6." counter(riskitem) " ";
+        font-weight: bold;
+        margin-right: 0.25rem;
     }
 }
 @layer base {
