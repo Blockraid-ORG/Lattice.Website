@@ -58,28 +58,68 @@ export const ARBITRUM_TOKENS = {
   ARB: "0x912CE59144191C1204E64559FE8253a0e49E6548", // ARB Arbitrum
 } as const;
 
-// 🔧 Fallback RPC Providers for BSC (Circuit Breaker Protection)
-export const BSC_RPC_PROVIDERS = [
-  "https://bnb-mainnet.g.alchemy.com/v2/dQz-sUBEu_d9geFmnNObX", // Primary Alchemy
-  "https://bsc-dataseed1.binance.org/", // Binance Official #1
-  "https://bsc-dataseed2.binance.org/", // Binance Official #2
-  "https://bsc-dataseed3.binance.org/", // Binance Official #3
-  "https://bsc-dataseed4.binance.org/", // Binance Official #4
-  "https://rpc.ankr.com/bsc", // Ankr Public
-  "https://bsc.publicnode.com", // PublicNode
-  "https://binance.nodereal.io", // NodeReal
-  "https://bsc-mainnet.nodereal.io/v1/1659dfb40aa24bbb8153a677b98064d7", // NodeReal 2
-  "https://rpc-bsc.bnb48.club", // BNB48 Club
-  "https://bsc.rpc.blxrbdn.com", // Bloxico
-] as const;
+// 🔧 Dynamic RPC Providers - Now fetched from Terravest API
+// Menggantikan hardcoded URLs dengan API dinamis untuk keamanan dan fleksibilitas
 
-// 🔧 RPC Providers for Arbitrum One (Using Your Alchemy Account)
-export const ARBITRUM_RPC_PROVIDERS = [
-  "https://arb-mainnet.g.alchemy.com/v2/dQz-sUBEu_d9geFmnNObX", // Primary Alchemy (Your Account)
-  "https://arb1.arbitrum.io/rpc", // Official Arbitrum
-  "https://arbitrum-one.publicnode.com", // Public Node
-  "https://rpc.ankr.com/arbitrum", // Ankr Public
-] as const;
+import { RPCProviderService } from "@/services/rpc-provider.service";
+
+/**
+ * Get BSC RPC providers dinamis dari Terravest API
+ * @returns Promise<string[]> Array of RPC URLs
+ */
+export const getBSCRPCProviders = async (): Promise<string[]> => {
+  return await RPCProviderService.getAllRPCProviders(56);
+};
+
+/**
+ * Get Arbitrum RPC providers dinamis dari Terravest API
+ * @returns Promise<string[]> Array of RPC URLs
+ */
+export const getArbitrumRPCProviders = async (): Promise<string[]> => {
+  return await RPCProviderService.getAllRPCProviders(42161);
+};
+
+/**
+ * Get Ethereum RPC providers dinamis dari Terravest API
+ * @returns Promise<string[]> Array of RPC URLs
+ */
+export const getEthereumRPCProviders = async (): Promise<string[]> => {
+  return await RPCProviderService.getAllRPCProviders(1);
+};
+
+/**
+ * Get Polygon RPC providers dinamis dari Terravest API
+ * @returns Promise<string[]> Array of RPC URLs
+ */
+export const getPolygonRPCProviders = async (): Promise<string[]> => {
+  return await RPCProviderService.getAllRPCProviders(137);
+};
+
+/**
+ * Get Base RPC providers dinamis dari Terravest API
+ * @returns Promise<string[]> Array of RPC URLs
+ */
+export const getBaseRPCProviders = async (): Promise<string[]> => {
+  return await RPCProviderService.getAllRPCProviders(8453);
+};
+
+/**
+ * Get RPC URL untuk chain ID tertentu
+ * @param chainId Chain ID
+ * @returns Promise<string> RPC URL
+ */
+export const getRPCUrl = async (chainId: number): Promise<string> => {
+  return await RPCProviderService.getRPCUrl(chainId);
+};
+
+/**
+ * Get working RPC URL dengan connection testing
+ * @param chainId Chain ID
+ * @returns Promise<string> Working RPC URL
+ */
+export const getWorkingRPCUrl = async (chainId: number): Promise<string> => {
+  return await RPCProviderService.getWorkingRPCUrl(chainId);
+};
 
 export const UNISWAP_V3_ADDRESSES = {
   // Ethereum Mainnet

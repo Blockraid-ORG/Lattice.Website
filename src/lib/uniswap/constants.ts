@@ -20,8 +20,9 @@ export const NATIVE_TOKENS = {
 };
 
 export const FEE_TIERS = {
+  VERY_LOW: 100, // 0.01% - Stablecoins
   LOW: 500, // 0.05% - Stable pairs
-  MEDIUM: 3000, // 0.30% - Most common
+  MEDIUM: 3000, // 0.30% - Most common (DEFAULT)
   HIGH: 10000, // 1.00% - Exotic pairs
 };
 
@@ -34,8 +35,9 @@ export const TICK_RANGES = {
 };
 
 export const TICK_SPACINGS = {
+  100: 1, // 0.01% fee tier
   500: 10, // 0.05% fee tier
-  3000: 60, // 0.30% fee tier
+  3000: 60, // 0.30% fee tier (DEFAULT)
   10000: 200, // 1.00% fee tier
 };
 

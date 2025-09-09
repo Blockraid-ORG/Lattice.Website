@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
-import { UNISWAP_V3_ADDRESSES } from "@/data/constants";
+import { UNISWAP_V3_ADDRESSES, getRPCUrl } from "@/data/constants";
+import { RPCProviderService } from "@/services/rpc-provider.service";
 
 const FACTORY_ABI = [
   "function getPool(address tokenA, address tokenB, uint24 fee) external view returns (address pool)",
@@ -28,9 +29,9 @@ export class UniswapPoolService {
         UNISWAP_V3_ADDRESSES[chainId as keyof typeof UNISWAP_V3_ADDRESSES];
       if (!addresses) throw new Error(`Unsupported chain: ${chainId}`);
 
-      const provider = new ethers.JsonRpcProvider(
-        process.env[`CHAIN_${chainId}_RPC_URL`]
-      );
+      // 🔧 Menggunakan RPC dinamis dari Terravest API
+      const rpcUrl = await getRPCUrl(chainId);
+      const provider = new ethers.JsonRpcProvider(rpcUrl);
 
       const factory = new ethers.Contract(
         addresses.FACTORY,
@@ -48,7 +49,6 @@ export class UniswapPoolService {
 
       return poolAddress === ethers.ZeroAddress ? null : poolAddress;
     } catch (error) {
-      "Error checking pool existence:", error;
       throw new Error(`Failed to check pool: ${(error as Error).message}`);
     }
   }
@@ -58,9 +58,9 @@ export class UniswapPoolService {
    */
   static async getPoolInfo(poolAddress: string, chainId: number) {
     try {
-      const provider = new ethers.JsonRpcProvider(
-        process.env[`CHAIN_${chainId}_RPC_URL`]
-      );
+      // 🔧 Menggunakan RPC dinamis dari Terravest API
+      const rpcUrl = await getRPCUrl(chainId);
+      const provider = new ethers.JsonRpcProvider(rpcUrl);
 
       const pool = new ethers.Contract(poolAddress, POOL_ABI, provider);
 
@@ -102,35 +102,28 @@ export class UniswapPoolService {
   }
 
   /**
-   * Dapatkan RPC URL berdasarkan chain ID
+   * Dapatkan RPC URL berdasarkan chain ID (async method using Terravest API)
    */
-  static getRpcUrl(chainId: number): string {
-    // Fallback RPC URLs jika environment variable tidak ada
-    const fallbackRpcUrls: { [key: number]: string } = {
-      1: "https://ethereum.publicnode.com",
-      137: "https://polygon.llamarpc.com",
-      42161: "https://arbitrum.llamarpc.com",
-      56: "https://bsc-dataseed1.binance.org/",
-      43114: "https://avalanche.public-rpc.com",
-      80001:
-        "https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78",
-    };
+  static async getRpcUrl(chainId: number): Promise<string> {
+    try {
+      // 🔧 Menggunakan RPC dinamis dari Terravest API
+      return await getRPCUrl(chainId);
+    } catch (error) {
+      console.error(`Failed to get RPC URL for chain ${chainId}:`, error);
 
-    return (
-      process.env[`CHAIN_${chainId}_RPC_URL`] ||
-      process.env[
-        `${
-          chainId === 1
-            ? "ETHEREUM"
-            : chainId === 137
-            ? "POLYGON"
-            : chainId === 42161
-            ? "ARBITRUM"
-            : "BSC"
-        }_RPC_URL`
-      ] ||
-      fallbackRpcUrls[chainId] ||
-      fallbackRpcUrls[1] // Default to Ethereum
-    );
+      // Fallback jika API gagal
+      const fallbackRpcUrls: { [key: number]: string } = {
+        1: "https://ethereum.publicnode.com",
+        137: "https://polygon.llamarpc.com",
+        42161: "https://arb1.arbitrum.io/rpc",
+        56: "https://bsc-dataseed1.binance.org/",
+        43114: "https://avalanche.public-rpc.com",
+        8453: "https://base.publicnode.com",
+        11155111: "https://sepolia.publicnode.com",
+        97: "https://bsc-testnet.publicnode.com",
+      };
+
+      return fallbackRpcUrls[chainId] || fallbackRpcUrls[1];
+    }
   }
 }

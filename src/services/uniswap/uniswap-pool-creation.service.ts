@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import { encodeSqrtRatioX96 } from "@uniswap/v3-sdk";
 import BigNumber from "bignumber.js";
 import { UNISWAP_V3_ADDRESSES } from "@/data/constants";
+import { FEE_TIERS } from "@/lib/uniswap/constants";
 import { UniswapPoolService } from "./uniswap-pool.service";
 
 export interface CreatePoolParams {
@@ -17,11 +18,8 @@ export class UniswapPoolCreationService {
   /**
    * Fee tiers yang didukung Uniswap V3
    */
-  static readonly FEE_TIERS = {
-    LOW: 500, // 0.05% - Stable pairs
-    MEDIUM: 3000, // 0.30% - Most common
-    HIGH: 10000, // 1.00% - Exotic pairs
-  };
+  // Use centralized FEE_TIERS from constants
+  static readonly FEE_TIERS = FEE_TIERS;
 
   /**
    * Buat pool baru jika belum ada
@@ -38,7 +36,9 @@ export class UniswapPoolCreationService {
       // Validasi fee tier
       if (!this.isValidFeeTier(fee)) {
         throw new Error(
-          `Invalid fee tier: ${fee}. Supported: 500, 3000, 10000`
+          `Invalid fee tier: ${fee}. Supported: ${Object.values(FEE_TIERS).join(
+            ", "
+          )}`
         );
       }
 
@@ -75,15 +75,6 @@ export class UniswapPoolCreationService {
         signer
       );
 
-      "Creating pool with params:",
-        {
-          token0,
-          token1,
-          fee,
-          sqrtPriceX96: sqrtPriceX96.toString(),
-          chainId,
-        };
-
       const tx = await positionManager.createAndInitializePoolIfNecessary(
         token0,
         token1,
@@ -94,9 +85,7 @@ export class UniswapPoolCreationService {
         }
       );
 
-      "Pool creation transaction sent:", tx.hash;
       const receipt = await tx.wait();
-      "Pool created successfully:", receipt.hash;
 
       // Return the pool address
       const poolAddress = await UniswapPoolService.checkPoolExists(
@@ -112,7 +101,6 @@ export class UniswapPoolCreationService {
 
       return poolAddress;
     } catch (error) {
-      "Error creating pool:", error;
       throw new Error(`Failed to create pool: ${(error as Error).message}`);
     }
   }
@@ -138,7 +126,6 @@ export class UniswapPoolCreationService {
       );
 
       if (existingPool) {
-        "Pool already exists:", existingPool;
         return existingPool;
       }
 
@@ -203,7 +190,6 @@ export class UniswapPoolCreationService {
 
       return sqrtPriceX96; // Return JSBI type directly
     } catch (error) {
-      "Error calculating sqrtPriceX96:", error;
       throw new Error(
         `Failed to calculate sqrtPriceX96: ${(error as Error).message}`
       );
@@ -256,7 +242,6 @@ export class UniswapPoolCreationService {
       // Add 20% buffer
       return (estimatedGas * BigInt(120)) / BigInt(100);
     } catch (error) {
-      "Gas estimation failed:", error;
       return BigInt(3000000); // Conservative fallback
     }
   }

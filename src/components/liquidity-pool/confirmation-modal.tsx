@@ -13,6 +13,7 @@ import { ethers } from "ethers";
 import BigNumber from "bignumber.js";
 import { useState } from "react";
 import { useWeb3AuthConnect } from "@web3auth/modal/react";
+import { FEE_TIERS } from "@/lib/uniswap/constants";
 import { useUniswapV3SDK } from "@/hooks/useUniswapV3SDK";
 // import { ARBITRUM_RPC_PROVIDERS } from "@/data/constants";
 // import { cn } from "@/lib/utils";
@@ -86,7 +87,7 @@ export function ConfirmationModal({
   },
   calculateTotalPoolValue = () => "US$0",
   // New props with defaults
-  feeTier = "0.05",
+  feeTier = "0.3",
   chainId = 56, // Default to BSC
   userAddress,
 }: ConfirmationModalProps) {
@@ -623,14 +624,16 @@ export function ConfirmationModal({
       // Convert fee tier string to proper fee value
       const convertFeeTier = (feeTierStr: string): number => {
         switch (feeTierStr) {
+          case "0.01":
+            return FEE_TIERS.VERY_LOW; // 0.01%
           case "0.05":
-            return 500; // 0.05%
+            return FEE_TIERS.LOW; // 0.05%
           case "0.3":
-            return 3000; // 0.30%
+            return FEE_TIERS.MEDIUM; // 0.30%
           case "1":
-            return 10000; // 1.00%
+            return FEE_TIERS.HIGH; // 1.00%
           default:
-            return 3000; // Default to 0.30%
+            return FEE_TIERS.MEDIUM; // Default to 0.30%
         }
       };
 
@@ -1110,7 +1113,7 @@ export function ConfirmationModal({
               <div className="flex items-center gap-2">
                 <span className="bg-muted px-2 py-1 rounded text-xs">v3</span>
                 <span className="bg-muted px-2 py-1 rounded text-xs">
-                  0.05%
+                  {feeTier}%
                 </span>
               </div>
             </div>

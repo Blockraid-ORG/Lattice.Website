@@ -21,7 +21,9 @@ import {
   MintResult,
   CollectResult,
 } from "@/types/uniswap";
-import { UNISWAP_V3_ADDRESSES } from "@/data/constants";
+import { UNISWAP_V3_ADDRESSES, getWorkingRPCUrl } from "@/data/constants";
+import { RPCProviderService } from "@/services/rpc-provider.service";
+import { FEE_TIERS, TICK_SPACINGS } from "@/lib/uniswap/constants";
 import positionManagerABI from "@/lib/abis/position-manager.abi.json";
 
 /**
@@ -44,28 +46,30 @@ export class UniswapV3SDKService {
   }
 
   /**
-   * Create fallback provider for Arbitrum if main provider fails
+   * Create fallback provider menggunakan dynamic RPC dari Terravest API
    */
   private async createFallbackProvider(): Promise<ethers.JsonRpcProvider> {
-    if (this.chainId === 42161) {
-      // Arbitrum fallback RPCs
-      const fallbackRPCs = [
-        "https://arb1.arbitrum.io/rpc",
-        "https://arbitrum-one.publicnode.com",
-        "https://rpc.ankr.com/arbitrum",
-      ];
+    try {
+      // 🔧 Menggunakan dynamic RPC providers dari Terravest API
+      const fallbackRPCs = await RPCProviderService.getAllRPCProviders(
+        this.chainId
+      );
 
       for (const rpc of fallbackRPCs) {
         try {
+          console.log(`🔍 Testing fallback provider: ${rpc}`);
           const fallbackProvider = new ethers.JsonRpcProvider(rpc);
           await fallbackProvider.getBlockNumber(); // Test connection
 
+          console.log(`✅ Fallback provider working: ${rpc}`);
           return fallbackProvider;
         } catch (error: any) {
           console.error(`❌ Fallback provider failed: ${rpc}`, error.message);
           continue;
         }
       }
+    } catch (error) {
+      console.error("❌ Failed to get dynamic RPC providers:", error);
     }
 
     throw new Error("No working fallback provider available");
@@ -97,64 +101,6 @@ export class UniswapV3SDKService {
   }
 
   /**
-   * Test contract calls untuk memastikan provider dapat melakukan contract interactions
-   */
-  // private async testContractCalls(): Promise<void> {
-  //   try {
-  //     console.debug(
-  //       "🔍 Testing contract calls for circuit breaker protection..."
-  //     );
-
-  //     // Test dengan KS token contract call
-  //     const ksTokenAddress = "0xC327D83686f6B491B1D93755fCEe036aBd4877Dc";
-  //     const usdcTokenAddress = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d";
-
-  //     // Quick getCode test untuk both tokens
-  //     const [ksCode, usdcCode] = await Promise.all([
-  //       this.provider.getCode(ksTokenAddress),
-  //       this.provider.getCode(usdcTokenAddress),
-  //     ]);
-  //     console.debug("KS bytecode length:", ksCode?.length || 0);
-  //     console.debug("USDC bytecode length:", usdcCode?.length || 0);
-  //   } catch (error) {
-  //     // Don't throw, provider might still work for basic operations
-  //     console.debug(
-  //       "testContractCalls encountered an error (non-fatal):",
-  //       error
-  //     );
-  //   }
-  // }
-
-  /**
-   * Test provider RPC endpoint untuk BSC debugging
-   */
-  // private async testProviderRPC(): Promise<void> {
-  //   try {
-  //     console.debug("🧪 Testing provider RPC for BSC...");
-
-  //     // Test 1: Basic network info
-  //     const network = await this.provider.getNetwork();
-  //     console.debug("Provider network:", network.chainId, network.name);
-
-  //     // Test 2: Get block number
-  //     const blockNumber = await this.provider.getBlockNumber();
-  //     console.debug("Provider latest block:", blockNumber);
-
-  //     // Test 3: Direct contract test on KS token
-  //     const ksTokenAddress = "0xC327D83686f6B491B1D93755fCEe036aBd4877Dc";
-  //     const code = await this.provider.getCode(ksTokenAddress);
-  //     console.debug("KS token code length:", code?.length || 0);
-
-  //     // Test 4: Direct contract test on USDC token
-  //     const usdcTokenAddress = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d";
-  //     const usdcCode = await this.provider.getCode(usdcTokenAddress);
-  //     console.debug("USDC code length:", usdcCode?.length || 0);
-  //   } catch (error) {
-  //     console.debug("testProviderRPC encountered an error (non-fatal):", error);
-  //   }
-  // }
-
-  /**
    * Create Token instance for USDC/KS pair on BSC
    * Following official Uniswap V3 documentation
    */
@@ -167,7 +113,6 @@ export class UniswapV3SDKService {
         tokenData.address?.toLowerCase() ===
           "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
       ) {
-        console.debug("🔍 Creating USDC BSC token");
         return new Token(
           56,
           "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
@@ -441,18 +386,13 @@ export class UniswapV3SDKService {
    * Get tick spacing for fee tier
    */
   private getTickSpacing(fee: number): number {
-    switch (fee) {
-      case 100:
-        return 1; // 0.01%
-      case 500:
-        return 10; // 0.05%
-      case 3000:
-        return 60; // 0.30%
-      case 10000:
-        return 200; // 1.00%
-      default:
-        return 60; // Default to 0.30%
+    const validFees = [100, 500, 3000, 10000] as const;
+    type ValidFee = (typeof validFees)[number];
+
+    if (validFees.includes(fee as ValidFee)) {
+      return TICK_SPACINGS[fee as ValidFee];
     }
+    return TICK_SPACINGS[FEE_TIERS.MEDIUM as keyof typeof TICK_SPACINGS];
   }
 
   /**
@@ -647,10 +587,9 @@ export class UniswapV3SDKService {
           );
 
           try {
-            // Test with user's Alchemy RPC endpoint
-            const userAlchemyRpc =
-              "https://bnb-mainnet.g.alchemy.com/v2/dQz-sUBEu_d9geFmnNObX";
-            const rpcResponse = await fetch(userAlchemyRpc, {
+            // 🔧 Test dengan dynamic RPC dari Terravest API
+            const dynamicRpcUrl = await getWorkingRPCUrl(this.chainId);
+            const rpcResponse = await fetch(dynamicRpcUrl, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -664,10 +603,11 @@ export class UniswapV3SDKService {
             const rpcData = await rpcResponse.json();
 
             if (rpcData.result && rpcData.result !== "0x") {
+              console.debug("✅ Token verified with dynamic RPC");
             }
           } catch (rpcError) {
             console.debug(
-              "Alternative RPC verification failed:",
+              "Dynamic RPC verification failed:",
               (rpcError as any)?.message || rpcError
             );
           }
@@ -1142,7 +1082,12 @@ export class UniswapV3SDKService {
       if (!params.recipient || !ethers.isAddress(params.recipient)) {
         throw new Error("Valid recipient address is required");
       }
-      const validFees = [100, 500, 3000, 10000];
+      const validFees = [
+        FEE_TIERS.VERY_LOW,
+        FEE_TIERS.LOW,
+        FEE_TIERS.MEDIUM,
+        FEE_TIERS.HIGH,
+      ];
       if (!validFees.includes(params.fee)) {
         throw new Error(`Invalid fee tier: ${params.fee}`);
       }
@@ -1234,7 +1179,12 @@ export class UniswapV3SDKService {
           );
 
           // Check all fee tiers
-          const feeTiers = [100, 500, 3000, 10000];
+          const feeTiers = [
+            FEE_TIERS.VERY_LOW,
+            FEE_TIERS.LOW,
+            FEE_TIERS.MEDIUM,
+            FEE_TIERS.HIGH,
+          ];
           for (const feeToCheck of feeTiers) {
             const existingPoolAddress = await factoryContract.getPool(
               token0.address,
@@ -1736,15 +1686,15 @@ export class UniswapV3SDKService {
             console.debug("Pool recheck failed, trying different fee tier...");
           }
 
-          // Try different fee tier (1% instead of 0.05%)
-          if (params.fee === 500) {
-            console.debug("🔄 Trying 1% fee tier instead of 0.05%...");
+          // Try different fee tier (fallback from 0.3%)
+          if (params.fee === FEE_TIERS.MEDIUM) {
+            console.debug("🔄 Trying 0.05% fee tier as fallback from 0.3%...");
 
             try {
               createPoolTx = await factoryContract.createPool(
                 sortedToken0.address,
                 sortedToken1.address,
-                500, // 0.05% fee tier
+                FEE_TIERS.LOW, // 0.05% fee tier
                 {
                   gasLimit: 150000, // FIXED: Lower gas for Arbitrum
                   maxFeePerGas: ethers.parseUnits("0.1", "gwei"), // FIXED: Much lower for Arbitrum
@@ -1758,7 +1708,7 @@ export class UniswapV3SDKService {
               createPoolTx = await factoryContract.createPool(
                 sortedToken0.address,
                 sortedToken1.address,
-                500, // 0.05% fee tier
+                FEE_TIERS.LOW, // 0.05% fee tier
                 {
                   gasLimit: 150000, // FIXED: Lower gas for Arbitrum
                   maxFeePerGas: ethers.parseUnits("0.1", "gwei"), // FIXED: Much lower for Arbitrum
@@ -1886,9 +1836,11 @@ export class UniswapV3SDKService {
           "🔄 RPC error occurred, trying different fee tier as workaround..."
         );
 
-        if (params.fee === 500) {
+        if (params.fee === FEE_TIERS.MEDIUM) {
           try {
-            console.debug("🔄 Attempting 0.05% fee tier due to RPC issues...");
+            console.debug(
+              "🔄 Attempting 0.05% fee tier due to RPC issues (fallback from 0.3%)..."
+            );
 
             // Check if variables were initialized before the error occurred
             if (!factoryContract || !sortedToken0 || !sortedToken1) {
@@ -1921,7 +1873,7 @@ export class UniswapV3SDKService {
             const altPoolAddress = await factoryContract.getPool(
               sortedToken0.address,
               sortedToken1.address,
-              500 // 0.05% fee
+              FEE_TIERS.LOW // 0.05% fee
             );
 
             return {

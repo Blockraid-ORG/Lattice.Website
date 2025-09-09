@@ -19,6 +19,7 @@ import {
 import JSBI from "jsbi";
 import { TokenData, SwapAndAddParams } from "@/types/uniswap";
 import { UNISWAP_V3_ADDRESSES } from "@/data/constants";
+import { FEE_TIERS, TICK_SPACINGS } from "@/lib/uniswap/constants";
 
 /**
  * 6. SWAPPING AND ADDING LIQUIDITY - Following official docs
@@ -344,7 +345,7 @@ export class UniswapSwapAndAddService {
   ): Promise<MethodParameters | null> {
     try {
       // Find the best route (simplified - should use routing algorithm)
-      const fee = 500; // Default to 0.05% fee tier
+      const fee = FEE_TIERS.MEDIUM; // Default to 0.3% fee tier
 
       // Get pool for swap
       const swapPool = await this.getPool(
@@ -464,7 +465,12 @@ export class UniswapSwapAndAddService {
     fee: number,
     rangeMultiplier: number = 1.2
   ): { tickLower: number; tickUpper: number } {
-    const tickSpacing = fee === 500 ? 10 : fee === 3000 ? 60 : 200;
+    const validFees = [100, 500, 3000, 10000] as const;
+    type ValidFee = (typeof validFees)[number];
+
+    const tickSpacing = validFees.includes(fee as ValidFee)
+      ? TICK_SPACINGS[fee as ValidFee]
+      : TICK_SPACINGS[FEE_TIERS.MEDIUM as keyof typeof TICK_SPACINGS];
     const range = Math.floor(tickSpacing * 10 * rangeMultiplier);
 
     const tickLower = nearestUsableTick(currentTick - range, tickSpacing);

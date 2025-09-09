@@ -37,9 +37,15 @@ export function useUniswapV3SDK(chainId: number = 56) {
 
   const { connect, isConnected } = useWeb3AuthConnect();
 
-  // 🔧 BSC Network Switching Helper (Simple Version)
+  // 🔧 BSC Network Switching Helper (Updated with Dynamic RPC)
   const switchToBSC = async (provider: any) => {
     try {
+      // Get dynamic RPC URL dari Terravest API
+      const { getRPCUrl } = await import("@/data/constants");
+      const dynamicRpcUrl = await getRPCUrl(56).catch(
+        () => "https://bsc-dataseed1.binance.org/"
+      );
+
       // BSC Mainnet Configuration
       const bscConfig = {
         chainId: "0x38", // 56 in hex
@@ -49,10 +55,7 @@ export function useUniswapV3SDK(chainId: number = 56) {
           symbol: "BNB",
           decimals: 18,
         },
-        rpcUrls: [
-          process.env.NEXT_PUBLIC_BSC_RPC ||
-            "https://bsc-dataseed1.binance.org/",
-        ],
+        rpcUrls: [dynamicRpcUrl],
         blockExplorerUrls: ["https://bscscan.com/"],
       };
 
@@ -105,12 +108,15 @@ export function useUniswapV3SDK(chainId: number = 56) {
         const ethersProvider = new ethers.BrowserProvider(provider);
         const signer = await ethersProvider.getSigner();
 
-        // 🔧 CRITICAL FIX: Override provider dengan Circuit Breaker Protection
+        // 🔧 CRITICAL FIX: Override provider dengan Dynamic RPC dari Terravest API
         let finalProvider = ethersProvider;
         if (chainId === 56) {
-          // 🔧 Load comprehensive RPC providers dari constants
-          const { BSC_RPC_PROVIDERS } = await import("@/data/constants");
-          const rpcProviders = [...BSC_RPC_PROVIDERS];
+          // 🔧 Load dynamic RPC providers dari Terravest API
+          const { getBSCRPCProviders } = await import("@/data/constants");
+          const rpcProviders = await getBSCRPCProviders().catch(() => [
+            "https://bsc-dataseed1.binance.org/",
+            "https://bsc-dataseed2.binance.org/",
+          ]);
 
           let workingProvider = null;
 
