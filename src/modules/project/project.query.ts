@@ -164,3 +164,35 @@ export const useSetDistributedLocker = () => {
     }
   });
 };
+
+export const useSetRewardContractAddress = () => {
+  return useMutation({
+    mutationFn: (data: {
+      projectId: string,
+      rewardContract: {
+        id: string,
+        rewardContractAddress: string
+      }
+    }) => projectService.SET_REWARD_CONTRACT_ADDRESS(data.rewardContract),
+    onSuccess: () => {
+      toast.success('Success', {
+        description: `Reward contract address has been set!`
+      })
+    },
+  });
+}
+
+export const useSetRewardScheduleId = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      id: string,
+      scheduleId: string,
+    }) => projectService.SET_REWARD_SCHEDULE_ID(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get_project_by_id"]
+      });
+    },
+  });
+}

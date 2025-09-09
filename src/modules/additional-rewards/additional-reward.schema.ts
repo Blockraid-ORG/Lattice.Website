@@ -8,5 +8,6 @@ export const formAdditionalRewardSchema = z.object({
     message:'required'
   }),
   duration: z.coerce.number().int().positive(),
-  unitTime: z.enum(['day','month']),
+  unitTime: z.enum(['day', 'month']),
+  scheduleId: z.string().uuid().optional(),
 })

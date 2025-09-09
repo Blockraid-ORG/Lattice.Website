@@ -104,7 +104,7 @@ export const columns: ColumnDef<TProject>[] = [
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href={`/usr/my-project/${row.original.id}/additional-reward`}>
-                  <Icon className="text-lg" name="tabler:gift-filled" /> Additional Reward
+                  <Icon className="text-lg" name="tabler:gift-filled" /> Reward
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>

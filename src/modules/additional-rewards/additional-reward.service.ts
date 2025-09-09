@@ -25,12 +25,14 @@ class AdditionalRewardService extends BaseService<TAdditionalReward, TFormAdditi
   async SET_CONTRACT_ADDRESS(data: {
     id: string,
     contractAddress: string
+    scheduleId: string
   }) {
     const response = await axiosInstance({
       method: 'PATCH',
       url: `${this.endpoint}/${data.id}`,
       data: {
-        contactAddress: data.contractAddress
+        contactAddress: data.contractAddress,
+        scheduleId: data.scheduleId
       }
     })
     return response.data.data
@@ -43,11 +45,11 @@ class AdditionalRewardService extends BaseService<TAdditionalReward, TFormAdditi
     })
     return response.data.data
   }
-  async SET_AIRDROP_CLAIMED(id: string, data: { isClaimed: boolean }) {
+  async SET_AIRDROP_CLAIMED(id:string) {
     const response = await axiosInstance({
-      method: 'PATCH',
-      url: `${this.endpoint}/${id}`,
-      data: data
+      method: 'POST',
+      url: `${this.endpoint}/set-user-allocation-claim`,
+      data: { id }
     })
     return response.data.data
   }

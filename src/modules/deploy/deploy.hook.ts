@@ -11,6 +11,7 @@ import { useAccount, useWalletClient } from 'wagmi';
 import {
   useSetAllocationDeploy,
   useSetDistributedLocker,
+  useSetRewardContractAddress,
   useUpdateAllocation
 } from '../project/project.query';
 import {
@@ -25,6 +26,7 @@ export function useDeployToken() {
   const { mutate: updateAllocation } = useUpdateAllocation()
   const { mutate: setAllocationDeploy } = useSetAllocationDeploy()
   const { mutate: setDistributedLocker } = useSetDistributedLocker()
+  const { mutate: setRewardContractAddress } = useSetRewardContractAddress()
   const { data: vestings } = useVestingStore()
   const { mutate: deployProject } = useDeployProject()
   const { mutate: deployWhitelist } = useDeployWhitelist()
@@ -46,7 +48,7 @@ export function useDeployToken() {
     await contract.waitForDeployment();
     return contract;
   }, [address, walletClient]);
-  
+
   const lockAndDistribute = useCallback(async (project: TProject) => {
     if (typeof window === 'undefined') return
     if (!walletClient || !address) throw new Error('Wallet not connected')
@@ -71,7 +73,7 @@ export function useDeployToken() {
 
     }
 
-  }, [address, setDistributedLocker, vestings, walletClient]) 
+  }, [address, setDistributedLocker, vestings, walletClient])
 
   const deployFactoryBasic = useCallback(async (project: TProject) => {
     try {
@@ -140,7 +142,6 @@ export function useDeployToken() {
           const originalDate = new Date(i.startDate);
           const newDate = new Date(originalDate);
           newDate.setDate(newDate.getDate() + (Number(i.vesting) * 30));
-          // return Math.floor(newDate.getTime() / 1000);
           return Math.floor(newDate.getTime() / 1000).toString();
         })
 
@@ -176,6 +177,7 @@ export function useDeployToken() {
         const result = {
           token: undefined as string | undefined,
           whitelist: undefined as string | undefined,
+          airdrop: undefined as string | undefined,
           lockers: [] as string[],
         };
         for (const log of receipt.logs) {
@@ -192,6 +194,9 @@ export function useDeployToken() {
 
             if (parsed?.name === "LockerDeployed") {
               result.lockers.push(parsed.args[0]);
+            }
+            if (parsed?.name === "AirdropDeployed") {
+              result.airdrop = parsed.args[0];
             }
           } catch {
             console.log('Error')
@@ -260,13 +265,21 @@ export function useDeployToken() {
                 whitelistContract: result.whitelist as string,
                 contractAddress: presale.target as string
               });
+              const setRewardContractAddressPromise = setRewardContractAddress({
+                projectId: project.id,
+                rewardContract: {
+                  id: project.id,
+                  rewardContractAddress: result.airdrop as string
+                }
+              });
 
               // Run all promises in parallel (if they are not dependent)
               await Promise.all([
                 ...updateVestingAllocations,
                 updatePresale,
                 deployWhitelistPromise,
-                deployPresalePromise
+                deployPresalePromise,
+                setRewardContractAddressPromise
               ]);
             } catch (err: any) {
               toast.error(err.message ?? 'Something went wrong during deployment.');
@@ -278,17 +291,7 @@ export function useDeployToken() {
       console.error({ error: error.message })
       toast.error('Something went wrong during deployment.');
     }
-  }, [
-    deployFactoryContractBasic,
-    deployPresale,
-    deployProject,
-    deployWhitelist,
-    setAllocationDeploy,
-    updateAllocation,
-    address,
-    vestings,
-    walletClient
-  ])
+  }, [walletClient, address, deployFactoryContractBasic, setAllocationDeploy, vestings, deployProject, updateAllocation, deployWhitelist, deployPresale, setRewardContractAddress])
   return {
     lockAndDistribute,
     deployFactoryBasic,

@@ -87,6 +87,8 @@ export type TAdditionalReward = {
   endDateClaim: string
   isClaimed: boolean
   contactAddress: string
+
+  scheduleId: string | null
   userAdditionalReward: TUserAdditionalReward[] | []
 }
 export type TProject = {
@@ -105,6 +107,7 @@ export type TProject = {
   factoryAddress?: string
   lockerDistributed?: boolean,
   lockerDistributeHash?: string,
+  rewardContractAddress: string | null
   socials: {
     url: string;
     social: TSocial;
@@ -151,6 +154,7 @@ export type TEligibleAirdrop = {
   name: string
   ticker: string
   contractAddress: string
+  rewardContractAddress: string | null
   decimals: number
   banner: string
   logo: string
@@ -163,7 +167,8 @@ export type TEligibleAirdrop = {
 
 export type TAirdropItem = {
   id: string
-  address: string
-  amount: number
+  address?: string
+  amount?: number
   isClaimed: boolean
+  schedileId?: string
 }
