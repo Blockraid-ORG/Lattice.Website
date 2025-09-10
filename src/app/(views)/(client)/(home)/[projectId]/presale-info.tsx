@@ -5,9 +5,12 @@ import { TProject } from '@/types/project';
 import { FormBuyPresale } from './form-buy-presale';
 import { useWeb3Auth } from '@web3auth/modal/react';
 import TableMyContribution from './table-my-contribution';
+import TimeCountDown from '@/components/time-count-down';
 
 export default function PresaleInfo({ data }: { data: TProject }) {
   const { isConnected } = useWeb3Auth()
+
+  console.log(data.presales)
   return (
     <div className='relative z-20 px-3 md:px-0'>
       <div className="container bg-white shadow shadow-neutral-100/5 border p-6 dark:bg-neutral-950 rounded-xl my-6">
@@ -32,10 +35,12 @@ export default function PresaleInfo({ data }: { data: TProject }) {
             <div>
               <p className='text-sm text-neutral-500'>Start Date</p>
               <h2 className='font-bold'>{dayjs(data?.presales.startDate).format('YYYY-MM-DD HH:mm')}</h2>
+              <TimeCountDown date={data?.presales.startDate} />
             </div>
             <div>
               <p className='text-sm text-neutral-500'>End Date</p>
               <h2 className='font-bold'>{dayjs(data?.presales.endDate).format('YYYY-MM-DD HH:mm')}</h2>
+              <TimeCountDown date={data?.presales.endDate} />
             </div>
           </div>
           <div className='mt-3 flex justify-start container sticky bottom-0 z-30 px-4 md:px-0'>

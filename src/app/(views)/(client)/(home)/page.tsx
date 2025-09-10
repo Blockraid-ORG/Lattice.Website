@@ -3,7 +3,6 @@ import ActivePresale from './active-presale'
 import Community from './comnunity'
 import NewHero from './new-hero'
 import SupporChain from './suppor-chain'
-// import Upcoming from './upcoming'
 import UpcomingPresale from './upcoming-presale'
 
 export default function Home() {
@@ -35,7 +34,6 @@ export default function Home() {
       </section>
       <UpcomingPresale />
       <ActivePresale />
-      {/* <Upcoming /> */}
       <SupporChain />
       <Community />
     </>

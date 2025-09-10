@@ -146,7 +146,7 @@ export default function TokenInformation({ data }: { data: TProject }) {
                   value={data.projectType?.name}
                 />
                 <div className="flex py-2 border-t">
-                  <div className="w-1/3">Contract</div>
+                  <div className="w-1/3">Asset Contract</div>
                   <div className="w-3 shrink-0">:</div>
                   <div className="flex-1 text-sm break-all">
                     <a

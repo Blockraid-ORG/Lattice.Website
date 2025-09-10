@@ -15,7 +15,7 @@ export default function NewHero() {
             <div className='space-y-2 md:space-y-8 text-center md:text-start relative'>
               <h1 className='text-3xl md:text-6xl font-bold max-w-xl'>
                 Tokenize, Invest, <br />
-                Thrive
+                Thrive.
               </h1>
               <p className='text-sm sm:text-lg md:text-2xl max-w-lg dark:text-blue-200'>
                 Empowering the future of real-world asset investing, unlocking global access, fractional ownership, and seamless trading.

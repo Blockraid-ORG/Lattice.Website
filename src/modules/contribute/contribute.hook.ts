@@ -30,15 +30,19 @@ export function useContribute() {
       PresaleAbi.abi,
       signer
     );
+
     try {
       const blockStartTime = await presaleFactory.startTime()
       const presaleStartTime = new Date(Number(blockStartTime) * 1000)
-      // const userAddress = await signer.getAddress();
+      const userAddress = await signer.getAddress();
       const today = dayjs();
       if (!today.isAfter(dayjs(presaleStartTime))) {
         console.log("Presale not started ✅", dayjs(presaleStartTime).format('YYYY MMM DD HH:mm:ss'));
       }
-      const tx = await presaleFactory.contribute({
+      // value: ethers.parseEther(amount.toString())
+      // value: ethers.parseUnits(amount.toString(), project.decimals)
+      // value: ethers.parseEther(amount.toString())
+      const tx = await presaleFactory.contribute(userAddress, {
         value: ethers.parseEther(amount.toString())
       })
       contributeMutate({
@@ -79,7 +83,6 @@ export function useContribute() {
   }, [address, walletClient])
 
   const claimPresale = useCallback(async (project: TProject) => {
-    
     try {
       const endOfPresale = dayjs(project.presales.startDate).add(+project.presales.duration, "day")
       const isPresaleStillRun = endOfPresale.isAfter(dayjs())
