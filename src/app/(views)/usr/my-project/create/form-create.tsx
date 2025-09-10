@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { presalesDurations, vestingCounts } from "@/data/constants"
+import { presalesDurations } from "@/data/constants"
 import { converToIpfs, pinata } from "@/lib/pinata"
 import { toUrlAsset } from "@/lib/utils"
 import { useCategoryList } from "@/modules/category/category.query"
@@ -391,7 +391,7 @@ export default function FormCreate() {
                         <FormInput
                           control={form.control}
                           name={`allocations.${index}.name`}
-                          label={"Allocation"}
+                          label={"Deployer"}
                           placeholder="e.g. Team"
                           disabled={field.name === "Presale"}
                         />
@@ -406,7 +406,14 @@ export default function FormCreate() {
                         />
                       </div>
                       <div className="flex-1">
-                        <FormSelect
+                        <FormInput
+                          control={form.control}
+                          name={`allocations.${index}.vesting`}
+                          label="Vesting (mo)"
+                          placeholder="1"
+                          type="number"
+                        />
+                        {/* <FormSelect
                           control={form.control}
                           name={`allocations.${index}.vesting`}
                           label={"Vesting (mo)"}
@@ -415,7 +422,8 @@ export default function FormCreate() {
                             label: 'Vesting',
                             options: vestingCounts ?? []
                           }] : []}
-                        />
+                          disabled={field.name === "Presale"}
+                        /> */}
                       </div>
                       <div className="flex-1">
                         <FormInput
@@ -424,6 +432,7 @@ export default function FormCreate() {
                           label="Start Date"
                           placeholder="e.g. 6"
                           type="date"
+                          disabled={field.name === "Presale"}
                         />
                       </div>
                       <Button
@@ -523,7 +532,6 @@ export default function FormCreate() {
                           <Switch onCheckedChange={onCheckedChange} id="enable-whitelist" />
                           <Label htmlFor="enable-whitelist">Enable Whitelist</Label>
                         </div>
-
                         {
                           showInputWL && (
                             <div className="mt-4 pt-4 border-t space-y-3">
@@ -536,13 +544,13 @@ export default function FormCreate() {
                                   type="number"
                                 />
                               </div>
-                              <FormInput
+                              {/* <FormInput
                                 control={form.control}
                                 name={`whitelistAddress`}
                                 label="Address"
                                 isLongText
                                 rows={10}
-                              />
+                              /> */}
                             </div>
                           )
                         }

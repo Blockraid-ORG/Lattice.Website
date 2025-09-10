@@ -33,12 +33,12 @@ export function useContribute() {
     try {
       const blockStartTime = await presaleFactory.startTime()
       const presaleStartTime = new Date(Number(blockStartTime) * 1000)
-      const userAddress = await signer.getAddress();
+      // const userAddress = await signer.getAddress();
       const today = dayjs();
       if (!today.isAfter(dayjs(presaleStartTime))) {
         console.log("Presale not started ✅", dayjs(presaleStartTime).format('YYYY MMM DD HH:mm:ss'));
       }
-      const tx = await presaleFactory.contribute(userAddress, {
+      const tx = await presaleFactory.contribute({
         value: ethers.parseEther(amount.toString())
       })
       contributeMutate({

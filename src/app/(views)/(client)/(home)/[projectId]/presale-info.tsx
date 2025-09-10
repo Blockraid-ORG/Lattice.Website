@@ -13,7 +13,7 @@ export default function PresaleInfo({ data }: { data: TProject }) {
       <div className="container bg-white shadow shadow-neutral-100/5 border p-6 dark:bg-neutral-950 rounded-xl my-6">
         <h2 className='text-lg md:text-xl font-semibold'>Presale Info</h2>
         <div className='mt-4'>
-          <div className='grid grid-cols-2 md:grid-cols-4 gap-2 w-full'>
+          <div className='grid grid-cols-2 md:grid-cols-5 gap-2 w-full'>
             <div>
               <p className='text-sm text-neutral-500'>Price</p>
               <div className='flex gap-2 items-center'>
@@ -27,20 +27,25 @@ export default function PresaleInfo({ data }: { data: TProject }) {
             </div>
             <div>
               <p className='text-sm text-neutral-500'>Max Contribution</p>
-              <h2 className='font-bold'>{NumberComma(Number(data?.presales.maxContribution))} {data.ticker}</h2>
+              <h2 className='font-bold'>{NumberComma(Number(data?.presales.maxContribution))} {data.chains[0].chain.ticker}</h2>
+            </div>
+            <div>
+              <p className='text-sm text-neutral-500'>Start Date</p>
+              <h2 className='font-bold'>{dayjs(data?.presales.startDate).format('YYYY-MM-DD HH:mm')}</h2>
             </div>
             <div>
               <p className='text-sm text-neutral-500'>End Date</p>
-              <h2 className='font-bold'>{dayjs(data?.presales.endDate).format('DD MMM YYYY')}</h2>
-              <p className='text-sm text-neutral-500'>{dayjs(data?.presales.endDate).format()}</p>
+              <h2 className='font-bold'>{dayjs(data?.presales.endDate).format('YYYY-MM-DD HH:mm')}</h2>
             </div>
           </div>
           <div className='mt-3 flex justify-start container sticky bottom-0 z-30 px-4 md:px-0'>
             <FormBuyPresale data={data} />
           </div>
-          {
-            isConnected && <TableMyContribution data={data} />
-          }
+          <div className="mt-6 border-t">
+            {
+              isConnected && <TableMyContribution data={data} />
+            }
+          </div>
         </div>
       </div>
     </div>
