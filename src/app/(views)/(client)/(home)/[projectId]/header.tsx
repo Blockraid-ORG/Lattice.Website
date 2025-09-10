@@ -6,7 +6,6 @@ import Link from 'next/link'
 
 export default function DetailHeader({ data }: { data: TProject }) {
 
-  console.log({ data })
   return (
     <header className='pt-[120px] pb-24 md:pb-12 w-full aspect-auto md:aspect-[12/6] lg:aspect-[1200/300] relative'>
       <div className='absolute left-0 top-0 right-0 bottom-0 z-0'>

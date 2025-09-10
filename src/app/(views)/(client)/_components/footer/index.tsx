@@ -1,5 +1,6 @@
 import { Icon } from '@/components/icon'
 import MainLogo from '@/components/logo'
+import { dataSocials } from '@/data/utilitis'
 import Link from 'next/link'
 import React from 'react'
 
@@ -11,18 +12,19 @@ export default function MainFooter() {
           <div className='space-y-3'>
             <MainLogo />
             <div className="flex gap-2">
-              <Link className='flex w-8 h-8 items-center justify-center border rounded-lg bg-blue-200/30 dark:bg-primary/5' href="https://google.com" target="_blank" rel="noopener noreferrer">
-                <Icon name='ri:twitter-x-fill' />
-              </Link>
-              <Link className='flex w-8 h-8 items-center justify-center border rounded-lg bg-blue-200/30 dark:bg-primary/5' href="https://google.com" target="_blank" rel="noopener noreferrer">
-                <Icon name='ic:baseline-discord' />
-              </Link>
-              <Link className='flex w-8 h-8 items-center justify-center border rounded-lg bg-blue-200/30 dark:bg-primary/5' href="https://google.com" target="_blank" rel="noopener noreferrer">
-                <Icon name='lineicons:telegram' />
-              </Link>
-              <Link className='flex w-8 h-8 items-center justify-center border rounded-lg bg-blue-200/30 dark:bg-primary/5' href="https://google.com" target="_blank" rel="noopener noreferrer">
-                <Icon name='mingcute:tiktok-fill' />
-              </Link>
+              {
+                dataSocials.map((item, index) => (
+                  <Link
+                    key={index}
+                    className='flex w-8 h-8 items-center justify-center border rounded-lg bg-blue-200/30 dark:bg-primary/5'
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Icon name={item.icon || 'ri:twitter-x-fill'} />
+                  </Link>
+                ))
+              }
             </div>
           </div>
           <div>

@@ -391,9 +391,9 @@ export default function FormCreate() {
                         <FormInput
                           control={form.control}
                           name={`allocations.${index}.name`}
-                          label={"Deployer"}
+                          label={"Allocations"}
                           placeholder="e.g. Team"
-                          disabled={field.name === "Presale"}
+                          disabled={field.name === "Presale" || field.name === "Deployer"}
                         />
                       </div>
                       <div className="flex-1">
@@ -412,6 +412,7 @@ export default function FormCreate() {
                           label="Vesting (mo)"
                           placeholder="1"
                           type="number"
+                          disabled={field.name === "Deployer"}
                         />
                         {/* <FormSelect
                           control={form.control}
@@ -432,11 +433,11 @@ export default function FormCreate() {
                           label="Start Date"
                           placeholder="e.g. 6"
                           type="date"
-                          disabled={field.name === "Presale"}
+                          disabled={field.name === "Deployer"}
                         />
                       </div>
                       <Button
-                        disabled={field.name === "Presale" || field.name === "Airdrop"}
+                        disabled={field.name === "Deployer"}
                         className='ms-auto'
                         size={"icon"}
                         type="button"

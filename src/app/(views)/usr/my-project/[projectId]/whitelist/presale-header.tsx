@@ -45,11 +45,11 @@ export default function PresaleHeader({ data }: { data: TProject }) {
             </div>
           </div>
           <div className="flex">
-            <div className="w-32 md:w-1/3">Presale Contract</div>
+            <div className="w-32 md:w-1/3">Whitelist Contract</div>
             <div className='w-3 shrink-0'>:</div>
             <div className="flex-1 text-sm break-all">
-              <a className="text-xs font-semibold underline text-blue-500 block break-all" href={`${data.chains[0].chain.urlScanner}/address/${data.presales.contractAddress}`} target="_blank" rel="noopener noreferrer">
-                {data.presales.contractAddress}
+              <a className="text-xs font-semibold underline text-blue-500 block break-all" href={`${data.chains[0].chain.urlScanner}/address/${data.presales.whitelistContract}`} target="_blank" rel="noopener noreferrer">
+                {data.presales.whitelistContract}
               </a>
             </div>
           </div>

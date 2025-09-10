@@ -12,6 +12,13 @@ export const defaultValues = {
   projectTypeId: '',
   allocations: [
     {
+      name: "Deployer",
+      supply: 0,
+      vesting: 0,
+      startDate: new Date().toISOString(),
+      isPresale: false,
+    },
+    {
       name: "Presale",
       supply: 0,
       vesting: 0,
