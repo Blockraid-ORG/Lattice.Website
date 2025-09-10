@@ -37,7 +37,7 @@ export default function TableMyContribution({ data }: { data: TProject }) {
   return (
     <div>
       <div className="py-4 border-b">
-        <h2 className='text-lg md:text-xl mb-3 font-semibold'>Contrubution Info</h2>
+        <h2 className='text-lg md:text-xl mb-3 font-semibold'>Contribution Info</h2>
         <div className='grid grid-cols-2 md:grid-cols-4 gap-2 w-full'>
           <div>
             <p className='text-sm text-neutral-500'>Total Contribution</p>

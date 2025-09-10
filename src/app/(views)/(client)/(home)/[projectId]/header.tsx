@@ -1,10 +1,12 @@
 import { Icon } from '@/components/icon'
-import { toUrlAsset } from '@/lib/utils'
+import { cutString, toUrlAsset } from '@/lib/utils'
 import { TProject } from '@/types/project'
 import Image from 'next/image'
 import Link from 'next/link'
 
 export default function DetailHeader({ data }: { data: TProject }) {
+
+  console.log({ data })
   return (
     <header className='pt-[120px] pb-24 md:pb-12 w-full aspect-auto md:aspect-[12/6] lg:aspect-[1200/300] relative'>
       <div className='absolute left-0 top-0 right-0 bottom-0 z-0'>
@@ -15,7 +17,7 @@ export default function DetailHeader({ data }: { data: TProject }) {
         <div className="grid md:grid-cols-2 w-full gap-4 items-start">
           <div>
             <div className='flex gap-4 items-center'>
-              <div className='h-24 w-24 border rounded-xl overflow-hidden'>
+              <div className='h-28 w-28 border rounded-xl overflow-hidden'>
                 <Image className='h-full w-full object-cover' width={80} height={80} alt='name' src={toUrlAsset(data.logo)} />
               </div>
               <div className='space-y-1'>
@@ -36,6 +38,15 @@ export default function DetailHeader({ data }: { data: TProject }) {
                     ))
                   }
                 </div>
+                <Link
+                  className="text-sm underline text-blue-500 block break-all"
+                  target="_blank" rel="noopener noreferrer"
+                  href={`${data.chains[0].chain.urlScanner}/address/${data.contractAddress}`}>
+                  {
+                    data.contractAddress ?
+                    cutString(data.contractAddress, 6): '-'
+                  }
+                </Link>
               </div>
             </div>
           </div>
