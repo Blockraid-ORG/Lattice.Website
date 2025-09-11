@@ -1,6 +1,6 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { toast } from 'sonner';
+// import { toast } from 'sonner';
 
 const baseURL = `${process.env.BASE_URL}/v1`;
 
@@ -83,15 +83,15 @@ axiosInstance.interceptors.response.use(
         isRefreshing = false;
       }
     }
-    if (error.response?.status === 403) {
-      if (originalRequest.method === 'get') {
-        location.href = '/forbidden'
-      } else {
-        toast.error('Ups!', {
-          description: error.message || "Operation not permitted!"
-        })
-      }
-    }
+    // if (error.response?.status === 403) {
+    //   if (originalRequest.method === 'get') {
+    //     location.href = '/forbidden'
+    //   } else {
+    //     toast.error('Ups!', {
+    //       description: error.message || "Operation not permitted!"
+    //     })
+    //   }
+    // }
 
     return Promise.reject(error);
   }

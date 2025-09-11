@@ -8,6 +8,7 @@ import {
 import { TCategory } from "./category";
 import { TSocial } from "./social";
 import { TChain } from "./chain";
+import { TProjectType } from "./project-type";
 
 export type TFormProject = z.infer<typeof formCreateProjectSchema>;
 export type TFormProjectAllocation = z.infer<typeof allocationSchema>;
@@ -60,6 +61,34 @@ export type TProjectReviewLog = {
   createdAt: string;
   createdBy: string;
 };
+export type TUserAdditionalReward = {
+  id: string
+  address: string
+  amount: string
+  isClaimed: false,
+  user?: {
+    fullname: string
+  }
+}
+export type TAdditionalReward = {
+  id: string
+  address: string
+  amount: string
+  type: {
+    id: string
+    name: string
+  },
+  project: TProject,
+  user: {
+    id: string
+    walletAddress: string
+  },
+  startDateClaim: string 
+  endDateClaim: string
+  isClaimed: boolean
+  contactAddress: string
+  userAdditionalReward: TUserAdditionalReward[] | []
+}
 export type TProject = {
   id: string
   name: string
@@ -82,12 +111,15 @@ export type TProject = {
   }[];
   presales: TPresale;
   category: TCategory;
+  projectType: TProjectType;
   chains: {
     chain: TChain;
   }[];
   Presales: TPresale[];
   user: TProjectOwner;
   reviewLogs: TReviewLog[];
+  isHashAirdrop?: boolean
+  additionalReward?: TAdditionalReward[] | []
 };
 
 export type TProjectCounter = {
@@ -111,4 +143,27 @@ export type TFormClaimPresale = {
 
 export type TResponsePresale = TPresale & {
   project: TProject
+}
+
+// Eligible Airdrop List
+export type TEligibleAirdrop = {
+  id: string
+  name: string
+  ticker: string
+  contractAddress: string
+  decimals: number
+  banner: string
+  logo: string
+  chains: {
+    chain: TChain;
+  }[];
+  airdrop: TAirdropItem[]
+  totalEligible: number
+}
+
+export type TAirdropItem = {
+  id: string
+  address: string
+  amount: number
+  isClaimed: boolean
 }

@@ -21,7 +21,7 @@ import Image from "next/image";
 import { useState } from "react";
 
 export function DeployFactoryToken({ data }: { data: TProject }) {
-  const { deployTokenAll } = useDeployToken()
+  const { deployFactoryBasic } = useDeployToken()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { setData: setDataVesting } = useVestingStore()
   const { open, setOpen } = useStateModal()
@@ -33,9 +33,9 @@ export function DeployFactoryToken({ data }: { data: TProject }) {
 
   async function handleDeployContract() {
     setIsSubmitting(true)
-    deployTokenAll(data).then(() => setOpen(false)).finally(() => setIsSubmitting(false))
-    // deployAll(data).then(() => setOpen(false)).finally(() => setIsSubmitting(false))
+    deployFactoryBasic(data).then(() => setOpen(false)).finally(() => setIsSubmitting(false))
   }
+
   return (
     <Dialog open={open} onOpenChange={handleChangeOpen}>
       <DialogTrigger asChild>

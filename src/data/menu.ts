@@ -57,6 +57,11 @@ export const sidemenus = [
         icon:'icons8:buy',
         path:'/usr/presale'
       },
+      {
+        label: 'Airdrop',
+        icon: 'streamline-plump:parachute-drop-solid',
+        path: '/usr/airdrop'
+      },
     ]
   },
   {

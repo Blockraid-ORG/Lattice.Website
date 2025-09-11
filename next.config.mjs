@@ -4,6 +4,7 @@ const nextConfig = {
     if (!isServer) {
       config.resolve.alias["@react-native-async-storage/async-storage"] = false;
     }
+    config.resolve.alias["@react-native-async-storage/async-storage"] = false;
     return config;
   },
   env: {

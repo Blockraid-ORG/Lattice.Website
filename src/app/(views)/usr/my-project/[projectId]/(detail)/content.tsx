@@ -16,8 +16,6 @@ export default function ProjectContent() {
       switchChain({
         chainId: project?.chains[0].chain.chainid,
       });
-      "On Chain " + project?.chains[0].chain.chainid;
-      "Project", project;
     }
   }, [project, switchChain]);
   return (
