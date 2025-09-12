@@ -72,6 +72,14 @@ export class RPCProviderService {
         `✅ Successfully fetched ${data.data.length} chains from Terravest API`
       );
 
+      // Show toast only during explicit initialization, not during regular usage
+      if (!this.isInitialized && !this.toastShown) {
+        toast.success(
+          `RPC Provider initialized with ${data.data.length} chains`
+        );
+        this.toastShown = true;
+      }
+
       return data.data;
     } catch (error) {
       console.error("❌ Error fetching chains from Terravest API:", error);
@@ -248,6 +256,8 @@ export class RPCProviderService {
   static clearCache(): void {
     this.chainsCache = null;
     this.cacheTimestamp = null;
+    this.isInitialized = false;
+    this.toastShown = false;
     console.log("🧹 RPC Provider cache cleared");
   }
 
@@ -357,10 +367,20 @@ export class RPCProviderService {
     return fallbackProviders[chainId] || [];
   }
 
+  private static isInitialized = false;
+
+  private static toastShown = false;
+
   /**
    * Initialize RPC service (call this early in app)
    */
   static async initialize(): Promise<void> {
+    // Prevent double initialization
+    if (this.isInitialized) {
+      console.log("⚡ RPC Provider Service already initialized");
+      return;
+    }
+
     try {
       console.log("🚀 Initializing RPC Provider Service...");
 
@@ -376,11 +396,13 @@ export class RPCProviderService {
         .join(", ");
       console.log(`📡 Supported chains: ${supportedChains}`);
 
-      // Show success toast
-      toast.success(`RPC Provider initialized with ${chains.length} chains`);
+      this.isInitialized = true;
     } catch (error) {
       console.error("❌ Failed to initialize RPC Provider Service:", error);
-      toast.error("Failed to initialize RPC providers, using fallback");
+      if (!this.toastShown) {
+        toast.error("Failed to initialize RPC providers, using fallback");
+        this.toastShown = true;
+      }
     }
   }
 }

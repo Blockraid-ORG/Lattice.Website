@@ -35,6 +35,20 @@ import { toast } from "sonner";
 import { TokenSelectionModal } from "./token-selection-modal";
 import { useTokenPrices } from "@/hooks/useTokenPrices";
 import { useUniswapV3SDK } from "@/hooks/useUniswapV3SDK";
+import StepSidebar from "./components/StepSidebar";
+import HeaderControls from "./components/HeaderControls";
+import TokenPairSelection from "./components/TokenPairSelection";
+import FeeTierSelection from "./components/FeeTierSelection";
+import TokenPairHeader from "./components/TokenPairHeader";
+import PoolCreationNotice from "./components/PoolCreationNotice";
+import StartingPrice from "./components/StartingPrice";
+import ReviewButton from "./components/ReviewButton";
+import TotalPoolValue from "./components/TotalPoolValue";
+import MarketPricesDisplay from "./components/MarketPricesDisplay";
+import TokenDeposit from "./components/TokenDeposit";
+import BalanceStatusDisplay from "./components/BalanceStatusDisplay";
+import SDKStatusDisplay from "./components/SDKStatusDisplay";
+import PriceRange from "./components/PriceRange";
 
 interface ModalLiquidityProps {
   open: boolean;
@@ -227,22 +241,6 @@ export function ModalLiquidity({
   const tokenBSymbol = tokenBData.symbol;
   const tokenBIcon = tokenBData.icon;
 
-  // Inline token configurations to prevent callback dependency issues
-
-  // Original code commented out:
-  // const tokenAConfig = useMemo(() => {
-  //   const config = tokenAddressMap[tokenASymbol] || {};
-  //   return { ... };
-  // }, [tokenASymbol]);
-
-  // TEMPORARILY USE STATIC token B config to isolate infinite loop
-
-  // Original code commented out:
-  // const tokenBConfig = useMemo(() => {
-  //   const config = tokenAddressMap[tokenBSymbol] || {};
-  //   return { ... };
-  // }, [tokenBSymbol, projectData?.contractAddress, projectData?.ticker]);
-
   // TEMPORARILY DISABLE balance fetching to isolate infinite loop
   const tokenABalance = {
     balance: new BigNumber(1000),
@@ -260,20 +258,6 @@ export function ModalLiquidity({
   const balancesError = null;
   const refetchBalances = () => {};
   const balancesInitialized = true;
-
-  // Original code commented out:
-  // const {
-  //   tokenA: tokenABalance,
-  //   tokenB: tokenBBalance,
-  //   loading: balancesLoading,
-  //   error: balancesError,
-  //   refetch: refetchBalances,
-  //   isInitialized: balancesInitialized,
-  // } = useLiquidityTokenBalances(tokenAConfig, tokenBConfig, {
-  //   refreshInterval: 0,
-  //   autoRefresh: false,
-  //   enabled: open && isWalletConnected,
-  // });
 
   // Calculate USD values for token amounts menggunakan BigNumber untuk precision
   // Gunakan consistent USD value untuk pair tokens agar tidak ada selisih
@@ -624,28 +608,28 @@ export function ModalLiquidity({
     });
 
     // Add fallback prices for common tokens if CoinGecko data not available
-    const fallbackPrices: { [key: string]: number } = {
-      BNB: 625.34,
-      USDC: 1.0,
-      USDT: 1.0,
-      BUSD: 1.0,
-      CAKE: 2.85,
-      LINK: 24.3,
-      UNI: 10.0,
-      ETH: 3500.0,
-      MATIC: 1.1,
-      ARB: 1.25,
-      AVAX: 42.5,
-      WETH: 3500.0,
-      BU: 0.0001375, // Project token fallback
-    };
+    // const fallbackPrices: { [key: string]: number } = {
+    //   BNB: 625.34,
+    //   USDC: 1.0,
+    //   USDT: 1.0,
+    //   BUSD: 1.0,
+    //   CAKE: 2.85,
+    //   LINK: 24.3,
+    //   UNI: 10.0,
+    //   ETH: 3500.0,
+    //   MATIC: 1.1,
+    //   ARB: 1.25,
+    //   AVAX: 42.5,
+    //   WETH: 3500.0,
+    //   BU: 0.0001375, // Project token fallback
+    // };
 
     // Use fallback only if real price is 0
-    Object.keys(fallbackPrices).forEach((symbol) => {
-      if (priceMap[symbol] === 0) {
-        priceMap[symbol] = fallbackPrices[symbol];
-      }
-    });
+    // Object.keys(fallbackPrices).forEach((symbol) => {
+    //   if (priceMap[symbol] === 0) {
+    //     priceMap[symbol] = fallbackPrices[symbol];
+    //   }
+    // });
 
     // REMOVE price override from useMemo to prevent circular dependency
     // Price override will be handled in separate useEffect
@@ -815,12 +799,8 @@ export function ModalLiquidity({
         // Rate interpretation berdasarkan baseToken
         let tokenAValue;
         if (baseToken === "TokenA") {
-          // TokenA selected: "rate TokenA = 1 TokenB"
-          // Contoh: 0.0055 BNB = 1 BU → 181.818 BU = 1 BNB
           tokenAValue = tokenBValue.multipliedBy(rate);
         } else {
-          // TokenB selected: "rate TokenB = 1 TokenA"
-          // Contoh: 125 BU = 1 BNB → 2 BU = 2 ÷ 125 = 0.016 BNB
           tokenAValue = tokenBValue.dividedBy(rate);
         }
         setTokenAAmount(tokenAValue.toFixed());
@@ -1042,89 +1022,40 @@ export function ModalLiquidity({
   };
 
   // 🚨 Don't render modal content if chainId not ready
-  if (!isChainIdReady || !projectChainId) {
-    return (
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>Loading Project Data...</DialogTitle>
-          </DialogHeader>
-          <div className="p-6 text-center">
-            <div className="animate-pulse mb-4">
-              <div className="w-12 h-12 bg-gray-300 rounded-full mx-auto mb-3"></div>
-              <div className="h-4 bg-gray-300 rounded mx-auto mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded mx-auto w-3/4"></div>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              ⏳ Waiting for project chain information...
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-              Chain ID: {projectChainId || "Loading..."}
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  // if (!isChainIdReady || !projectChainId) {
+  //   return (
+  //     <Dialog open={open} onOpenChange={setOpen}>
+  //       <DialogContent className="sm:max-w-[400px]">
+  //         <DialogHeader>
+  //           <DialogTitle>Loading Project Data...</DialogTitle>
+  //         </DialogHeader>
+  //         <div className="p-6 text-center">
+  //           <div className="animate-pulse mb-4">
+  //             <div className="w-12 h-12 bg-gray-300 rounded-full mx-auto mb-3"></div>
+  //             <div className="h-4 bg-gray-300 rounded mx-auto mb-2"></div>
+  //             <div className="h-3 bg-gray-200 rounded mx-auto w-3/4"></div>
+  //           </div>
+  //           <p className="text-sm text-gray-600 dark:text-gray-400">
+  //             ⏳ Waiting for project chain information...
+  //           </p>
+  //           <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+  //             Chain ID: {projectChainId || "Loading..."}
+  //           </p>
+  //         </div>
+  //       </DialogContent>
+  //     </Dialog>
+  //   );
+  // }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-4xl w-full h-[90vh] p-0 overflow-hidden">
         <div className="flex h-full">
           {/* Left Sidebar - Steps */}
-          <div className="w-80 bg-muted/30 border-r p-6 flex flex-col h-full">
-            <DialogHeader className="mb-8 flex-shrink-0">
-              <DialogTitle className="text-xl font-semibold">
-                New Position (
-                {projectChainId === 42161
-                  ? "Arbitrum One"
-                  : projectChainId === 56
-                  ? "BSC"
-                  : `Chain ${projectChainId}`}
-                )
-              </DialogTitle>
-            </DialogHeader>
-
-            <div className="space-y-6 flex-1">
-              {/* Step 1 */}
-              <div className="flex items-start gap-4">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    currentStep >= 1
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  1
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-medium text-sm">Step 1</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Select token pair and fee tier
-                  </p>
-                </div>
-              </div>
-
-              {/* Step 2 */}
-              <div className="flex items-start gap-4">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    currentStep >= 2
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  2
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-medium text-sm">Step 2</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Set price range and deposit amounts
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <StepSidebar
+            projectChainId={projectChainId || 1}
+            currentStep={currentStep}
+          />
 
           {/* Right Content */}
           <div className="flex-1 flex flex-col">
@@ -1137,845 +1068,94 @@ export function ModalLiquidity({
               {currentStep === 1 ? (
                 <div className="space-y-4">
                   {/* Header Controls */}
-                  <div className="flex items-center justify-end gap-2 mt-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 px-3 text-xs"
-                      onClick={resetForm}
-                    >
-                      <Icon name="mdi:refresh" className="w-4 h-4 mr-1" />
-                      Reset
-                    </Button>
-
-                    <Select value="v3">
-                      <SelectTrigger className="h-8 w-auto px-3 text-xs">
-                        <SelectValue>v3 Position</SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="v4" disabled>
-                          v4 Position
-                        </SelectItem>
-                        <SelectItem value="v3">v3 Position</SelectItem>
-                        <SelectItem value="v2" disabled>
-                          v2 Position
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <Icon name="mdi:cog" className="w-4 h-4" />
-                    </Button>
-                  </div>
+                  <HeaderControls resetForm={resetForm} />
 
                   {/* Token Pair Selection */}
-                  <div>
-                    <h2 className="text-lg font-semibold mb-6">Select Pair</h2>
-                    <p className="text-sm text-muted-foreground mb-6">
-                      Choose tokens you&apos;d like to provide liquidity for.
-                      You can select tokens across all supported networks.
-                    </p>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      {/* Token A */}
-                      <div className="space-y-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => setShowTokenAModal(true)}
-                          className={`h-14 px-4 w-full justify-start ${
-                            !tokenASymbol ? "text-muted-foreground" : ""
-                          }`}
-                        >
-                          {tokenASymbol ? (
-                            <div className="flex items-center gap-3">
-                              <Icon name={tokenAIcon} className="w-6 h-6" />
-                              <span className="font-medium">
-                                {tokenASymbol}
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-3">
-                              <Icon
-                                name="mdi:help-circle-outline"
-                                className="w-6 h-6 text-muted-foreground"
-                              />
-                              <span>Select first token</span>
-                            </div>
-                          )}
-                        </Button>
-                      </div>
-
-                      {/* Token B */}
-                      <div className="space-y-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => setShowTokenBModal(true)}
-                          className={`h-14 px-4 w-full justify-start ${
-                            !!projectData
-                              ? "bg-muted/30 cursor-not-allowed opacity-60"
-                              : !tokenBSymbol
-                              ? "text-muted-foreground"
-                              : ""
-                          }`}
-                          disabled={!!projectData} // Disable when project data is available
-                        >
-                          {tokenBSymbol ? (
-                            <div className="flex items-center gap-3">
-                              <Icon name={tokenBIcon} className="w-6 h-6" />
-                              <div className="flex flex-col items-start">
-                                <span className="font-medium">
-                                  {tokenBSymbol}
-                                </span>
-                                {!!projectData && (
-                                  <span className="text-xs text-muted-foreground">
-                                    Project Token
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-3">
-                              <Icon
-                                name="mdi:help-circle-outline"
-                                className="w-6 h-6 text-muted-foreground"
-                              />
-                              <span>
-                                {projectData
-                                  ? "Project token will be auto-selected"
-                                  : "Select second token"}
-                              </span>
-                            </div>
-                          )}
-                        </Button>
-                        {!!projectData && tokenBSymbol && (
-                          <p className="text-xs text-muted-foreground">
-                            Project token automatically selected
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Hook Option */}
-                    {!hookEnabled ? (
-                      <div className="mt-6">
-                        <div
-                          className="flex items-center gap-3 cursor-pointer"
-                          onClick={() => setHookEnabled(true)}
-                        >
-                          <Icon
-                            name="mdi:hook"
-                            className="text-muted-foreground"
-                          />
-                          <span className="text-sm text-muted-foreground">
-                            Add Hook (Advanced)
-                          </span>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Icon
-                                  name="mdi:information-outline"
-                                  className="text-muted-foreground cursor-help"
-                                />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>
-                                  Hooks enable custom functionality for this
-                                  pool
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="mt-6">
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="text"
-                            placeholder="Enter hook address"
-                            className="flex-1 h-12 px-4 bg-muted/50 border border-border rounded-lg text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            onClick={() => setHookEnabled(false)}
-                          >
-                            <Icon name="mdi:close" className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  <TokenPairSelection
+                    tokenASymbol={tokenASymbol || ""}
+                    tokenAIcon={tokenAIcon || ""}
+                    tokenBSymbol={tokenBSymbol || ""}
+                    tokenBIcon={tokenBIcon || ""}
+                    projectData={projectData}
+                    setShowTokenAModal={setShowTokenAModal}
+                    setShowTokenBModal={setShowTokenBModal}
+                    hookEnabled={hookEnabled}
+                    setHookEnabled={setHookEnabled}
+                  />
 
                   {/* Fee Tier Selection */}
-                  <div>
-                    <h3 className="font-semibold mb-2">Fee Tier</h3>
-                    <p className="text-sm text-muted-foreground mb-6">
-                      Amount earned from providing liquidity. Choose a fee tier
-                      that matches your risk tolerance and strategy.
-                    </p>
-
-                    <div className="p-4 border rounded-lg bg-muted/20">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-medium text-sm">
-                            Fee Tier{" "}
-                            {
-                              feeTiers.find((t) => t.value === selectedFeeTier)
-                                ?.label
-                            }
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            % you&apos;ll earn in fees
-                          </div>
-                        </div>
-                        {/* <Select
-                          value={selectedFeeTier}
-                          onValueChange={setSelectedFeeTier}
-                        >
-                          <SelectTrigger className="w-auto h-8 text-xs">
-                            <SelectValue>Lainnya</SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {feeTiers.map((tier) => (
-                              <SelectItem key={tier.value} value={tier.value}>
-                                <div className="flex items-center justify-between w-full min-w-48">
-                                  <div>
-                                    <div className="font-medium text-sm">
-                                      Tingkatan komisi {tier.label}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {tier.description}
-                                    </div>
-                                  </div>
-                                  {tier.recommended && (
-                                    <div className="px-2 py-1 bg-primary/10 text-primary text-xs rounded ml-2">
-                                      Terbaik
-                                    </div>
-                                  )}
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select> */}
-                      </div>
-                    </div>
-                  </div>
+                  <FeeTierSelection
+                    selectedFeeTier={selectedFeeTier}
+                    feeTiers={feeTiers}
+                  />
                 </div>
               ) : (
                 <div className="space-y-6">
                   {/* Header Controls */}
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 px-3 text-xs"
-                      onClick={resetForm}
-                    >
-                      <Icon name="mdi:refresh" className="w-4 h-4 mr-1" />
-                      Reset
-                    </Button>
-
-                    <Select value="v3">
-                      <SelectTrigger className="h-8 w-auto px-3 text-xs">
-                        <SelectValue>v3 Position</SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="v4" disabled>
-                          v4 Position
-                        </SelectItem>
-                        <SelectItem value="v3">v3 Position</SelectItem>
-                        <SelectItem value="v2" disabled>
-                          v2 Position
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <Icon name="mdi:cog" className="w-4 h-4" />
-                    </Button>
-                  </div>
+                  <HeaderControls resetForm={resetForm} />
 
                   {/* Token Pair Header */}
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="flex items-center gap-2">
-                      {tokenAIcon ? (
-                        <Icon name={tokenAIcon} className="w-6 h-6" />
-                      ) : (
-                        <Icon
-                          name="mdi:help-circle-outline"
-                          className="w-6 h-6 text-muted-foreground"
-                        />
-                      )}
-                      {tokenBIcon ? (
-                        <Icon name={tokenBIcon} className="w-6 h-6" />
-                      ) : (
-                        <Icon
-                          name="mdi:help-circle-outline"
-                          className="w-6 h-6 text-muted-foreground"
-                        />
-                      )}
-                    </div>
-                    <span className="font-semibold text-lg">
-                      {tokenASymbol && tokenBSymbol
-                        ? `${tokenASymbol} / ${tokenBSymbol}`
-                        : "Select Token Pair"}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span className="bg-muted px-2 py-1 rounded text-xs">
-                        v3
-                      </span>
-                      <span className="bg-muted px-2 py-1 rounded text-xs">
-                        0.3%
-                      </span>
-                    </div>
-                  </div>
+                  <TokenPairHeader
+                    tokenAIcon={tokenAIcon || ""}
+                    tokenBIcon={tokenBIcon || ""}
+                    tokenASymbol={tokenASymbol || ""}
+                    tokenBSymbol={tokenBSymbol || ""}
+                  />
 
                   {/* Pool Creation Notice */}
-                  <div className="p-4 border rounded-lg bg-muted/20 mb-6">
-                    <div className="flex items-start gap-3">
-                      <Icon
-                        name="mdi:information"
-                        className="text-muted-foreground mt-0.5"
-                      />
-                      <div>
-                        <h3 className="font-medium mb-2">Creating new pool</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Your selection will create a new liquidity pool, which
-                          may result in lower initial liquidity and increased
-                          volatility. Consider adding liquidity to an existing
-                          pool to minimize this risk.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                  <PoolCreationNotice />
 
-                  {/* Starting Price */}
                   <div className="space-y-4">
-                    <div>
-                      <h3 className="font-semibold mb-2">Set Starting Price</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        When creating a new pool, you must set the initial
-                        exchange rate for both tokens. This will reflect the
-                        initial market price.
-                      </p>
+                    {/* Starting Price */}
+                    <StartingPrice
+                      startingPrice={startingPrice}
+                      baseToken={baseToken}
+                      tokenAIcon={tokenAIcon || ""}
+                      tokenBIcon={tokenBIcon || ""}
+                      tokenASymbol={tokenASymbol || ""}
+                      tokenBSymbol={tokenBSymbol || ""}
+                      tokenPricesBN={tokenPricesBN}
+                      handleStartingPriceChange={handleStartingPriceChange}
+                      setBaseToken={setBaseToken}
+                      formatUSDWithoutRounding={formatUSDWithoutRounding}
+                    />
 
-                      <div className="space-y-4">
-                        <div>
-                          <label className="text-sm text-muted-foreground mb-2 block">
-                            Starting Price
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="text"
-                              value={startingPrice}
-                              onChange={(e) =>
-                                handleStartingPriceChange(e.target.value)
-                              }
-                              className={`flex-1 h-12 px-4 bg-background border rounded-lg text-lg font-mono ${(() => {
-                                const priceBN = new BigNumber(
-                                  startingPrice || 0
-                                );
-                                return !startingPrice ||
-                                  priceBN.isZero() ||
-                                  priceBN.isNaN()
-                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                                  : "border-border focus:border-primary focus:ring-primary";
-                              })()}`}
-                              placeholder="0.00"
-                            />
-                            <div className="flex border border-border rounded-lg overflow-hidden">
-                              <button
-                                type="button"
-                                className={`flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors ${
-                                  baseToken === "TokenA"
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-background hover:bg-muted"
-                                }`}
-                                onClick={() => {
-                                  setBaseToken("TokenA");
-                                }}
-                              >
-                                <Icon name={tokenAIcon} className="w-4 h-4" />
-                                <span>{tokenASymbol}</span>
-                              </button>
-                              <button
-                                type="button"
-                                className={`flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors ${
-                                  baseToken === "TokenB"
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-background hover:bg-muted"
-                                }`}
-                                onClick={() => {
-                                  setBaseToken("TokenB");
-                                }}
-                              >
-                                <Icon name={tokenBIcon} className="w-4 h-4" />
-                                <span>{tokenBSymbol}</span>
-                              </button>
-                            </div>
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-2">
-                            {baseToken === "TokenA"
-                              ? `Price expressed as: X ${tokenASymbol} = 1 ${tokenBSymbol}`
-                              : `Price expressed as: X ${tokenBSymbol} = 1 ${tokenASymbol}`}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center justify-between p-3 border rounded-lg">
-                          <span className="text-sm">
-                            Market price:{" "}
-                            {(() => {
-                              const rate = new BigNumber(startingPrice || 0);
-                              if (rate.isNaN() || rate.isZero()) {
-                                return baseToken === "TokenA"
-                                  ? `0 ${tokenASymbol} = 1 ${tokenBSymbol} (US$0)`
-                                  : `0 ${tokenBSymbol} = 1 ${tokenASymbol} (US$0)`;
-                              }
-
-                              // Format number sesuai requirement user menggunakan BigNumber
-                              const formatRateWithoutRounding = (
-                                value: number | BigNumber
-                              ) => {
-                                const valueBN =
-                                  value instanceof BigNumber
-                                    ? value
-                                    : new BigNumber(value);
-
-                                if (valueBN.isZero()) return "0";
-
-                                // Rule: untuk crypto precision berdasarkan requirement user
-                                if (valueBN.gte(1)) {
-                                  // Untuk angka >= 1, batasi ke 2 decimal places (12.53, 1.32)
-                                  if (valueBN.gte(1000)) {
-                                    return valueBN.decimalPlaces(2).toFormat();
-                                  } else {
-                                    return valueBN.decimalPlaces(2).toFixed();
-                                  }
-                                } else {
-                                  // Untuk angka < 1, tampilkan full precision (0.2315423423, 0.0000045)
-                                  return valueBN.toFixed();
-                                }
-                              };
-
-                              const formattedRate =
-                                formatRateWithoutRounding(rate);
-
-                              // Calculate USD price berdasarkan baseToken
-                              const tokenAPrice =
-                                tokenPricesBN[tokenASymbol] || new BigNumber(0);
-                              let usdPrice;
-
-                              if (baseToken === "TokenA") {
-                                // TokenA selected: "rate TokenA = 1 TokenB"
-                                // Contoh: 0.0055 BNB = 1 BU → 1 BU = 0.0055 × $865.24 = $4.75
-                                usdPrice = rate.multipliedBy(tokenAPrice);
-
-                                return `${formattedRate} ${tokenASymbol} = 1 ${tokenBSymbol} (US$${formatUSDWithoutRounding(
-                                  usdPrice
-                                )})`;
-                              } else {
-                                // TokenB selected: "rate TokenB = 1 TokenA"
-                                // Contoh: 181.818 BU = 1 BNB → 1 BNB = $865.24 (tokenA price)
-                                usdPrice = tokenAPrice;
-
-                                return `${formattedRate} ${tokenBSymbol} = 1 ${tokenASymbol} (US$${formatUSDWithoutRounding(
-                                  usdPrice
-                                )})`;
-                              }
-                            })()}
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-xs"
-                            onClick={() => {
-                              // Calculate market price berdasarkan baseToken
-                              const tokenAPrice =
-                                (tokenASymbol
-                                  ? tokenPricesBN[tokenASymbol]
-                                  : new BigNumber(0)) || new BigNumber(0);
-                              const tokenBPrice =
-                                (tokenBSymbol
-                                  ? tokenPricesBN[tokenBSymbol]
-                                  : new BigNumber(0)) || new BigNumber(0);
-
-                              if (
-                                !tokenAPrice.isZero() &&
-                                !tokenBPrice.isZero()
-                              ) {
-                                let marketRate;
-                                if (baseToken === "TokenA") {
-                                  // TokenA selected: rate = price_TokenB / price_TokenA
-                                  // Contoh: BU = $0.0001375, BNB = $865.24 → rate = $0.0001375 / $865.24
-                                  marketRate =
-                                    tokenBPrice.dividedBy(tokenAPrice);
-                                } else {
-                                  // TokenB selected: rate = price_TokenA / price_TokenB
-                                  // Contoh: BNB = $865.24, BU = $0.0001375 → rate = $865.24 / $0.0001375
-                                  marketRate =
-                                    tokenAPrice.dividedBy(tokenBPrice);
-                                }
-
-                                handleStartingPriceChange(marketRate.toFixed());
-                                // Market price button logging removed to prevent infinite loops
-                              }
-                            }}
-                          >
-                            Use market price
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Price Range */}
                     <div className="space-y-4">
-                      <div>
-                        <h3 className="font-semibold mb-2">Set Price Range</h3>
+                      {/* Price Range */}
+                      <PriceRange
+                        rangeType={rangeType}
+                        setRangeType={setRangeType}
+                        minPrice={minPrice}
+                        setMinPrice={setMinPrice}
+                        maxPrice={maxPrice}
+                        setMaxPrice={setMaxPrice}
+                        tokenASymbol={tokenASymbol || ""}
+                        tokenBSymbol={tokenBSymbol || ""}
+                      />
 
-                        <div className="flex gap-2 mb-4">
-                          <Button
-                            variant={
-                              rangeType === "full" ? "default" : "outline"
-                            }
-                            className="flex-1"
-                            onClick={() => setRangeType("full")}
-                          >
-                            Full Range
-                          </Button>
-                          <Button
-                            variant={
-                              rangeType === "custom" ? "default" : "outline"
-                            }
-                            className="flex-1"
-                            onClick={() => setRangeType("custom")}
-                          >
-                            Custom Range
-                          </Button>
-                        </div>
-
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Full range liquidity provision during pool creation
-                          ensures continuous market participation across all
-                          possible prices. The process is simpler, but potential
-                          impermanent loss is higher.
-                        </p>
-
-                        {rangeType === "custom" && (
-                          <div className="grid grid-cols-2 gap-4 mb-4">
-                            <div className="p-4 border rounded-lg">
-                              <label className="text-sm text-muted-foreground mb-2 block">
-                                Minimum Price
-                              </label>
-                              <input
-                                type="text"
-                                value={minPrice}
-                                onChange={(e) => setMinPrice(e.target.value)}
-                                className="w-full h-12 px-4 bg-background border-0 rounded-lg text-xl font-mono mb-2 focus:outline-none"
-                                placeholder="0"
-                              />
-                              <div className="text-sm text-muted-foreground">
-                                {tokenBSymbol} = 1 {tokenASymbol}
-                              </div>
-                            </div>
-                            <div className="p-4 border rounded-lg">
-                              <label className="text-sm text-muted-foreground mb-2 block">
-                                Maximum Price
-                              </label>
-                              <input
-                                type="text"
-                                value={maxPrice}
-                                onChange={(e) => setMaxPrice(e.target.value)}
-                                className="w-full h-12 px-4 bg-background border-0 rounded-lg text-xl font-mono mb-2 focus:outline-none"
-                                placeholder="∞"
-                              />
-                              <div className="text-sm text-muted-foreground">
-                                {tokenBSymbol} = 1 {tokenASymbol}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Token Deposit */}
                       <div className="space-y-4">
-                        <div>
-                          <h3 className="font-semibold mb-2">Deposit Tokens</h3>
-                          <p className="text-sm text-muted-foreground mb-4">
-                            Specify the amount of tokens for your liquidity
-                            contribution.
-                          </p>
-                        </div>
-
-                        <div className="space-y-3">
-                          <div
-                            className={`p-4 border rounded-lg bg-muted/50 ${
-                              isTokenAAmountEmpty() || !isTokenAAmountValid()
-                                ? "border-red-500 bg-red-500/5"
-                                : "border-border"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <input
-                                type="text"
-                                value={tokenAAmount}
-                                onChange={(e) =>
-                                  handleTokenAAmountChange(e.target.value)
-                                }
-                                className={`flex-1 bg-transparent text-3xl font-mono focus:outline-none placeholder:text-muted-foreground ${
-                                  isTokenAAmountEmpty() ||
-                                  !isTokenAAmountValid()
-                                    ? "text-red-500"
-                                    : ""
-                                }`}
-                                placeholder={
-                                  tokenASymbol ? "0" : "Select token first"
-                                }
-                                disabled={!tokenASymbol}
-                              />
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-xs px-2 py-1 h-6"
-                                  onClick={() =>
-                                    handleTokenAAmountChange(
-                                      (
-                                        tokenABalance?.balance ||
-                                        new BigNumber(0)
-                                      ).toString()
-                                    )
-                                  }
-                                  disabled={
-                                    !tokenASymbol ||
-                                    !tokenABalance ||
-                                    tokenABalance.balance.isZero()
-                                  }
-                                >
-                                  MAX
-                                </Button>
-                                {tokenAIcon ? (
-                                  <>
-                                    <Icon
-                                      name={tokenAIcon}
-                                      className="w-6 h-6"
-                                    />
-                                    <span className="font-medium">
-                                      {tokenASymbol}
-                                    </span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Icon
-                                      name="mdi:help-circle-outline"
-                                      className="w-6 h-6 text-muted-foreground"
-                                    />
-                                    <span className="text-muted-foreground text-sm">
-                                      Select Token
-                                    </span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                              <span
-                                className={
-                                  !isTokenAAmountValid()
-                                    ? "text-red-500"
-                                    : "text-muted-foreground"
-                                }
-                              >
-                                {!tokenASymbol
-                                  ? "-"
-                                  : calculateUSDValue(
-                                      tokenASymbol,
-                                      tokenAAmount
-                                    )}
-                              </span>
-                              <span
-                                className={
-                                  !isTokenAAmountValid()
-                                    ? "text-red-500"
-                                    : "text-muted-foreground"
-                                }
-                              >
-                                {!tokenASymbol ? (
-                                  "Select token to view balance"
-                                ) : (
-                                  <>
-                                    Balance:{" "}
-                                    {(() => {
-                                      if (tokenABalance?.isLoading)
-                                        return "Loading...";
-                                      if (!tokenABalance)
-                                        return "Not Connected";
-
-                                      return tokenABalance.formatted || "0";
-                                    })()}{" "}
-                                    {tokenASymbol}
-                                    {!!projectData &&
-                                      tokenASymbol === projectData.ticker &&
-                                      tokenABalance?.totalSupply &&
-                                      " (Total Supply)"}
-                                  </>
-                                )}
-                              </span>
-                            </div>
-                            {(isTokenAAmountEmpty() ||
-                              !isTokenAAmountValid()) && (
-                              <div className="text-red-500 text-xs mt-2">
-                                {isTokenAAmountEmpty()
-                                  ? `Enter ${tokenASymbol} amount`
-                                  : lastUpdatedField === "tokenB" &&
-                                    hasAutoCalculationError()
-                                  ? `Auto-calculation exceeds available ${tokenASymbol} balance`
-                                  : "Amount exceeds available balance"}
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Swap Button */}
-                          <div className="flex justify-center">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="w-10 h-10 p-0 rounded-full border bg-background hover:bg-muted"
-                              onClick={handleSwapAmounts}
-                            >
-                              <Icon
-                                name="mdi:swap-vertical"
-                                className="w-5 h-5"
-                              />
-                            </Button>
-                          </div>
-
-                          <div
-                            className={`p-4 border rounded-lg bg-muted/50 ${
-                              isTokenBAmountEmpty() || !isTokenBAmountValid()
-                                ? "border-red-500 bg-red-500/5"
-                                : "border-border"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <input
-                                type="text"
-                                value={tokenBAmount}
-                                onChange={(e) =>
-                                  handleTokenBAmountChange(e.target.value)
-                                }
-                                className={`flex-1 bg-transparent text-3xl font-mono focus:outline-none placeholder:text-muted-foreground ${
-                                  isTokenBAmountEmpty() ||
-                                  !isTokenBAmountValid()
-                                    ? "text-red-500"
-                                    : ""
-                                }`}
-                                placeholder={
-                                  tokenBSymbol ? "0" : "Select token first"
-                                }
-                                disabled={!tokenBSymbol}
-                              />
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-xs px-2 py-1 h-6"
-                                  onClick={() =>
-                                    handleTokenBAmountChange(
-                                      (
-                                        tokenBBalance?.balance ||
-                                        new BigNumber(0)
-                                      ).toString()
-                                    )
-                                  }
-                                  disabled={
-                                    !tokenBSymbol ||
-                                    !tokenBBalance ||
-                                    tokenBBalance.balance.isZero()
-                                  }
-                                >
-                                  MAX
-                                </Button>
-                                {tokenBIcon ? (
-                                  <>
-                                    <Icon
-                                      name={tokenBIcon}
-                                      className="w-6 h-6"
-                                    />
-                                    <span className="font-medium">
-                                      {tokenBSymbol}
-                                    </span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Icon
-                                      name="mdi:help-circle-outline"
-                                      className="w-6 h-6 text-muted-foreground"
-                                    />
-                                    <span className="text-muted-foreground text-sm">
-                                      Select Token
-                                    </span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                              <span
-                                className={
-                                  !isTokenBAmountValid()
-                                    ? "text-red-500"
-                                    : "text-muted-foreground"
-                                }
-                              >
-                                {!tokenBSymbol
-                                  ? "-"
-                                  : calculateUSDValue(
-                                      tokenBSymbol,
-                                      tokenBAmount
-                                    )}
-                              </span>
-                              <span
-                                className={
-                                  !isTokenBAmountValid()
-                                    ? "text-red-500"
-                                    : "text-muted-foreground"
-                                }
-                              >
-                                {!tokenBSymbol ? (
-                                  "Select token to view balance"
-                                ) : (
-                                  <>
-                                    Balance:{" "}
-                                    {(() => {
-                                      if (tokenBBalance?.isLoading)
-                                        return "Loading...";
-                                      if (!tokenBBalance)
-                                        return "Not Connected";
-
-                                      return tokenBBalance.formatted || "0";
-                                    })()}{" "}
-                                    {tokenBSymbol}
-                                    {!!projectData &&
-                                      tokenBSymbol === projectData.ticker &&
-                                      tokenBBalance?.totalSupply &&
-                                      " (Total Supply)"}
-                                  </>
-                                )}
-                              </span>
-                            </div>
-                            {(isTokenBAmountEmpty() ||
-                              !isTokenBAmountValid()) && (
-                              <div className="text-red-500 text-xs mt-2">
-                                {isTokenBAmountEmpty()
-                                  ? `Enter ${tokenBSymbol} amount`
-                                  : lastUpdatedField === "tokenA" &&
-                                    hasAutoCalculationError()
-                                  ? `Auto-calculation exceeds available ${tokenBSymbol} balance`
-                                  : "Amount exceeds available balance"}
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                        {/* Token Deposit */}
+                        <TokenDeposit
+                          tokenAAmount={tokenAAmount}
+                          tokenASymbol={tokenASymbol || ""}
+                          tokenAIcon={tokenAIcon || ""}
+                          tokenABalance={tokenABalance}
+                          handleTokenAAmountChange={handleTokenAAmountChange}
+                          isTokenAAmountEmpty={isTokenAAmountEmpty}
+                          isTokenAAmountValid={isTokenAAmountValid}
+                          tokenBAmount={tokenBAmount}
+                          tokenBSymbol={tokenBSymbol || ""}
+                          tokenBIcon={tokenBIcon || ""}
+                          tokenBBalance={tokenBBalance}
+                          handleTokenBAmountChange={handleTokenBAmountChange}
+                          isTokenBAmountEmpty={isTokenBAmountEmpty}
+                          isTokenBAmountValid={isTokenBAmountValid}
+                          calculateUSDValue={calculateUSDValue}
+                          handleSwapAmounts={handleSwapAmounts}
+                          projectData={projectData}
+                          lastUpdatedField={lastUpdatedField || ""}
+                          hasAutoCalculationError={hasAutoCalculationError}
+                        />
 
                         {/* Conversion Rate Display */}
                         {getConversionRate() && (
@@ -1993,253 +1173,63 @@ export function ModalLiquidity({
                         )}
 
                         {/* SDK Status Display */}
-                        {isWalletConnected && (
-                          <div className="p-3 bg-muted/20 rounded-lg mb-3">
-                            {isSDKConnecting && (
-                              <div className="flex items-center gap-2 text-sm text-purple-600">
-                                <Icon
-                                  name="mdi:loading"
-                                  className="w-4 h-4 animate-spin"
-                                />
-                                <span>Initializing Uniswap V3 SDK...</span>
-                              </div>
-                            )}
-                            {sdkError && (
-                              <div className="flex items-center gap-2 text-sm text-red-600">
-                                <Icon
-                                  name="mdi:alert-circle"
-                                  className="w-4 h-4"
-                                />
-                                <span>SDK Error: {sdkError}</span>
-                              </div>
-                            )}
-                            {!isSDKReady && !isSDKConnecting && !sdkError && (
-                              <div className="flex items-center gap-2 text-sm text-amber-600">
-                                <Icon name="mdi:alert" className="w-4 h-4" />
-                                <span>Uniswap SDK not ready</span>
-                              </div>
-                            )}
-                            {isSDKReady && !isSDKConnecting && !sdkError && (
-                              <div className="flex items-center gap-2 text-sm text-green-600">
-                                <Icon
-                                  name="mdi:check-circle"
-                                  className="w-4 h-4"
-                                />
-                                <span>
-                                  Uniswap V3 SDK Ready · Chain {projectChainId}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        <SDKStatusDisplay
+                          isWalletConnected={isWalletConnected}
+                          isSDKConnecting={isSDKConnecting}
+                          sdkError={sdkError}
+                          isSDKReady={isSDKReady}
+                          projectChainId={projectChainId || 1}
+                        />
 
                         {/* Balance Status Display */}
-                        {(balancesLoading ||
-                          balancesError ||
-                          !balancesInitialized) && (
-                          <div className="p-3 bg-muted/20 rounded-lg mb-3">
-                            {balancesLoading && (
-                              <div className="flex items-center gap-2 text-sm text-blue-600">
-                                <Icon
-                                  name="mdi:loading"
-                                  className="w-4 h-4 animate-spin"
-                                />
-                                <span>
-                                  Fetching token balance from wallet...
-                                </span>
-                              </div>
-                            )}
-                            {balancesError && (
-                              <div className="flex items-center gap-2 text-sm text-amber-600">
-                                <Icon
-                                  name="mdi:alert-circle"
-                                  className="w-4 h-4"
-                                />
-                                <span>
-                                  Failed to fetch balance: {balancesError}
-                                </span>
-                                <div className="flex gap-1 ml-auto">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 px-2 text-xs"
-                                    onClick={refetchBalances}
-                                  >
-                                    <Icon
-                                      name="mdi:refresh"
-                                      className="w-3 h-3 mr-1"
-                                    />
-                                    Try again
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 px-2 text-xs"
-                                    onClick={() => setShowTokenHelper(true)}
-                                  >
-                                    <Icon
-                                      name="mdi:help-circle"
-                                      className="w-3 h-3 mr-1"
-                                    />
-                                    Help
-                                  </Button>
-                                </div>
-                              </div>
-                            )}
-                            {!balancesInitialized && !balancesLoading && (
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Icon name="mdi:wallet" className="w-4 h-4" />
-                                <span>Connect wallet to view balance</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        <BalanceStatusDisplay
+                          balancesLoading={balancesLoading}
+                          balancesError={balancesError}
+                          balancesInitialized={balancesInitialized}
+                          refetchBalances={refetchBalances}
+                          setShowTokenHelper={setShowTokenHelper}
+                        />
 
                         {/* Market Prices Display */}
-                        <div className="p-3 bg-muted/20 rounded-lg">
-                          <div className="text-xs text-muted-foreground mb-2">
-                            Current Market Prices
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 text-sm mb-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Icon name={tokenAIcon} className="w-4 h-4" />
-                                <span>{tokenASymbol}</span>
-                              </div>
-                              <span className="font-mono">
-                                US$
-                                {formatUSDWithoutRounding(
-                                  tokenPricesBN[tokenASymbol] ||
-                                    new BigNumber(0)
-                                )}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Icon name={tokenBIcon} className="w-4 h-4" />
-                                <span>{tokenBSymbol}</span>
-                              </div>
-                              <span className="font-mono">
-                                US$
-                                {formatUSDWithoutRounding(
-                                  // Use calculated project price if available for project token
-                                  !displayProjectTokenPrice.isZero() &&
-                                    tokenBSymbol
-                                    ? displayProjectTokenPrice
-                                    : (tokenBSymbol
-                                        ? tokenPricesBN[tokenBSymbol]
-                                        : new BigNumber(0)) || new BigNumber(0)
-                                )}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Total Pool Value */}
-                          {(() => {
-                            const tokenAAmountBN = new BigNumber(
-                              tokenAAmount || 0
-                            );
-                            const tokenBAmountBN = new BigNumber(
-                              tokenBAmount || 0
-                            );
-                            return tokenAAmountBN.gt(0) || tokenBAmountBN.gt(0);
-                          })() && (
-                            <div className="pt-3 border-t border-muted">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <Icon
-                                    name="mdi:pool"
-                                    className="w-4 h-4 text-muted-foreground"
-                                  />
-                                  <span className="text-sm font-medium">
-                                    Total Pool Value
-                                  </span>
-                                </div>
-                                <span className="font-mono text-sm font-bold">
-                                  {calculateTotalPoolValue()}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                        <MarketPricesDisplay
+                          tokenAIcon={tokenAIcon || ""}
+                          tokenBIcon={tokenBIcon || ""}
+                          tokenASymbol={tokenASymbol || ""}
+                          tokenBSymbol={tokenBSymbol || ""}
+                          tokenPricesBN={tokenPricesBN}
+                          displayProjectTokenPrice={displayProjectTokenPrice}
+                          formatUSDWithoutRounding={formatUSDWithoutRounding}
+                          tokenAAmount={tokenAAmount}
+                          tokenBAmount={tokenBAmount}
+                          calculateTotalPoolValue={calculateTotalPoolValue}
+                        />
 
                         {/* Review Button - No more manual wallet connection */}
-                        {(() => {
-                          const buttonState = getButtonState();
-                          return (
-                            <Button
-                              className={buttonState.className}
-                              disabled={buttonState.disabled}
-                              onClick={
-                                !buttonState.disabled
-                                  ? () => {
-                                      // CRITICAL: Use pre-processed tokenAData
-
-                                      const finalTokenAData =
-                                        processedTokenAData;
-
-                                      // Get correct decimals for tokenB
-                                      const tokenBAddress =
-                                        projectData?.contractAddress ||
-                                        (selectedTokenB
-                                          ? tokenAddressMap[selectedTokenB]
-                                              ?.address
-                                          : undefined);
-                                      const tokenBDecimals = getCorrectDecimals(
-                                        selectedTokenB ||
-                                          tokenBData.symbol ||
-                                          "UNKNOWN",
-                                        tokenBAddress
-                                      );
-
-                                      const finalTokenBData = {
-                                        ...tokenBData,
-                                        address: tokenBAddress,
-                                        isNative: selectedTokenB
-                                          ? tokenAddressMap[selectedTokenB]
-                                              ?.isNative || false
-                                          : false,
-                                        decimals: tokenBDecimals, // Use correct decimals per token
-                                        name:
-                                          tokenBData?.name ||
-                                          tokenBData?.symbol ||
-                                          "Unknown Token", // Add name fallback
-                                      };
-
-                                      setModalData({
-                                        rangeType,
-                                        minPrice,
-                                        maxPrice,
-                                        startingPrice,
-                                        baseToken,
-                                        tokenAAmount,
-                                        tokenBAmount,
-                                        tokenAData: finalTokenAData,
-                                        tokenBData: finalTokenBData,
-                                        tokenPrices,
-                                        calculateUSDValue,
-                                        calculateTotalPoolValue,
-                                        // Data tambahan untuk Uniswap integration
-                                        feeTier: selectedFeeTier,
-                                        chainId: projectChainId, // Use project chain ID from hook
-                                        userAddress,
-                                      });
-                                      setOpen(false); // Close main modal first
-                                      setShowConfirmModal(true);
-                                    }
-                                  : undefined
-                              }
-                            >
-                              {buttonState.icon && (
-                                <Icon
-                                  name={buttonState.icon}
-                                  className="w-4 h-4 mr-2"
-                                />
-                              )}
-                              {buttonState.text}
-                            </Button>
-                          );
-                        })()}
+                        <ReviewButton
+                          getButtonState={getButtonState}
+                          processedTokenAData={processedTokenAData}
+                          projectData={projectData}
+                          selectedTokenB={selectedTokenB || ""}
+                          tokenAddressMap={tokenAddressMap}
+                          tokenBData={tokenBData}
+                          getCorrectDecimals={getCorrectDecimals}
+                          rangeType={rangeType}
+                          minPrice={minPrice}
+                          maxPrice={maxPrice}
+                          startingPrice={startingPrice}
+                          baseToken={baseToken}
+                          tokenAAmount={tokenAAmount}
+                          tokenBAmount={tokenBAmount}
+                          tokenPrices={tokenPrices}
+                          calculateUSDValue={calculateUSDValue}
+                          calculateTotalPoolValue={calculateTotalPoolValue}
+                          selectedFeeTier={selectedFeeTier}
+                          projectChainId={projectChainId || 1}
+                          userAddress={userAddress || ""}
+                          setModalData={setModalData}
+                          setOpen={setOpen}
+                          setShowConfirmModal={setShowConfirmModal}
+                        />
                       </div>
                     </div>
                   </div>
