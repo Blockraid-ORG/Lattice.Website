@@ -1,108 +1,109 @@
-'use client'
+"use client";
 
-import { FormInput } from "@/components/form-input"
-import { FormSelect } from "@/components/form-select"
-import { Icon } from "@/components/icon"
-import { ImageDropzone } from "@/components/image-dropzone"
-import { Button } from "@/components/ui/button"
-import { Form } from "@/components/ui/form"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { presalesDurations } from "@/data/constants"
-import { converToIpfs, pinata } from "@/lib/pinata"
-import { toUrlAsset } from "@/lib/utils"
-import { useCategoryList } from "@/modules/category/category.query"
-import { useChainList } from "@/modules/chain/chain.query"
-import { useUpdatePresaleWhitelist } from "@/modules/presales/presale.query"
-import { useCreateProject } from "@/modules/project/project.query"
-import { formCreateProjectSchema } from "@/modules/project/project.schema"
-import { useSocialList } from "@/modules/social/chain.query"
+import { FormInput } from "@/components/form-input";
+import { FormSelect } from "@/components/form-select";
+import { Icon } from "@/components/icon";
+import { ImageDropzone } from "@/components/image-dropzone";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { presalesDurations } from "@/data/constants";
+import { converToIpfs, pinata } from "@/lib/pinata";
+import { toUrlAsset } from "@/lib/utils";
+import { useCategoryList } from "@/modules/category/category.query";
+import { useChainList } from "@/modules/chain/chain.query";
+import { useUpdatePresaleWhitelist } from "@/modules/presales/presale.query";
+import { useCreateProject } from "@/modules/project/project.query";
+import { formCreateProjectSchema } from "@/modules/project/project.schema";
+import { useSocialList } from "@/modules/social/chain.query";
 // import { useUserVerified } from "@/modules/user-verified/user-verified.query"
-import { TFormProject, TFormProjectAllocation, TFormProjectPresale } from "@/types/project"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useRouter } from "next/navigation"
-import { Fragment, useRef, useState } from "react"
-import { useFieldArray, useForm } from "react-hook-form"
-import { toast } from "sonner"
-import { defaultValues } from "./default-value"
-import { useProjectTypeList } from "@/modules/project-types/project-types.query"
+import {
+  TFormProject,
+  TFormProjectAllocation,
+  TFormProjectPresale,
+} from "@/types/project";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { Fragment, useRef, useState } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { defaultValues } from "./default-value";
+import { useProjectTypeList } from "@/modules/project-types/project-types.query";
 
 type TTokenUnit = {
-  value: string
-  label: string,
-  disabled?: boolean
-}
+  value: string;
+  label: string;
+  disabled?: boolean;
+};
 export default function FormCreate() {
-  const { mutate: updatePresaleWhitelist } = useUpdatePresaleWhitelist()
-  // const { data: verifiedAddress } = useUserVerified()
-  const whitelistRef = useRef<HTMLDivElement>(null)
-  const [showInputWL, setShowInputWL] = useState(false)
-  const [tokenUnits, setTokenUtits] = useState<TTokenUnit[]>([])
-  const { mutate: createProject } = useCreateProject()
-  const [logo, setLogo] = useState<File | null>(null)
-  const [banner, setBanner] = useState<File | null>(null)
-  const { data: chains } = useChainList()
-  const { data: categories } = useCategoryList()
-  const { data: socials } = useSocialList()
-  const { data: projectTypes } = useProjectTypeList()
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
+  const { mutate: updatePresaleWhitelist } = useUpdatePresaleWhitelist();
+  const whitelistRef = useRef<HTMLDivElement>(null);
+  const [showInputWL, setShowInputWL] = useState(false);
+  const [tokenUnits, setTokenUtits] = useState<TTokenUnit[]>([]);
+  const { mutate: createProject } = useCreateProject();
+  const [logo, setLogo] = useState<File | null>(null);
+  const [banner, setBanner] = useState<File | null>(null);
+  const { data: chains } = useChainList();
+  const { data: categories } = useCategoryList();
+  const { data: socials } = useSocialList();
+  const { data: projectTypes } = useProjectTypeList();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const form = useForm<TFormProject>({
     resolver: zodResolver(formCreateProjectSchema),
-    defaultValues: defaultValues
-  })
+    defaultValues: defaultValues,
+  });
   const { fields, append, remove } = useFieldArray<TFormProjectAllocation>({
     control: form.control,
-    name: "allocations"
-  })
-
+    name: "allocations",
+  });
   const {
     fields: socialFields,
     append: appendSocial,
-    remove: removeSocial
+    remove: removeSocial,
   } = useFieldArray({
     control: form.control,
-    name: "socials"
-  })
+    name: "socials",
+  });
   const { fields: presalesFields } = useFieldArray({
     control: form.control,
-    name: "presales"
-  })
+    name: "presales",
+  });
   const allocations = form.watch("allocations");
-  const totalPercent = allocations.reduce((sum: number, a: TFormProjectAllocation) => sum + Number(a.supply || 0), 0)
+  const totalPercent = allocations.reduce(
+    (sum: number, a: TFormProjectAllocation) => sum + Number(a.supply || 0),
+    0
+  );
   async function uploadLogo() {
     const urlRequest = await fetch("/api/upload");
     const urlResponse = await urlRequest.json();
     if (!logo) {
-      alert('Upload image please!')
-      return
+      alert("Upload image please!");
+      return;
     }
-    const upload = await pinata.upload.public
-      .file(logo)
-      .url(urlResponse.url);
-    const url = converToIpfs(upload.cid)
+    const upload = await pinata.upload.public.file(logo).url(urlResponse.url);
+    const url = converToIpfs(upload.cid);
     return url;
   }
   async function uploadBanner() {
     const urlRequest = await fetch("/api/upload");
     const urlResponse = await urlRequest.json();
     if (!banner) {
-      alert('Upload image please!')
-      return
+      alert("Upload image please!");
+      return;
     }
-    const upload = await pinata.upload.public
-      .file(banner)
-      .url(urlResponse.url);
-    const url = converToIpfs(upload.cid)
+    const upload = await pinata.upload.public.file(banner).url(urlResponse.url);
+    const url = converToIpfs(upload.cid);
     return url;
   }
 
   function onChangeValue(chainId: string) {
-    const c = chains?.find(i => i.value === chainId)
+    const c = chains?.find((i) => i.value === chainId);
     setTokenUtits([
       {
         label: `${c?.ticker}`,
-        value: `${c?.ticker}`
+        value: `${c?.ticker}`,
       },
       {
         label: `USDC`,
@@ -114,43 +115,38 @@ export default function FormCreate() {
         value: `USDT`,
         disabled: true,
       },
-
-    ])
+    ]);
   }
 
   function onCheckedChange(state: boolean) {
-    setShowInputWL(state)
+    setShowInputWL(state);
     if (state) {
       setTimeout(() => {
-        whitelistRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
-      }, 100)
+        whitelistRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "end",
+        });
+      }, 100);
     }
   }
   async function onSubmit(values: TFormProject) {
     try {
       let arrayAddress: string[];
       if (values.whitelistAddress && values.whitelistAddress !== "") {
-        arrayAddress = values.whitelistAddress.split(',')
+        arrayAddress = values.whitelistAddress
+          .split(",")
           .map((addr: string) => addr.trim())
-          .filter((addr: string) => addr !== '');
-        // const verifiedAddressArray = verifiedAddress?.map(i => i.walletAddress)
-        // const anyErrorAddr = arrayAddress?.filter((i: string) => !verifiedAddressArray?.includes(i))
-        // if (anyErrorAddr.length > 0) {
-        //   toast.error('Ups!', {
-        //     description: `${anyErrorAddr} \nis not verified address`
-        //   })
-        //   return
-        // }
+          .filter((addr: string) => addr !== "");
       }
 
-      setLoading(true)
+      setLoading(true);
       let logoUrl, bannerUrl;
       const chainIds = values.chainId;
       if (logo) {
-        logoUrl = await uploadLogo()
+        logoUrl = await uploadLogo();
       }
       if (banner) {
-        bannerUrl = await uploadBanner()
+        bannerUrl = await uploadBanner();
       }
       const presales = values.presales.map((item: TFormProjectPresale) => {
         return {
@@ -162,14 +158,16 @@ export default function FormCreate() {
           whitelistDuration: item.whitelistDuration || 0,
           sweepDuration: item.sweepDuration || 0,
           chainId: chainIds,
+        };
+      });
+      const allocations = values.allocations.map(
+        (item: TFormProjectAllocation) => {
+          return {
+            ...item,
+            isPresale: item.name.toLowerCase() === "presale",
+          };
         }
-      })
-      const allocations = values.allocations.map((item: TFormProjectAllocation) => {
-        return {
-          ...item,
-          isPresale: (item.name).toLowerCase() === 'presale'
-        }
-      })
+      );
       const newValues = {
         ...values,
         whitelistAddress: undefined,
@@ -182,29 +180,29 @@ export default function FormCreate() {
         chainIds: [chainIds],
         chainId: undefined,
         presales: presales[0],
-        allocations
-      }
+        allocations,
+      };
       createProject(newValues, {
         onSuccess: (res) => {
           if (arrayAddress && arrayAddress.length > 0) {
             updatePresaleWhitelist({
               presaleId: res.presales.id,
-              walletAddress: arrayAddress
-            })
+              walletAddress: arrayAddress,
+            });
           }
-          router.push('/usr/my-project')
-        }
-      })
-    } catch (error: any) {
-      console.error(error)
-      toast.error("Failed to save token")
+          router.push("/usr/my-project");
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to save token");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
   return (
     <div>
-      <div className='max-w-5xl mx-auto py-12 px-3'>
+      <div className="max-w-5xl mx-auto py-12 px-3">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="bg-form-token-gradient p-4 md:p-8 rounded-2xl">
@@ -213,18 +211,18 @@ export default function FormCreate() {
               </div>
               <div className="mb-6">
                 <ImageDropzone
-                  className='aspect-[12/4] bg-white dark:bg-slate-900'
+                  className="aspect-[12/4] bg-white dark:bg-slate-900"
                   onChange={(file) => setBanner(file)}
                 />
               </div>
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="w-44 h-44 shrink-0 mx-auto md:mx-0">
                   <ImageDropzone
-                    className='aspect-square bg-white dark:bg-slate-900'
+                    className="aspect-square bg-white dark:bg-slate-900"
                     onChange={(file) => setLogo(file)}
                   />
                 </div>
-                <div className='flex-1 space-y-4'>
+                <div className="flex-1 space-y-4">
                   <FormInput
                     control={form.control}
                     name="name"
@@ -250,69 +248,64 @@ export default function FormCreate() {
               </div>
 
               <div className="grid lg:grid-cols-2 gap-3 my-6">
-                {
-                  chains && (
-                    <FormSelect
-                      control={form.control}
-                      name="chainId"
-                      label="Select Chain"
-                      placeholder="select chain"
-                      onChangeValue={(val) => onChangeValue(val)}
-                      groups={[
-                        {
-                          label: "Network",
-                          options: chains.map(i => {
-                            return {
-                              ...i,
-                              iconUrl: i.logo && toUrlAsset(i.logo)
-                            }
-                          })
-                        }
-                      ]}
-                    />
-
-                  )
-                }
-                {
-                  categories && (
-                    <FormSelect
-                      control={form.control}
-                      name="categoryId"
-                      label="Select Category"
-                      placeholder="select category"
-                      groups={[{
-                        label: 'Category',
-                        options: categories.map(i => {
+                {chains && (
+                  <FormSelect
+                    control={form.control}
+                    name="chainId"
+                    label="Select Chain"
+                    placeholder="select chain"
+                    onChangeValue={(val) => onChangeValue(val)}
+                    groups={[
+                      {
+                        label: "Network",
+                        options: chains.map((i) => {
                           return {
                             ...i,
-                            iconName: i.icon
-                          }
-                        })
-                      }]}
-                    />
-
-                  )
-                }
-                {
-                  projectTypes && (
-                    <FormSelect
-                      control={form.control}
-                      name="projectTypeId"
-                      label="Select Type"
-                      placeholder="select type"
-                      groups={[{
-                        label: 'Project Type',
-                        options: projectTypes.map(i => {
+                            iconUrl: i.logo && toUrlAsset(i.logo),
+                          };
+                        }),
+                      },
+                    ]}
+                  />
+                )}
+                {categories && (
+                  <FormSelect
+                    control={form.control}
+                    name="categoryId"
+                    label="Select Category"
+                    placeholder="select category"
+                    groups={[
+                      {
+                        label: "Category",
+                        options: categories.map((i) => {
                           return {
                             ...i,
-                            iconName: i.icon
-                          }
-                        })
-                      }]}
-                    />
-
-                  )
-                }
+                            iconName: i.icon,
+                          };
+                        }),
+                      },
+                    ]}
+                  />
+                )}
+                {projectTypes && (
+                  <FormSelect
+                    control={form.control}
+                    name="projectTypeId"
+                    label="Select Type"
+                    placeholder="select type"
+                    groups={[
+                      {
+                        label: "Project Type",
+                        options: projectTypes.map((i) => {
+                          return {
+                            ...i,
+                            iconName: i.icon,
+                          };
+                        }),
+                      },
+                    ]}
+                  />
+                )}
                 <FormInput
                   control={form.control}
                   name="totalSupply"
@@ -331,9 +324,11 @@ export default function FormCreate() {
             {/* bg-white border dark:bg-primary-foreground/50
             bg-white border dark:bg-primary-foreground/50
             bg-white border dark:bg-primary-foreground/50  */}
-            <div className='bg-form-token-gradient p-4 md:p-8 rounded-2xl'>
+            <div className="bg-form-token-gradient p-4 md:p-8 rounded-2xl">
               <div className="space-y-3">
-                <h3 className="text-lg font-semibold">Website / Social Media</h3>
+                <h3 className="text-lg font-semibold">
+                  Website / Social Media
+                </h3>
                 {socialFields.map((field, index) => (
                   <div key={field.id} className="flex items-end gap-2">
                     <FormSelect
@@ -341,15 +336,19 @@ export default function FormCreate() {
                       control={form.control}
                       name={`socials.${index}.socialId`}
                       label="Platform"
-                      groups={[{
-                        label: 'Social',
-                        options: socials ? socials.map(i => {
-                          return {
-                            ...i,
-                            iconName: i.icon
-                          }
-                        }) : []
-                      }]}
+                      groups={[
+                        {
+                          label: "Social",
+                          options: socials
+                            ? socials.map((i) => {
+                                return {
+                                  ...i,
+                                  iconName: i.icon,
+                                };
+                              })
+                            : [],
+                        },
+                      ]}
                       placeholder="Select platform"
                     />
                     <div className="flex-1">
@@ -366,7 +365,7 @@ export default function FormCreate() {
                       size="icon"
                       onClick={() => removeSocial(index)}
                     >
-                      <Icon name='tabler:trash' />
+                      <Icon name="tabler:trash" />
                     </Button>
                   </div>
                 ))}
@@ -381,19 +380,25 @@ export default function FormCreate() {
                 </div>
               </div>
             </div>
-            <div className='bg-form-token-gradient p-4 md:p-8 rounded-2xl'>
+            <div className="bg-form-token-gradient p-4 md:p-8 rounded-2xl">
               <div className="space-y-3">
                 <h3 className="text-lg font-semibold">Allocations</h3>
                 <div>
                   {fields.map((field, index) => (
-                    <div key={field.id} className="flex flex-col md:flex-row gap-2 md:items-end space-y-2">
+                    <div
+                      key={field.id}
+                      className="flex flex-col md:flex-row gap-2 md:items-end space-y-2"
+                    >
                       <div className="flex-1">
                         <FormInput
                           control={form.control}
                           name={`allocations.${index}.name`}
                           label={"Allocations"}
                           placeholder="e.g. Team"
-                          disabled={field.name === "Presale" || field.name === "Deployer"}
+                          disabled={
+                            field.name === "Presale" ||
+                            field.name === "Deployer"
+                          }
                         />
                       </div>
                       <div className="flex-1">
@@ -438,31 +443,51 @@ export default function FormCreate() {
                       </div>
                       <Button
                         disabled={field.name === "Deployer"}
-                        className='ms-auto'
+                        className="ms-auto"
                         size={"icon"}
                         type="button"
                         variant="destructive"
                         onClick={() => remove(index)}
                       >
-                        <Icon name='tabler:trash' />
+                        <Icon name="tabler:trash" />
                       </Button>
                     </div>
                   ))}
                 </div>
                 <div className="flex justify-between">
-                  <p className={`text-xs font-semibold ${totalPercent !== 100 ? 'text-red-500' : 'text-green-600'}`}>
+                  <p
+                    className={`text-xs font-semibold ${
+                      totalPercent !== 100 ? "text-red-500" : "text-green-600"
+                    }`}
+                  >
                     Total Allocation: {totalPercent}%
                   </p>
-                  {totalPercent !== 100 && <p className='text-xs font-semibold'>Total Allocation Must be 100%</p>}
+                  {totalPercent !== 100 && (
+                    <p className="text-xs font-semibold">
+                      Total Allocation Must be 100%
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex justify-end mt-2">
-                <Button variant="secondary" disabled={totalPercent >= 100} type="button" onClick={() => append({ allocation: "", supply: 0, start_date: "", vesting: 0 })}>
+                <Button
+                  variant="secondary"
+                  disabled={totalPercent >= 100}
+                  type="button"
+                  onClick={() =>
+                    append({
+                      allocation: "",
+                      supply: 0,
+                      start_date: "",
+                      vesting: 0,
+                    })
+                  }
+                >
                   + Allocation
                 </Button>
               </div>
             </div>
-            <div className='bg-form-token-gradient p-4 md:p-8 rounded-2xl'>
+            <div className="bg-form-token-gradient p-4 md:p-8 rounded-2xl">
               <div className="space-y-3">
                 <h3 className="text-lg font-semibold">Presales Info</h3>
                 <div>
@@ -475,10 +500,16 @@ export default function FormCreate() {
                             name={`presales.${index}.unit`}
                             label="Unit"
                             placeholder="e.g.USDT"
-                            groups={tokenUnits ? [{
-                              label: 'Unit',
-                              options: tokenUnits ?? []
-                            }] : []}
+                            groups={
+                              tokenUnits
+                                ? [
+                                    {
+                                      label: "Unit",
+                                      options: tokenUnits ?? [],
+                                    },
+                                  ]
+                                : []
+                            }
                           />
                           <FormInput
                             control={form.control}
@@ -504,57 +535,73 @@ export default function FormCreate() {
                           <FormInput
                             control={form.control}
                             name={`presales.${index}.startDate`}
-                            label="Start Date" type="datetime-local"
+                            label="Start Date"
+                            type="datetime-local"
                           />
                           <FormSelect
                             control={form.control}
                             name={`presales.${index}.duration`}
                             label="Duration"
                             placeholder="select duration"
-                            groups={presalesDurations ? [{
-                              label: 'Duration',
-                              options: presalesDurations ?? []
-                            }] : []}
+                            groups={
+                              presalesDurations
+                                ? [
+                                    {
+                                      label: "Duration",
+                                      options: presalesDurations ?? [],
+                                    },
+                                  ]
+                                : []
+                            }
                           />
                           <FormSelect
                             control={form.control}
                             name={`presales.${index}.claimTime`}
                             label="Claim Available After"
                             placeholder="select duration"
-                            groups={presalesDurations ? [{
-                              label: 'Duration',
-                              options: presalesDurations ?? []
-                            }] : []}
+                            groups={
+                              presalesDurations
+                                ? [
+                                    {
+                                      label: "Duration",
+                                      options: presalesDurations ?? [],
+                                    },
+                                  ]
+                                : []
+                            }
                           />
                         </div>
                       </div>
                       <div ref={whitelistRef} className="mt-6">
                         <div className="flex items-center space-x-2">
-                          <Switch onCheckedChange={onCheckedChange} id="enable-whitelist" />
-                          <Label htmlFor="enable-whitelist">Enable Whitelist</Label>
+                          <Switch
+                            onCheckedChange={onCheckedChange}
+                            id="enable-whitelist"
+                          />
+                          <Label htmlFor="enable-whitelist">
+                            Enable Whitelist
+                          </Label>
                         </div>
-                        {
-                          showInputWL && (
-                            <div className="mt-4 pt-4 border-t space-y-3">
-                              <div className="flex items-end gap-1">
-                                <FormInput
-                                  control={form.control}
-                                  name={`presales.${index}.whitelistDuration`}
-                                  label="Duration (Hours)"
-                                  placeholder="Enter Dutaion"
-                                  type="number"
-                                />
-                              </div>
-                              {/* <FormInput
+                        {showInputWL && (
+                          <div className="mt-4 pt-4 border-t space-y-3">
+                            <div className="flex items-end gap-1">
+                              <FormInput
+                                control={form.control}
+                                name={`presales.${index}.whitelistDuration`}
+                                label="Duration (Hours)"
+                                placeholder="Enter Dutaion"
+                                type="number"
+                              />
+                            </div>
+                            {/* <FormInput
                                 control={form.control}
                                 name={`whitelistAddress`}
                                 label="Address"
                                 isLongText
                                 rows={10}
                               /> */}
-                            </div>
-                          )
-                        }
+                          </div>
+                        )}
                       </div>
                     </Fragment>
                   ))}
@@ -562,11 +609,25 @@ export default function FormCreate() {
               </div>
             </div>
             <div className="flex items-center gap-2 justify-end sticky bottom-0 py-3 z-20 backdrop-blur">
-              <Button onClick={() => router.back()} variant={"outline"} size={"lg"} type="button">Cancel</Button>
-              <Button disabled={
-                totalPercent !== 100 || loading
-              } size={"lg"} type="submit">
-                {loading && <Icon name='mingcute:loading-3-fill' className='animate-spin' />}
+              <Button
+                onClick={() => router.back()}
+                variant={"outline"}
+                size={"lg"}
+                type="button"
+              >
+                Cancel
+              </Button>
+              <Button
+                disabled={totalPercent !== 100 || loading}
+                size={"lg"}
+                type="submit"
+              >
+                {loading && (
+                  <Icon
+                    name="mingcute:loading-3-fill"
+                    className="animate-spin"
+                  />
+                )}
                 Submit
               </Button>
             </div>
@@ -574,5 +635,5 @@ export default function FormCreate() {
         </Form>
       </div>
     </div>
-  )
+  );
 }
