@@ -38,7 +38,6 @@ type TTokenUnit = {
 };
 export default function FormCreate() {
   const { mutate: updatePresaleWhitelist } = useUpdatePresaleWhitelist();
-  // const { data: verifiedAddress } = useUserVerified()
   const whitelistRef = useRef<HTMLDivElement>(null);
   const [showInputWL, setShowInputWL] = useState(false);
   const [tokenUnits, setTokenUtits] = useState<TTokenUnit[]>([]);
@@ -59,7 +58,6 @@ export default function FormCreate() {
     control: form.control,
     name: "allocations",
   });
-
   const {
     fields: socialFields,
     append: appendSocial,
@@ -139,14 +137,6 @@ export default function FormCreate() {
           .split(",")
           .map((addr: string) => addr.trim())
           .filter((addr: string) => addr !== "");
-        // const verifiedAddressArray = verifiedAddress?.map(i => i.walletAddress)
-        // const anyErrorAddr = arrayAddress?.filter((i: string) => !verifiedAddressArray?.includes(i))
-        // if (anyErrorAddr.length > 0) {
-        //   toast.error('Ups!', {
-        //     description: `${anyErrorAddr} \nis not verified address`
-        //   })
-        //   return
-        // }
       }
 
       setLoading(true);
@@ -203,8 +193,8 @@ export default function FormCreate() {
           router.push("/usr/my-project");
         },
       });
-    } catch (error: any) {
-      error;
+    } catch (error) {
+      console.error(error);
       toast.error("Failed to save token");
     } finally {
       setLoading(false);

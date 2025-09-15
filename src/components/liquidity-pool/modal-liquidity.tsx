@@ -8,29 +8,12 @@ import {
   useRef,
   startTransition,
 } from "react";
+
 import BigNumber from "bignumber.js";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/icon";
 import { useWeb3AuthConnect } from "@web3auth/modal/react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "sonner";
 import { TokenSelectionModal } from "./token-selection-modal";
 import { useTokenPrices } from "@/hooks/useTokenPrices";
@@ -43,7 +26,6 @@ import TokenPairHeader from "./components/TokenPairHeader";
 import PoolCreationNotice from "./components/PoolCreationNotice";
 import StartingPrice from "./components/StartingPrice";
 import ReviewButton from "./components/ReviewButton";
-import TotalPoolValue from "./components/TotalPoolValue";
 import MarketPricesDisplay from "./components/MarketPricesDisplay";
 import TokenDeposit from "./components/TokenDeposit";
 import BalanceStatusDisplay from "./components/BalanceStatusDisplay";
