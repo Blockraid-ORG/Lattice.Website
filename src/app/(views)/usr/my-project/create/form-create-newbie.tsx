@@ -1,19 +1,20 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { FormInput } from "@/components/form-input";
 import { FormSelect } from "@/components/form-select";
 import { ImageDropzone } from "@/components/image-dropzone";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { formCreateProjectSchema } from "@/modules/project/project.schema";
 import { defaultValues } from "./default-value";
 import { TFormProject } from "@/types/project";
 import { useChainList } from "@/modules/chain/chain.query";
 import { useCategoryList } from "@/modules/category/category.query";
 import { useProjectTypeList } from "@/modules/project-types/project-types.query";
+import { useSocialList } from "@/modules/social/chain.query";
 import { toUrlAsset } from "@/lib/utils";
 
 type StepId =
@@ -27,7 +28,10 @@ type StepId =
   | "categoryId"
   | "projectTypeId"
   | "totalSupply"
-  | "detail";
+  | "detail"
+  | "socialPlatform"
+  | "socialUrl"
+  | "socialAddMore";
 
 type Step = {
   id: StepId;
@@ -103,12 +107,30 @@ const steps: Step[] = [
     description: "One or two lines to introduce your project",
     validateFields: ["detail"],
   },
+  {
+    id: "socialPlatform",
+    title: "Website / Social Media",
+    description:
+      "Add your site and social links so investors can check quickly. Which platform do you want to spotlight first?",
+  },
+  {
+    id: "socialUrl",
+    title: "URL",
+    description: "What’s the live URL to your site or social page?",
+  },
+  {
+    id: "socialAddMore",
+    title: "Add another social?",
+    description:
+      "Would you like to add another social link so investors can check quickly?",
+  },
 ];
 
 export default function FormCreateNewbie() {
   const [currentStep, setCurrentStep] = useState<StepId>("intro");
   const [banner, setBanner] = useState<File | null>(null);
   const [logo, setLogo] = useState<File | null>(null);
+  const [socialIndex, setSocialIndex] = useState(0);
 
   const form = useForm<TFormProject>({
     resolver: zodResolver(formCreateProjectSchema),
@@ -119,6 +141,11 @@ export default function FormCreateNewbie() {
   const { data: chains } = useChainList();
   const { data: categories } = useCategoryList();
   const { data: projectTypes } = useProjectTypeList();
+  const { data: socials } = useSocialList();
+  const { fields: socialFields, append: appendSocial } = useFieldArray({
+    control: form.control,
+    name: "socials",
+  });
   const currentIndex = useMemo(
     () => steps.findIndex((s) => s.id === currentStep),
     [currentStep]
@@ -136,12 +163,37 @@ export default function FormCreateNewbie() {
 
   async function validateAndNext() {
     const step = steps[currentIndex];
+    if (currentStep === "socialPlatform") {
+      const ok = await form.trigger([`socials.${socialIndex}.socialId`] as any);
+      if (!ok) return;
+      goNext();
+      return;
+    }
+    if (currentStep === "socialUrl") {
+      const ok = await form.trigger([`socials.${socialIndex}.url`] as any);
+      if (!ok) return;
+      goNext();
+      return;
+    }
     if (step.validateFields && step.validateFields.length > 0) {
       const ok = await form.trigger(step.validateFields as any);
       if (!ok) return;
     }
     goNext();
   }
+
+  function addAnotherSocial() {
+    appendSocial({ socialId: "", url: "" } as any);
+    setSocialIndex(socialFields.length); // new index
+    setCurrentStep("socialPlatform");
+  }
+
+  useEffect(() => {
+    if (socialFields.length === 0) {
+      appendSocial({ socialId: "", url: "" } as any);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="max-w-2xl mx-auto py-8 px-3">
@@ -483,6 +535,110 @@ export default function FormCreateNewbie() {
                   </Button>
                   <Button type="button" onClick={validateAndNext}>
                     Next
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentStep === "socialPlatform" && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold">
+                  Website / Social Media
+                </h3>
+                <p className="text-sm text-muted-foreground mt-0">
+                  Add your site and social links so investors can check quickly.
+                  Which platform do you want to spotlight first?
+                </p>
+                {socials && (
+                  <FormSelect
+                    className="mt-2"
+                    control={form.control}
+                    name={`socials.${socialIndex}.socialId`}
+                    label=""
+                    placeholder="Select platform"
+                    groups={[
+                      {
+                        label: "Social",
+                        options: socials.map((i: any) => ({
+                          ...i,
+                          iconName: i.icon,
+                        })),
+                      },
+                    ]}
+                  />
+                )}
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Button type="button" variant="outline" onClick={goBack}>
+                  Back
+                </Button>
+                <Button type="button" onClick={validateAndNext}>
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === "socialUrl" && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold">URL</h3>
+                <p className="text-sm text-muted-foreground mt-0">
+                  What’s the live URL to your site or social page?
+                </p>
+                <FormInput
+                  control={form.control}
+                  name={`socials.${socialIndex}.url`}
+                  label=""
+                  placeholder="https://..."
+                />
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCurrentStep("socialPlatform")}
+                >
+                  Back
+                </Button>
+                <div className="flex items-center gap-2">
+                  <Button type="button" onClick={validateAndNext}>
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentStep === "socialAddMore" && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold">Add another social?</h3>
+                <p className="text-sm text-muted-foreground mt-0">
+                  Would you like to add another social link so investors can
+                  check quickly?
+                </p>
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCurrentStep("socialUrl")}
+                >
+                  Back
+                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={addAnotherSocial}
+                  >
+                    Yes, add another
+                  </Button>
+                  <Button type="button" onClick={goNext}>
+                    No, continue
                   </Button>
                 </div>
               </div>
