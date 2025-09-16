@@ -8,6 +8,9 @@ import { FormSelect } from "@/components/form-select";
 import { ImageDropzone } from "@/components/image-dropzone";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { presalesDurations } from "@/data/constants";
 import { formCreateProjectSchema } from "@/modules/project/project.schema";
 import { defaultValues } from "./default-value";
 import { TFormProject } from "@/types/project";
@@ -31,7 +34,22 @@ type StepId =
   | "detail"
   | "socialPlatform"
   | "socialUrl"
-  | "socialAddMore";
+  | "socialAddMore"
+  | "allocIntro"
+  | "allocSupply"
+  | "allocName"
+  | "allocVesting"
+  | "allocStartDate"
+  | "allocAddMore"
+  | "allocTotal"
+  | "presaleUnit"
+  | "presaleHardcap"
+  | "presalePrice"
+  | "presaleMaxContribution"
+  | "presaleStartDate"
+  | "presaleDuration"
+  | "presaleClaimAfter"
+  | "presaleWhitelist";
 
 type Step = {
   id: StepId;
@@ -124,6 +142,89 @@ const steps: Step[] = [
     description:
       "Would you like to add another social link so investors can check quickly?",
   },
+  {
+    id: "allocIntro",
+    title: "Allocations",
+    description:
+      "Split your token supply into slices like Team, Community, Investors, Presale.",
+  },
+  {
+    id: "allocSupply",
+    title: "Supply (%)",
+    description: "What percentage of total supply does this row deserve?",
+  },
+  {
+    id: "allocName",
+    title: "Allocation",
+    description:
+      "How will you split supply across team, investors, community, and others?",
+  },
+  {
+    id: "allocVesting",
+    title: "Vesting (mo)",
+    description:
+      "Over how many months should this portion unlock—use 0 for no lock?",
+  },
+  {
+    id: "allocStartDate",
+    title: "Start Date",
+    description: "When should unlocking begin for this row?",
+  },
+  {
+    id: "allocAddMore",
+    title: "Add another allocation?",
+    description:
+      "Need another slice for Team, Presale, Community, or Investors?",
+  },
+  {
+    id: "allocTotal",
+    title: "Total Allocation",
+    description: "Do all your slices add up to a clean 100 percent?",
+  },
+  {
+    id: "presaleUnit",
+    title: "Presales Info",
+    description: "Unit — What will buyers pay with—USDT or another token?",
+  },
+  {
+    id: "presaleHardcap",
+    title: "Presales Info",
+    description:
+      "Hard Cap — What’s the maximum you plan to raise this round—say 100000?",
+  },
+  {
+    id: "presalePrice",
+    title: "Presales Info",
+    description: "Price Per Token — What’s the price for one token—like 0.01?",
+  },
+  {
+    id: "presaleMaxContribution",
+    title: "Presales Info",
+    description:
+      "Max Contribution — What’s the per-wallet cap to keep things fair—maybe 500?",
+  },
+  {
+    id: "presaleStartDate",
+    title: "Presales Info",
+    description: "Start Date — When will the sale open?",
+  },
+  {
+    id: "presaleDuration",
+    title: "Presales Info",
+    description:
+      "Duration — How long will the sale window stay open—like 14 days?",
+  },
+  {
+    id: "presaleClaimAfter",
+    title: "Presales Info",
+    description: "Claim Available After — When can buyers claim their tokens?",
+  },
+  {
+    id: "presaleWhitelist",
+    title: "Presales Info",
+    description:
+      "Enable Whitelist — Do you want to restrict access so only approved wallets can join?",
+  },
 ];
 
 export default function FormCreateNewbie() {
@@ -131,6 +232,9 @@ export default function FormCreateNewbie() {
   const [banner, setBanner] = useState<File | null>(null);
   const [logo, setLogo] = useState<File | null>(null);
   const [socialIndex, setSocialIndex] = useState(0);
+  const [allocationIndex, setAllocationIndex] = useState(0);
+  const [presaleIndex] = useState(0);
+  const [showWhitelist, setShowWhitelist] = useState(false);
 
   const form = useForm<TFormProject>({
     resolver: zodResolver(formCreateProjectSchema),
@@ -146,6 +250,35 @@ export default function FormCreateNewbie() {
     control: form.control,
     name: "socials",
   });
+  const { fields: allocationFields, append: appendAllocation } = useFieldArray({
+    control: form.control,
+    name: "allocations",
+  });
+  const { fields: presalesFields } = useFieldArray({
+    control: form.control,
+    name: "presales",
+  });
+  const allocations = form.watch("allocations");
+  const totalAllocationPercent = (allocations || []).reduce(
+    (sum: number, a: any) => sum + Number(a?.supply || 0),
+    0
+  );
+  const selectedChainId = form.watch("chainId");
+  const selectedChain = useMemo(
+    () => chains?.find((c: any) => c.value === selectedChainId),
+    [chains, selectedChainId]
+  );
+  const tokenUnits = useMemo(
+    () => [
+      {
+        label: `${selectedChain?.ticker ?? ""}`,
+        value: `${selectedChain?.ticker ?? ""}`,
+      },
+      { label: "USDC", value: "USDC", disabled: true },
+      { label: "USDT", value: "USDT", disabled: true },
+    ],
+    [selectedChain]
+  );
   const currentIndex = useMemo(
     () => steps.findIndex((s) => s.id === currentStep),
     [currentStep]
@@ -175,6 +308,38 @@ export default function FormCreateNewbie() {
       goNext();
       return;
     }
+    if (currentStep === "allocSupply") {
+      const ok = await form.trigger([
+        `allocations.${allocationIndex}.supply`,
+      ] as any);
+      if (!ok) return;
+      goNext();
+      return;
+    }
+    if (currentStep === "allocName") {
+      const ok = await form.trigger([
+        `allocations.${allocationIndex}.name`,
+      ] as any);
+      if (!ok) return;
+      goNext();
+      return;
+    }
+    if (currentStep === "allocVesting") {
+      const ok = await form.trigger([
+        `allocations.${allocationIndex}.vesting`,
+      ] as any);
+      if (!ok) return;
+      goNext();
+      return;
+    }
+    if (currentStep === "allocStartDate") {
+      const ok = await form.trigger([
+        `allocations.${allocationIndex}.startDate`,
+      ] as any);
+      if (!ok) return;
+      goNext();
+      return;
+    }
     if (step.validateFields && step.validateFields.length > 0) {
       const ok = await form.trigger(step.validateFields as any);
       if (!ok) return;
@@ -191,6 +356,29 @@ export default function FormCreateNewbie() {
   useEffect(() => {
     if (socialFields.length === 0) {
       appendSocial({ socialId: "", url: "" } as any);
+    }
+    if (allocationFields.length === 0) {
+      appendAllocation({
+        name: "Presale",
+        supply: 0,
+        vesting: 0,
+        startDate: new Date().toISOString(),
+      } as any);
+    }
+    if ((presalesFields?.length ?? 0) === 0) {
+      // ensure one presale row exists
+      form.setValue("presales", [
+        {
+          unit: "",
+          hardcap: "",
+          price: "",
+          maxContribution: "",
+          startDate: "",
+          duration: "",
+          claimTime: "",
+          whitelistDuration: 0,
+        },
+      ] as any);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -608,6 +796,575 @@ export default function FormCreateNewbie() {
                     Next
                   </Button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {currentStep === "allocIntro" && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold">Allocations</h3>
+                <p className="text-sm text-muted-foreground mt-0">
+                  Split your token supply. You can add multiple slices and
+                  we&apos;ll make sure it totals 100%.
+                </p>
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Button type="button" variant="outline" onClick={goBack}>
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => setCurrentStep("allocSupply")}
+                >
+                  Start
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === "allocSupply" && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold">Supply (%)</h3>
+                <p className="text-sm text-muted-foreground mt-0">
+                  What percentage of total supply does this row deserve?
+                </p>
+                <FormInput
+                  control={form.control}
+                  name={`allocations.${allocationIndex}.supply`}
+                  label=""
+                  type="number"
+                  placeholder="e.g. 10"
+                />
+                <p
+                  className={`text-xs mt-2 ${
+                    totalAllocationPercent > 100
+                      ? "text-red-500"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  Current total: {totalAllocationPercent}%
+                </p>
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCurrentStep("allocIntro")}
+                >
+                  Back
+                </Button>
+                <Button type="button" onClick={validateAndNext}>
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === "allocName" && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold">Allocation</h3>
+                <p className="text-sm text-muted-foreground mt-0">
+                  How will you split supply across team, investors, community,
+                  and others?
+                </p>
+                <FormInput
+                  control={form.control}
+                  name={`allocations.${allocationIndex}.name`}
+                  label=""
+                  placeholder="e.g. Team"
+                />
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCurrentStep("allocSupply")}
+                >
+                  Back
+                </Button>
+                <Button type="button" onClick={validateAndNext}>
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === "allocVesting" && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold">Vesting (mo)</h3>
+                <p className="text-sm text-muted-foreground mt-0">
+                  Over how many months should this portion unlock—use 0 for no
+                  lock?
+                </p>
+                <FormInput
+                  control={form.control}
+                  name={`allocations.${allocationIndex}.vesting`}
+                  label=""
+                  type="number"
+                  placeholder="e.g. 6"
+                />
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCurrentStep("allocName")}
+                >
+                  Back
+                </Button>
+                <Button type="button" onClick={validateAndNext}>
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === "allocStartDate" && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold">Start Date</h3>
+                <p className="text-sm text-muted-foreground mt-0">
+                  When should unlocking begin for this row?
+                </p>
+                <FormInput
+                  control={form.control}
+                  name={`allocations.${allocationIndex}.startDate`}
+                  label=""
+                  type="date"
+                />
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCurrentStep("allocVesting")}
+                >
+                  Back
+                </Button>
+                <Button type="button" onClick={validateAndNext}>
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === "allocAddMore" && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold">
+                  Add another allocation?
+                </h3>
+                <p className="text-sm text-muted-foreground mt-0">
+                  Need another slice for Team, Presale, Community, or Investors?
+                </p>
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCurrentStep("allocStartDate")}
+                >
+                  Back
+                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      appendAllocation({
+                        name: "",
+                        supply: 0,
+                        vesting: 0,
+                        startDate: new Date().toISOString(),
+                      } as any);
+                      setAllocationIndex(allocationFields.length);
+                      setCurrentStep("allocSupply");
+                    }}
+                  >
+                    Yes, add another
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => setCurrentStep("allocTotal")}
+                  >
+                    No, continue
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentStep === "allocTotal" && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold">Total Allocation</h3>
+                <p className="text-sm text-muted-foreground mt-0">
+                  Do all your slices add up to a clean 100 percent?
+                </p>
+                <div className="text-sm mt-2">
+                  <p
+                    className={`font-semibold ${
+                      totalAllocationPercent === 100
+                        ? "text-green-600"
+                        : "text-red-500"
+                    }`}
+                  >
+                    Total Allocation: {totalAllocationPercent}%
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCurrentStep("allocAddMore")}
+                >
+                  Back
+                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      setAllocationIndex(allocationFields.length - 1);
+                      setCurrentStep("allocSupply");
+                    }}
+                  >
+                    + Allocation
+                  </Button>
+                  <Button
+                    type="button"
+                    disabled={totalAllocationPercent !== 100}
+                    onClick={goNext}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentStep === "presaleUnit" && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold">Presales Info</h3>
+                <p className="text-sm text-muted-foreground mt-0">
+                  Unit — What will buyers pay with—USDT or another token?
+                </p>
+                <FormSelect
+                  className="mt-2"
+                  control={form.control}
+                  name={`presales.${presaleIndex}.unit`}
+                  label=""
+                  placeholder="Select unit"
+                  groups={[{ label: "Unit", options: tokenUnits }]}
+                />
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCurrentStep("allocTotal")}
+                >
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  onClick={async () => {
+                    const ok = await form.trigger([
+                      `presales.${presaleIndex}.unit`,
+                    ] as any);
+                    if (!ok) return;
+                    goNext();
+                  }}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === "presaleHardcap" && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold">Presales Info</h3>
+                <p className="text-sm text-muted-foreground mt-0">
+                  Hard Cap — What’s the maximum you plan to raise this round—say
+                  100000?
+                </p>
+                <FormInput
+                  control={form.control}
+                  name={`presales.${presaleIndex}.hardcap`}
+                  label=""
+                  type="number"
+                  placeholder="e.g. 100000"
+                />
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCurrentStep("presaleUnit")}
+                >
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  onClick={async () => {
+                    const ok = await form.trigger([
+                      `presales.${presaleIndex}.hardcap`,
+                    ] as any);
+                    if (!ok) return;
+                    goNext();
+                  }}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === "presalePrice" && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold">Presales Info</h3>
+                <p className="text-sm text-muted-foreground mt-0">
+                  Price Per Token — What’s the price for one token—like 0.01?
+                </p>
+                <FormInput
+                  control={form.control}
+                  name={`presales.${presaleIndex}.price`}
+                  label=""
+                  type="number"
+                  placeholder="e.g. 0.01"
+                />
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCurrentStep("presaleHardcap")}
+                >
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  onClick={async () => {
+                    const ok = await form.trigger([
+                      `presales.${presaleIndex}.price`,
+                    ] as any);
+                    if (!ok) return;
+                    goNext();
+                  }}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === "presaleMaxContribution" && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold">Presales Info</h3>
+                <p className="text-sm text-muted-foreground mt-0">
+                  Max Contribution — What’s the per-wallet cap to keep things
+                  fair—maybe 500?
+                </p>
+                <FormInput
+                  control={form.control}
+                  name={`presales.${presaleIndex}.maxContribution`}
+                  label=""
+                  type="number"
+                  placeholder="e.g. 500"
+                />
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCurrentStep("presalePrice")}
+                >
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  onClick={async () => {
+                    const ok = await form.trigger([
+                      `presales.${presaleIndex}.maxContribution`,
+                    ] as any);
+                    if (!ok) return;
+                    goNext();
+                  }}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === "presaleStartDate" && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold">Presales Info</h3>
+                <p className="text-sm text-muted-foreground mt-0">
+                  Start Date — When will the sale open?
+                </p>
+                <FormInput
+                  control={form.control}
+                  name={`presales.${presaleIndex}.startDate`}
+                  label=""
+                  type="datetime-local"
+                />
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCurrentStep("presaleMaxContribution")}
+                >
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  onClick={async () => {
+                    const ok = await form.trigger([
+                      `presales.${presaleIndex}.startDate`,
+                    ] as any);
+                    if (!ok) return;
+                    goNext();
+                  }}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === "presaleDuration" && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold">Presales Info</h3>
+                <p className="text-sm text-muted-foreground mt-0">
+                  Duration — How long will the sale window stay open—like 14
+                  days?
+                </p>
+                <FormSelect
+                  className="mt-2"
+                  control={form.control}
+                  name={`presales.${presaleIndex}.duration`}
+                  label=""
+                  placeholder="Select duration"
+                  groups={[{ label: "Duration", options: presalesDurations }]}
+                />
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCurrentStep("presaleStartDate")}
+                >
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  onClick={async () => {
+                    const ok = await form.trigger([
+                      `presales.${presaleIndex}.duration`,
+                    ] as any);
+                    if (!ok) return;
+                    goNext();
+                  }}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === "presaleClaimAfter" && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold">Presales Info</h3>
+                <p className="text-sm text-muted-foreground mt-0">
+                  Claim Available After — When can buyers claim their tokens?
+                </p>
+                <FormSelect
+                  className="mt-2"
+                  control={form.control}
+                  name={`presales.${presaleIndex}.claimTime`}
+                  label=""
+                  placeholder="Select time"
+                  groups={[{ label: "Duration", options: presalesDurations }]}
+                />
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCurrentStep("presaleDuration")}
+                >
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  onClick={async () => {
+                    const ok = await form.trigger([
+                      `presales.${presaleIndex}.claimTime`,
+                    ] as any);
+                    if (!ok) return;
+                    goNext();
+                  }}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === "presaleWhitelist" && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold">Presales Info</h3>
+                <p className="text-sm text-muted-foreground mt-0">
+                  Enable Whitelist — Do you want to restrict access so only
+                  approved wallets can join?
+                </p>
+                <div className="flex items-center space-x-2 mt-2">
+                  <Switch
+                    id="enable-whitelist"
+                    checked={showWhitelist}
+                    onCheckedChange={setShowWhitelist}
+                  />
+                  <Label htmlFor="enable-whitelist">Enable Whitelist</Label>
+                </div>
+                {showWhitelist && (
+                  <div className="mt-4">
+                    <FormInput
+                      control={form.control}
+                      name={`presales.${presaleIndex}.whitelistDuration`}
+                      label="Whitelist Duration (hours)"
+                      type="number"
+                      placeholder="e.g. 24"
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCurrentStep("presaleClaimAfter")}
+                >
+                  Back
+                </Button>
+                <Button type="button" onClick={goNext}>
+                  Next
+                </Button>
               </div>
             </div>
           )}
