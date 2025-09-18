@@ -46,7 +46,7 @@ import {
 import { useFormCreateProject } from "@/store/useFormCreateProject";
 
 export default function FormCreateNewbie() {
-  const [currentStep, setCurrentStep] = useState<StepId>("allocIntro");
+  const [currentStep, setCurrentStep] = useState<StepId>("intro");
   const [banner, setBanner] = useState<File | null>(null);
   const [logo, setLogo] = useState<File | null>(null);
   const [socialIndex, setSocialIndex] = useState(0);
