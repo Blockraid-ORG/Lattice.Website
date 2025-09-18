@@ -29,7 +29,9 @@ import { Fragment, useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { defaultValues } from "./default-value";
+import { useEffect } from "react";
 import { useProjectTypeList } from "@/modules/project-types/project-types.query";
+import { useFormCreateProject } from "@/store/useFormCreateProject";
 
 type TTokenUnit = {
   value: string;
@@ -54,6 +56,23 @@ export default function FormCreate() {
     resolver: zodResolver(formCreateProjectSchema),
     defaultValues: defaultValues,
   });
+  const { form: formNewbie } = useFormCreateProject();
+
+  console.log(formNewbie);
+
+  useEffect(() => {
+    try {
+      const v =
+        typeof window !== "undefined"
+          ? localStorage.getItem("createProjectDraft")
+          : null;
+      if (v) {
+        const parsed = JSON.parse(v);
+        form.reset(parsed);
+        localStorage.removeItem("createProjectDraft");
+      }
+    } catch {}
+  }, [form]);
   const { fields, append, remove } = useFieldArray<TFormProjectAllocation>({
     control: form.control,
     name: "allocations",

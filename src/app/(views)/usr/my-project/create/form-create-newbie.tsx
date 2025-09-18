@@ -8,8 +8,7 @@ import { FormSelect } from "@/components/form-select";
 import { ImageDropzone } from "@/components/image-dropzone";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+// moved to modular PresaleSteps
 import { presalesDurations } from "@/data/constants";
 import { formCreateProjectSchema } from "@/modules/project/project.schema";
 import { defaultValues } from "./default-value";
@@ -19,216 +18,35 @@ import { useCategoryList } from "@/modules/category/category.query";
 import { useProjectTypeList } from "@/modules/project-types/project-types.query";
 import { useSocialList } from "@/modules/social/chain.query";
 import { toUrlAsset } from "@/lib/utils";
-
-type StepId =
-  | "intro"
-  | "cover"
-  | "logo"
-  | "name"
-  | "ticker"
-  | "decimals"
-  | "chainId"
-  | "categoryId"
-  | "projectTypeId"
-  | "totalSupply"
-  | "detail"
-  | "socialPlatform"
-  | "socialUrl"
-  | "socialAddMore"
-  | "allocIntro"
-  | "allocSupply"
-  | "allocName"
-  | "allocVesting"
-  | "allocStartDate"
-  | "allocAddMore"
-  | "allocTotal"
-  | "presaleUnit"
-  | "presaleHardcap"
-  | "presalePrice"
-  | "presaleMaxContribution"
-  | "presaleStartDate"
-  | "presaleDuration"
-  | "presaleClaimAfter"
-  | "presaleWhitelist";
-
-type Step = {
-  id: StepId;
-  title: string;
-  description?: string;
-  validateFields?: string[];
-};
-
-const steps: Step[] = [
-  {
-    id: "intro",
-    title: "Newbie Mode",
-    description:
-      "Mode — Choose how you want to start: I'm Web3 Native or I'm Web3 Newbie. In Newbie mode, friendly tips are enabled.",
-  },
-  {
-    id: "cover",
-    title: "Cover Image",
-    description:
-      "Can you set the scene with a wide banner that stays light so the page loads fast?",
-  },
-  {
-    id: "logo",
-    title: "Logo",
-    description:
-      "Will you add a crisp square logo so people recognize you at a glance?",
-  },
-  {
-    id: "name",
-    title: "Name",
-    description: "What should we call your project?",
-    validateFields: ["name"],
-  },
-  {
-    id: "ticker",
-    title: "Ticker",
-    description: "e.g. SPN",
-    validateFields: ["ticker"],
-  },
-  {
-    id: "decimals",
-    title: "Decimal",
-    description: "Usually 18",
-    validateFields: ["decimals"],
-  },
-  {
-    id: "chainId",
-    title: "Select Chain",
-    description: "Start with BNB if you're new",
-    validateFields: ["chainId"],
-  },
-  {
-    id: "categoryId",
-    title: "Select Category",
-    description: "Pick the best fit",
-    validateFields: ["categoryId"],
-  },
-  {
-    id: "projectTypeId",
-    title: "Select Type",
-    description: "Equity, Debt, or Fund",
-    validateFields: ["projectTypeId"],
-  },
-  {
-    id: "totalSupply",
-    title: "Total Supply",
-    description: "e.g. 100000000",
-    validateFields: ["totalSupply"],
-  },
-  {
-    id: "detail",
-    title: "Description",
-    description: "One or two lines to introduce your project",
-    validateFields: ["detail"],
-  },
-  {
-    id: "socialPlatform",
-    title: "Website / Social Media",
-    description:
-      "Add your site and social links so investors can check quickly. Which platform do you want to spotlight first?",
-  },
-  {
-    id: "socialUrl",
-    title: "URL",
-    description: "What’s the live URL to your site or social page?",
-  },
-  {
-    id: "socialAddMore",
-    title: "Add another social?",
-    description:
-      "Would you like to add another social link so investors can check quickly?",
-  },
-  {
-    id: "allocIntro",
-    title: "Allocations",
-    description:
-      "Split your token supply into slices like Team, Community, Investors, Presale.",
-  },
-  {
-    id: "allocSupply",
-    title: "Supply (%)",
-    description: "What percentage of total supply does this row deserve?",
-  },
-  {
-    id: "allocName",
-    title: "Allocation",
-    description:
-      "How will you split supply across team, investors, community, and others?",
-  },
-  {
-    id: "allocVesting",
-    title: "Vesting (mo)",
-    description:
-      "Over how many months should this portion unlock—use 0 for no lock?",
-  },
-  {
-    id: "allocStartDate",
-    title: "Start Date",
-    description: "When should unlocking begin for this row?",
-  },
-  {
-    id: "allocAddMore",
-    title: "Add another allocation?",
-    description:
-      "Need another slice for Team, Presale, Community, or Investors?",
-  },
-  {
-    id: "allocTotal",
-    title: "Total Allocation",
-    description: "Do all your slices add up to a clean 100 percent?",
-  },
-  {
-    id: "presaleUnit",
-    title: "Presales Info",
-    description: "Unit — What will buyers pay with—USDT or another token?",
-  },
-  {
-    id: "presaleHardcap",
-    title: "Presales Info",
-    description:
-      "Hard Cap — What’s the maximum you plan to raise this round—say 100000?",
-  },
-  {
-    id: "presalePrice",
-    title: "Presales Info",
-    description: "Price Per Token — What’s the price for one token—like 0.01?",
-  },
-  {
-    id: "presaleMaxContribution",
-    title: "Presales Info",
-    description:
-      "Max Contribution — What’s the per-wallet cap to keep things fair—maybe 500?",
-  },
-  {
-    id: "presaleStartDate",
-    title: "Presales Info",
-    description: "Start Date — When will the sale open?",
-  },
-  {
-    id: "presaleDuration",
-    title: "Presales Info",
-    description:
-      "Duration — How long will the sale window stay open—like 14 days?",
-  },
-  {
-    id: "presaleClaimAfter",
-    title: "Presales Info",
-    description: "Claim Available After — When can buyers claim their tokens?",
-  },
-  {
-    id: "presaleWhitelist",
-    title: "Presales Info",
-    description:
-      "Enable Whitelist — Do you want to restrict access so only approved wallets can join?",
-  },
-];
+import { StepId } from "@/types/form-create-project";
+import { steps } from "@/data/form-create-project";
+import ProgressHeader from "./components/ProgressHeader";
+import {
+  SocialPlatform,
+  SocialUrl,
+  SocialAddMore,
+} from "./components/SocialSteps";
+import {
+  AllocationIntro,
+  AllocationSupply,
+  AllocationName,
+  AllocationVesting,
+  AllocationStartDate,
+} from "./components/AllocationSteps";
+import {
+  PresaleUnit,
+  PresaleHardcap,
+  PresalePrice,
+  PresaleMaxContribution,
+  PresaleStartDate as PresaleStartDateStep,
+  PresaleDuration,
+  PresaleClaimAfter,
+  PresaleWhitelist,
+} from "./components/PresaleSteps";
+import { useFormCreateProject } from "@/store/useFormCreateProject";
 
 export default function FormCreateNewbie() {
-  const [currentStep, setCurrentStep] = useState<StepId>("intro");
+  const [currentStep, setCurrentStep] = useState<StepId>("allocIntro");
   const [banner, setBanner] = useState<File | null>(null);
   const [logo, setLogo] = useState<File | null>(null);
   const [socialIndex, setSocialIndex] = useState(0);
@@ -347,6 +165,25 @@ export default function FormCreateNewbie() {
     goNext();
   }
 
+  function appendEmptyAllocationAndStart() {
+    appendAllocation({
+      name: "",
+      supply: 0,
+      vesting: 0,
+      startDate: new Date().toISOString(),
+    } as any);
+    setAllocationIndex(allocationFields.length);
+    setCurrentStep("allocSupply");
+  }
+
+  // Next Form Advanced
+  const { setForm, setFormType } = useFormCreateProject();
+  function handoffToNativeForm() {
+    const draft = form.getValues();
+    setForm(draft);
+    setFormType("advanced");
+  }
+  // END Next Form Advanced
   function addAnotherSocial() {
     appendSocial({ socialId: "", url: "" } as any);
     setSocialIndex(socialFields.length); // new index
@@ -358,6 +195,12 @@ export default function FormCreateNewbie() {
       appendSocial({ socialId: "", url: "" } as any);
     }
     if (allocationFields.length === 0) {
+      appendAllocation({
+        name: "Deployer",
+        supply: 0,
+        vesting: 0,
+        startDate: new Date().toISOString(),
+      } as any);
       appendAllocation({
         name: "Presale",
         supply: 0,
@@ -385,17 +228,7 @@ export default function FormCreateNewbie() {
 
   return (
     <div className="max-w-2xl mx-auto py-8 px-3">
-      <div className="mb-6 text-center">
-        <p className="text-xs text-muted-foreground">
-          Step {currentIndex + 1} / {totalSteps}
-        </p>
-        <div className="h-1 bg-muted rounded mt-2">
-          <div
-            className="h-1 bg-primary rounded"
-            style={{ width: `${((currentIndex + 1) / totalSteps) * 100}%` }}
-          />
-        </div>
-      </div>
+      <ProgressHeader currentIndex={currentIndex} totalSteps={totalSteps} />
 
       <Form {...form}>
         <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
@@ -412,10 +245,10 @@ export default function FormCreateNewbie() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={goBack}
+                  onClick={handoffToNativeForm}
                   disabled
                 >
-                  Back
+                  Skip
                 </Button>
                 <Button type="button" onClick={goNext}>
                   Start
@@ -448,9 +281,18 @@ export default function FormCreateNewbie() {
                 <Button type="button" variant="outline" onClick={goBack}>
                   Back
                 </Button>
-                <Button type="button" onClick={goNext}>
-                  Next
-                </Button>
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="link"
+                    onClick={handoffToNativeForm}
+                  >
+                    Skip
+                  </Button>
+                  <Button type="button" onClick={goNext}>
+                    Next
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -479,9 +321,18 @@ export default function FormCreateNewbie() {
                 <Button type="button" variant="outline" onClick={goBack}>
                   Back
                 </Button>
-                <Button type="button" onClick={goNext}>
-                  Next
-                </Button>
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="link"
+                    onClick={handoffToNativeForm}
+                  >
+                    Skip
+                  </Button>
+                  <Button type="button" onClick={goNext}>
+                    Next
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -503,9 +354,18 @@ export default function FormCreateNewbie() {
                   <Button type="button" variant="outline" onClick={goBack}>
                     Back
                   </Button>
-                  <Button type="button" onClick={validateAndNext}>
-                    Next
-                  </Button>
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="link"
+                      onClick={handoffToNativeForm}
+                    >
+                      Skip
+                    </Button>
+                    <Button type="button" onClick={validateAndNext}>
+                      Next
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -529,9 +389,18 @@ export default function FormCreateNewbie() {
                   <Button type="button" variant="outline" onClick={goBack}>
                     Back
                   </Button>
-                  <Button type="button" onClick={validateAndNext}>
-                    Next
-                  </Button>
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="link"
+                      onClick={handoffToNativeForm}
+                    >
+                      Skip
+                    </Button>
+                    <Button type="button" onClick={validateAndNext}>
+                      Next
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -555,9 +424,18 @@ export default function FormCreateNewbie() {
                   <Button type="button" variant="outline" onClick={goBack}>
                     Back
                   </Button>
-                  <Button type="button" onClick={validateAndNext}>
-                    Next
-                  </Button>
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="link"
+                      onClick={handoffToNativeForm}
+                    >
+                      Skip
+                    </Button>
+                    <Button type="button" onClick={validateAndNext}>
+                      Next
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -594,9 +472,18 @@ export default function FormCreateNewbie() {
                   <Button type="button" variant="outline" onClick={goBack}>
                     Back
                   </Button>
-                  <Button type="button" onClick={validateAndNext}>
-                    Next
-                  </Button>
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="link"
+                      onClick={handoffToNativeForm}
+                    >
+                      Skip
+                    </Button>
+                    <Button type="button" onClick={validateAndNext}>
+                      Next
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -632,9 +519,18 @@ export default function FormCreateNewbie() {
                   <Button type="button" variant="outline" onClick={goBack}>
                     Back
                   </Button>
-                  <Button type="button" onClick={validateAndNext}>
-                    Next
-                  </Button>
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="link"
+                      onClick={handoffToNativeForm}
+                    >
+                      Skip
+                    </Button>
+                    <Button type="button" onClick={validateAndNext}>
+                      Next
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -645,7 +541,7 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Select Type</h3>
                 <p className="text-sm text-muted-foreground mt-0">
-                  Which raise style will you choose: Equity, Debt, or Fund?
+                  Which raise style will you choose: Equity or Debt?
                 </p>
                 {projectTypes && (
                   <FormSelect
@@ -669,9 +565,18 @@ export default function FormCreateNewbie() {
                   <Button type="button" variant="outline" onClick={goBack}>
                     Back
                   </Button>
-                  <Button type="button" onClick={validateAndNext}>
-                    Next
-                  </Button>
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="link"
+                      onClick={handoffToNativeForm}
+                    >
+                      Skip
+                    </Button>
+                    <Button type="button" onClick={validateAndNext}>
+                      Next
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -694,9 +599,18 @@ export default function FormCreateNewbie() {
                   <Button type="button" variant="outline" onClick={goBack}>
                     Back
                   </Button>
-                  <Button type="button" onClick={validateAndNext}>
-                    Next
-                  </Button>
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="link"
+                      onClick={handoffToNativeForm}
+                    >
+                      Skip
+                    </Button>
+                    <Button type="button" onClick={validateAndNext}>
+                      Next
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -721,235 +635,88 @@ export default function FormCreateNewbie() {
                   <Button type="button" variant="outline" onClick={goBack}>
                     Back
                   </Button>
-                  <Button type="button" onClick={validateAndNext}>
-                    Next
-                  </Button>
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="link"
+                      onClick={handoffToNativeForm}
+                    >
+                      Skip
+                    </Button>
+                    <Button type="button" onClick={validateAndNext}>
+                      Next
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
           {currentStep === "socialPlatform" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">
-                  Website / Social Media
-                </h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  Add your site and social links so investors can check quickly.
-                  Which platform do you want to spotlight first?
-                </p>
-                {socials && (
-                  <FormSelect
-                    className="mt-2"
-                    control={form.control}
-                    name={`socials.${socialIndex}.socialId`}
-                    label=""
-                    placeholder="Select platform"
-                    groups={[
-                      {
-                        label: "Social",
-                        options: socials.map((i: any) => ({
-                          ...i,
-                          iconName: i.icon,
-                        })),
-                      },
-                    ]}
-                  />
-                )}
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button type="button" variant="outline" onClick={goBack}>
-                  Back
-                </Button>
-                <Button type="button" onClick={validateAndNext}>
-                  Next
-                </Button>
-              </div>
-            </div>
+            <SocialPlatform
+              socialsOptions={
+                socials
+                  ? socials.map((i: any) => ({ ...i, iconName: i.icon }))
+                  : []
+              }
+              control={form.control}
+              socialIndex={socialIndex}
+              onBack={goBack}
+              onNext={validateAndNext}
+            />
           )}
 
           {currentStep === "socialUrl" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">URL</h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  What’s the live URL to your site or social page?
-                </p>
-                <FormInput
-                  control={form.control}
-                  name={`socials.${socialIndex}.url`}
-                  label=""
-                  placeholder="https://..."
-                />
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep("socialPlatform")}
-                >
-                  Back
-                </Button>
-                <div className="flex items-center gap-2">
-                  <Button type="button" onClick={validateAndNext}>
-                    Next
-                  </Button>
-                </div>
-              </div>
-            </div>
+            <SocialUrl
+              control={form.control}
+              socialIndex={socialIndex}
+              onBack={() => setCurrentStep("socialPlatform")}
+              onNext={validateAndNext}
+            />
           )}
 
           {currentStep === "allocIntro" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">Allocations</h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  Split your token supply. You can add multiple slices and
-                  we&apos;ll make sure it totals 100%.
-                </p>
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button type="button" variant="outline" onClick={goBack}>
-                  Back
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => setCurrentStep("allocSupply")}
-                >
-                  Start
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {currentStep === "allocSupply" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">Supply (%)</h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  What percentage of total supply does this row deserve?
-                </p>
-                <FormInput
-                  control={form.control}
-                  name={`allocations.${allocationIndex}.supply`}
-                  label=""
-                  type="number"
-                  placeholder="e.g. 10"
-                />
-                <p
-                  className={`text-xs mt-2 ${
-                    totalAllocationPercent > 100
-                      ? "text-red-500"
-                      : "text-muted-foreground"
-                  }`}
-                >
-                  Current total: {totalAllocationPercent}%
-                </p>
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep("allocIntro")}
-                >
-                  Back
-                </Button>
-                <Button type="button" onClick={validateAndNext}>
-                  Next
-                </Button>
-              </div>
-            </div>
+            <AllocationIntro
+              onBack={goBack}
+              onNext={() => setCurrentStep("allocName")}
+            />
           )}
 
           {currentStep === "allocName" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">Allocation</h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  How will you split supply across team, investors, community,
-                  and others?
-                </p>
-                <FormInput
-                  control={form.control}
-                  name={`allocations.${allocationIndex}.name`}
-                  label=""
-                  placeholder="e.g. Team"
-                />
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep("allocSupply")}
-                >
-                  Back
-                </Button>
-                <Button type="button" onClick={validateAndNext}>
-                  Next
-                </Button>
-              </div>
-            </div>
+            <AllocationName
+              control={form.control}
+              index={allocationIndex}
+              onBack={() => setCurrentStep("allocIntro")}
+              onNext={validateAndNext}
+            />
+          )}
+
+          {currentStep === "allocSupply" && (
+            <AllocationSupply
+              control={form.control}
+              index={allocationIndex}
+              currentTotal={totalAllocationPercent}
+              onBack={() => setCurrentStep("allocName")}
+              onNext={validateAndNext}
+            />
           )}
 
           {currentStep === "allocVesting" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">Vesting (mo)</h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  Over how many months should this portion unlock—use 0 for no
-                  lock?
-                </p>
-                <FormInput
-                  control={form.control}
-                  name={`allocations.${allocationIndex}.vesting`}
-                  label=""
-                  type="number"
-                  placeholder="e.g. 6"
-                />
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep("allocName")}
-                >
-                  Back
-                </Button>
-                <Button type="button" onClick={validateAndNext}>
-                  Next
-                </Button>
-              </div>
-            </div>
+            <AllocationVesting
+              control={form.control}
+              index={allocationIndex}
+              onBack={() => setCurrentStep("allocSupply")}
+              onNext={validateAndNext}
+            />
           )}
 
           {currentStep === "allocStartDate" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">Start Date</h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  When should unlocking begin for this row?
-                </p>
-                <FormInput
-                  control={form.control}
-                  name={`allocations.${allocationIndex}.startDate`}
-                  label=""
-                  type="date"
-                />
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep("allocVesting")}
-                >
-                  Back
-                </Button>
-                <Button type="button" onClick={validateAndNext}>
-                  Next
-                </Button>
-              </div>
-            </div>
+            <AllocationStartDate
+              control={form.control}
+              index={allocationIndex}
+              onBack={() => setCurrentStep("allocVesting")}
+              onNext={validateAndNext}
+            />
           )}
 
           {currentStep === "allocAddMore" && (
@@ -982,7 +749,7 @@ export default function FormCreateNewbie() {
                         startDate: new Date().toISOString(),
                       } as any);
                       setAllocationIndex(allocationFields.length);
-                      setCurrentStep("allocSupply");
+                      setCurrentStep("allocName");
                     }}
                   >
                     Yes, add another
@@ -1028,11 +795,9 @@ export default function FormCreateNewbie() {
                 <div className="flex items-center gap-2">
                   <Button
                     type="button"
+                    disabled={totalAllocationPercent < 100}
                     variant="secondary"
-                    onClick={() => {
-                      setAllocationIndex(allocationFields.length - 1);
-                      setCurrentStep("allocSupply");
-                    }}
+                    onClick={appendEmptyAllocationAndStart}
                   >
                     + Allocation
                   </Button>
@@ -1049,357 +814,132 @@ export default function FormCreateNewbie() {
           )}
 
           {currentStep === "presaleUnit" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">Presales Info</h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  Unit — What will buyers pay with—USDT or another token?
-                </p>
-                <FormSelect
-                  className="mt-2"
-                  control={form.control}
-                  name={`presales.${presaleIndex}.unit`}
-                  label=""
-                  placeholder="Select unit"
-                  groups={[{ label: "Unit", options: tokenUnits }]}
-                />
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep("allocTotal")}
-                >
-                  Back
-                </Button>
-                <Button
-                  type="button"
-                  onClick={async () => {
-                    const ok = await form.trigger([
-                      `presales.${presaleIndex}.unit`,
-                    ] as any);
-                    if (!ok) return;
-                    goNext();
-                  }}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
+            <PresaleUnit
+              control={form.control}
+              index={presaleIndex}
+              units={tokenUnits}
+              onBack={() => setCurrentStep("allocTotal")}
+              onNext={async () => {
+                const ok = await form.trigger([
+                  `presales.${presaleIndex}.unit`,
+                ] as any);
+                if (!ok) return;
+                goNext();
+              }}
+            />
           )}
 
           {currentStep === "presaleHardcap" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">Presales Info</h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  Hard Cap — What’s the maximum you plan to raise this round—say
-                  100000?
-                </p>
-                <FormInput
-                  control={form.control}
-                  name={`presales.${presaleIndex}.hardcap`}
-                  label=""
-                  type="number"
-                  placeholder="e.g. 100000"
-                />
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep("presaleUnit")}
-                >
-                  Back
-                </Button>
-                <Button
-                  type="button"
-                  onClick={async () => {
-                    const ok = await form.trigger([
-                      `presales.${presaleIndex}.hardcap`,
-                    ] as any);
-                    if (!ok) return;
-                    goNext();
-                  }}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
+            <PresaleHardcap
+              control={form.control}
+              index={presaleIndex}
+              onBack={() => setCurrentStep("presaleUnit")}
+              onNext={async () => {
+                const ok = await form.trigger([
+                  `presales.${presaleIndex}.hardcap`,
+                ] as any);
+                if (!ok) return;
+                goNext();
+              }}
+            />
           )}
 
           {currentStep === "presalePrice" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">Presales Info</h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  Price Per Token — What’s the price for one token—like 0.01?
-                </p>
-                <FormInput
-                  control={form.control}
-                  name={`presales.${presaleIndex}.price`}
-                  label=""
-                  type="number"
-                  placeholder="e.g. 0.01"
-                />
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep("presaleHardcap")}
-                >
-                  Back
-                </Button>
-                <Button
-                  type="button"
-                  onClick={async () => {
-                    const ok = await form.trigger([
-                      `presales.${presaleIndex}.price`,
-                    ] as any);
-                    if (!ok) return;
-                    goNext();
-                  }}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
+            <PresalePrice
+              control={form.control}
+              index={presaleIndex}
+              onBack={() => setCurrentStep("presaleHardcap")}
+              onNext={async () => {
+                const ok = await form.trigger([
+                  `presales.${presaleIndex}.price`,
+                ] as any);
+                if (!ok) return;
+                goNext();
+              }}
+            />
           )}
 
           {currentStep === "presaleMaxContribution" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">Presales Info</h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  Max Contribution — What’s the per-wallet cap to keep things
-                  fair—maybe 500?
-                </p>
-                <FormInput
-                  control={form.control}
-                  name={`presales.${presaleIndex}.maxContribution`}
-                  label=""
-                  type="number"
-                  placeholder="e.g. 500"
-                />
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep("presalePrice")}
-                >
-                  Back
-                </Button>
-                <Button
-                  type="button"
-                  onClick={async () => {
-                    const ok = await form.trigger([
-                      `presales.${presaleIndex}.maxContribution`,
-                    ] as any);
-                    if (!ok) return;
-                    goNext();
-                  }}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
+            <PresaleMaxContribution
+              control={form.control}
+              index={presaleIndex}
+              onBack={() => setCurrentStep("presalePrice")}
+              onNext={async () => {
+                const ok = await form.trigger([
+                  `presales.${presaleIndex}.maxContribution`,
+                ] as any);
+                if (!ok) return;
+                goNext();
+              }}
+            />
           )}
 
           {currentStep === "presaleStartDate" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">Presales Info</h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  Start Date — When will the sale open?
-                </p>
-                <FormInput
-                  control={form.control}
-                  name={`presales.${presaleIndex}.startDate`}
-                  label=""
-                  type="datetime-local"
-                />
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep("presaleMaxContribution")}
-                >
-                  Back
-                </Button>
-                <Button
-                  type="button"
-                  onClick={async () => {
-                    const ok = await form.trigger([
-                      `presales.${presaleIndex}.startDate`,
-                    ] as any);
-                    if (!ok) return;
-                    goNext();
-                  }}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
+            <PresaleStartDateStep
+              control={form.control}
+              index={presaleIndex}
+              onBack={() => setCurrentStep("presaleMaxContribution")}
+              onNext={async () => {
+                const ok = await form.trigger([
+                  `presales.${presaleIndex}.startDate`,
+                ] as any);
+                if (!ok) return;
+                goNext();
+              }}
+            />
           )}
 
           {currentStep === "presaleDuration" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">Presales Info</h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  Duration — How long will the sale window stay open—like 14
-                  days?
-                </p>
-                <FormSelect
-                  className="mt-2"
-                  control={form.control}
-                  name={`presales.${presaleIndex}.duration`}
-                  label=""
-                  placeholder="Select duration"
-                  groups={[{ label: "Duration", options: presalesDurations }]}
-                />
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep("presaleStartDate")}
-                >
-                  Back
-                </Button>
-                <Button
-                  type="button"
-                  onClick={async () => {
-                    const ok = await form.trigger([
-                      `presales.${presaleIndex}.duration`,
-                    ] as any);
-                    if (!ok) return;
-                    goNext();
-                  }}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
+            <PresaleDuration
+              control={form.control}
+              index={presaleIndex}
+              durations={presalesDurations}
+              onBack={() => setCurrentStep("presaleStartDate")}
+              onNext={async () => {
+                const ok = await form.trigger([
+                  `presales.${presaleIndex}.duration`,
+                ] as any);
+                if (!ok) return;
+                goNext();
+              }}
+            />
           )}
 
           {currentStep === "presaleClaimAfter" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">Presales Info</h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  Claim Available After — When can buyers claim their tokens?
-                </p>
-                <FormSelect
-                  className="mt-2"
-                  control={form.control}
-                  name={`presales.${presaleIndex}.claimTime`}
-                  label=""
-                  placeholder="Select time"
-                  groups={[{ label: "Duration", options: presalesDurations }]}
-                />
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep("presaleDuration")}
-                >
-                  Back
-                </Button>
-                <Button
-                  type="button"
-                  onClick={async () => {
-                    const ok = await form.trigger([
-                      `presales.${presaleIndex}.claimTime`,
-                    ] as any);
-                    if (!ok) return;
-                    goNext();
-                  }}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
+            <PresaleClaimAfter
+              control={form.control}
+              index={presaleIndex}
+              durations={presalesDurations}
+              onBack={() => setCurrentStep("presaleDuration")}
+              onNext={async () => {
+                const ok = await form.trigger([
+                  `presales.${presaleIndex}.claimTime`,
+                ] as any);
+                if (!ok) return;
+                goNext();
+              }}
+            />
           )}
 
           {currentStep === "presaleWhitelist" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">Presales Info</h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  Enable Whitelist — Do you want to restrict access so only
-                  approved wallets can join?
-                </p>
-                <div className="flex items-center space-x-2 mt-2">
-                  <Switch
-                    id="enable-whitelist"
-                    checked={showWhitelist}
-                    onCheckedChange={setShowWhitelist}
-                  />
-                  <Label htmlFor="enable-whitelist">Enable Whitelist</Label>
-                </div>
-                {showWhitelist && (
-                  <div className="mt-4">
-                    <FormInput
-                      control={form.control}
-                      name={`presales.${presaleIndex}.whitelistDuration`}
-                      label="Whitelist Duration (hours)"
-                      type="number"
-                      placeholder="e.g. 24"
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep("presaleClaimAfter")}
-                >
-                  Back
-                </Button>
-                <Button type="button" onClick={goNext}>
-                  Next
-                </Button>
-              </div>
-            </div>
+            <>
+              <PresaleWhitelist
+                control={form.control}
+                index={presaleIndex}
+                show={showWhitelist}
+                onToggle={setShowWhitelist}
+                onBack={() => setCurrentStep("presaleClaimAfter")}
+                onNext={handoffToNativeForm}
+              />
+            </>
           )}
 
           {currentStep === "socialAddMore" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">Add another social?</h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  Would you like to add another social link so investors can
-                  check quickly?
-                </p>
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep("socialUrl")}
-                >
-                  Back
-                </Button>
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={addAnotherSocial}
-                  >
-                    Yes, add another
-                  </Button>
-                  <Button type="button" onClick={goNext}>
-                    No, continue
-                  </Button>
-                </div>
-              </div>
-            </div>
+            <SocialAddMore
+              onBack={() => setCurrentStep("socialUrl")}
+              onAddAnother={addAnotherSocial}
+              onNext={goNext}
+            />
           )}
         </form>
       </Form>
