@@ -39,13 +39,20 @@ type TTokenUnit = {
   disabled?: boolean;
 };
 export default function FormCreate() {
+  const {
+    form: formNewbie,
+    logoFile,
+    bannerFile,
+    logoPreview,
+    bannerPreview,
+  } = useFormCreateProject();
   const { mutate: updatePresaleWhitelist } = useUpdatePresaleWhitelist();
   const whitelistRef = useRef<HTMLDivElement>(null);
   const [showInputWL, setShowInputWL] = useState(false);
   const [tokenUnits, setTokenUtits] = useState<TTokenUnit[]>([]);
   const { mutate: createProject } = useCreateProject();
-  const [logo, setLogo] = useState<File | null>(null);
-  const [banner, setBanner] = useState<File | null>(null);
+  const [logo, setLogo] = useState<File | null>(logoFile ?? null);
+  const [banner, setBanner] = useState<File | null>(bannerFile ?? null);
   const { data: chains } = useChainList();
   const { data: categories } = useCategoryList();
   const { data: socials } = useSocialList();
@@ -56,9 +63,76 @@ export default function FormCreate() {
     resolver: zodResolver(formCreateProjectSchema),
     defaultValues: defaultValues,
   });
-  const { form: formNewbie } = useFormCreateProject();
 
-  console.log(formNewbie);
+  useEffect(() => {
+    try {
+      if (!formNewbie || Object.keys(formNewbie || {}).length === 0) return;
+
+      const normalizeDate = (v: any) => (v instanceof Date ? v : new Date(v));
+      const safeNumber = (v: any, def = 0) =>
+        v === undefined || v === null || v === "" ? def : Number(v);
+
+      const normalized = {
+        ...defaultValues,
+        ...formNewbie,
+        // scalars
+        decimals:
+          formNewbie.decimals !== undefined
+            ? formNewbie.decimals
+            : defaultValues.decimals,
+        totalSupply:
+          formNewbie.totalSupply !== undefined
+            ? formNewbie.totalSupply
+            : defaultValues.totalSupply,
+        // arrays
+        allocations: (formNewbie.allocations &&
+        formNewbie.allocations.length > 0
+          ? formNewbie.allocations
+          : defaultValues.allocations
+        ).map((a: any) => ({
+          ...a,
+          supply: safeNumber(a?.supply, 0),
+          vesting: safeNumber(a?.vesting, 0),
+          startDate: normalizeDate(a?.startDate || new Date().toISOString()),
+        })),
+        presales: (formNewbie.presales && formNewbie.presales.length > 0
+          ? formNewbie.presales
+          : defaultValues.presales
+        ).map((p: any, idx: number) =>
+          idx === 0
+            ? {
+                ...p,
+                hardcap: safeNumber(p?.hardcap, 0),
+                price: safeNumber(p?.price, 0),
+                maxContribution: safeNumber(p?.maxContribution, 0),
+                duration: safeNumber(p?.duration, 0),
+                claimTime: safeNumber(p?.claimTime, 0),
+                whitelistDuration: safeNumber(p?.whitelistDuration, 0),
+                sweepDuration: safeNumber(p?.sweepDuration, 0),
+                startDate: normalizeDate(
+                  p?.startDate || new Date().toISOString()
+                ),
+              }
+            : p
+        ),
+        socials:
+          formNewbie.socials && formNewbie.socials.length > 0
+            ? formNewbie.socials
+            : defaultValues.socials,
+      } as unknown as TFormProject;
+
+      form.reset(normalized);
+
+      if (normalized.chainId) {
+        onChangeValue(String((normalized as any).chainId));
+      }
+
+      const wl = (normalized.presales as any)?.[0]?.whitelistDuration;
+      setShowInputWL(!!wl && Number(wl) > 0);
+    } catch {}
+    // onChangeValue is stable from props; suppress exhaustive-deps for it intentionally
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formNewbie, form]);
 
   useEffect(() => {
     try {
@@ -231,6 +305,7 @@ export default function FormCreate() {
               <div className="mb-6">
                 <ImageDropzone
                   className="aspect-[12/4] bg-white dark:bg-slate-900"
+                  externalPreview={bannerPreview ?? undefined}
                   onChange={(file) => setBanner(file)}
                 />
               </div>
@@ -238,6 +313,7 @@ export default function FormCreate() {
                 <div className="w-44 h-44 shrink-0 mx-auto md:mx-0">
                   <ImageDropzone
                     className="aspect-square bg-white dark:bg-slate-900"
+                    externalPreview={logoPreview ?? undefined}
                     onChange={(file) => setLogo(file)}
                   />
                 </div>

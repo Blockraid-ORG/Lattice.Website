@@ -64,6 +64,8 @@ export default function FormCreateNewbie() {
   const [presaleIndex] = useState(0);
   const [showWhitelist, setShowWhitelist] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [bannerPreviewUrl, setBannerPreviewUrl] = useState<string | null>(null);
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
 
   const form = useForm<TFormProject>({
     resolver: zodResolver(formCreateProjectSchema),
@@ -215,11 +217,18 @@ export default function FormCreateNewbie() {
   }
 
   // Next Form Advanced
-  const { setForm, setFormType } = useFormCreateProject();
+  const { setForm, setFormType, setMedia } = useFormCreateProject();
   function handoffToNativeForm() {
     const draft = form.getValues();
     setForm(draft);
     setFormType("advanced");
+    // pass previews to global store so advanced form can show them
+    setMedia({
+      logoFile: logo,
+      bannerFile: banner,
+      logoPreview: logo ? URL.createObjectURL(logo) : null,
+      bannerPreview: banner ? URL.createObjectURL(banner) : null,
+    });
   }
   // END Next Form Advanced
   function addAnotherSocial() {
@@ -237,6 +246,20 @@ export default function FormCreateNewbie() {
     if (!existingNames.includes("deployer")) return "Deployer";
     if (!existingNames.includes("presale")) return "Presale";
     return "";
+  }
+
+  function handleChangeBanner(file: File | null) {
+    setBanner(file);
+    if (file) {
+      setBannerPreviewUrl(URL.createObjectURL(file));
+    }
+  }
+
+  function handleChangeLogo(file: File | null) {
+    setLogo(file);
+    if (file) {
+      setLogoPreviewUrl(URL.createObjectURL(file));
+    }
   }
 
   useEffect(() => {
@@ -316,7 +339,8 @@ export default function FormCreateNewbie() {
                 <div className="mt-3">
                   <ImageDropzone
                     className="aspect-[12/4] bg-white dark:bg-slate-900"
-                    onChange={(file) => setBanner(file)}
+                    externalPreview={bannerPreviewUrl ?? undefined}
+                    onChange={(file) => handleChangeBanner(file)}
                   />
                   {banner && (
                     <p className="text-xs text-muted-foreground mt-2">
@@ -356,7 +380,8 @@ export default function FormCreateNewbie() {
                 <div className="w-40 mt-3">
                   <ImageDropzone
                     className="aspect-square bg-white dark:bg-slate-900"
-                    onChange={(file) => setLogo(file)}
+                    externalPreview={logoPreviewUrl ?? undefined}
+                    onChange={(file) => handleChangeLogo(file)}
                   />
                 </div>
                 {logo && (
