@@ -81,6 +81,12 @@ export default function FormCreateNewbie() {
     (sum: number, a: any) => sum + Number(a?.supply || 0),
     0
   );
+  const isSimpleAllocation = useMemo(() => {
+    const name = String(allocations?.[allocationIndex]?.name || "")
+      .trim()
+      .toLowerCase();
+    return name === "deployer" || name === "presale";
+  }, [allocations, allocationIndex]);
   const selectedChainId = form.watch("chainId");
   const selectedChain = useMemo(
     () => chains?.find((c: any) => c.value === selectedChainId),
@@ -131,7 +137,27 @@ export default function FormCreateNewbie() {
         `allocations.${allocationIndex}.supply`,
       ] as any);
       if (!ok) return;
-      goNext();
+      if (isSimpleAllocation) {
+        const currentName = String(allocations?.[allocationIndex]?.name || "")
+          .trim()
+          .toLowerCase();
+        if (currentName === "deployer") {
+          const presaleIdx = (allocations || []).findIndex(
+            (a: any) =>
+              String(a?.name || "")
+                .trim()
+                .toLowerCase() === "presale"
+          );
+          if (presaleIdx !== -1) {
+            setAllocationIndex(presaleIdx);
+            setCurrentStep("allocName");
+            return;
+          }
+        }
+        setCurrentStep("allocAddMore");
+      } else {
+        goNext();
+      }
       return;
     }
     if (currentStep === "allocName") {
@@ -166,8 +192,9 @@ export default function FormCreateNewbie() {
   }
 
   function appendEmptyAllocationAndStart() {
+    const nextName = getNextDefaultAllocationName();
     appendAllocation({
-      name: "",
+      name: nextName,
       supply: 0,
       vesting: 0,
       startDate: new Date().toISOString(),
@@ -188,6 +215,17 @@ export default function FormCreateNewbie() {
     appendSocial({ socialId: "", url: "" } as any);
     setSocialIndex(socialFields.length); // new index
     setCurrentStep("socialPlatform");
+  }
+
+  function getNextDefaultAllocationName(): string {
+    const existingNames = (form.getValues("allocations") || []).map((a: any) =>
+      String(a?.name || "")
+        .trim()
+        .toLowerCase()
+    );
+    if (!existingNames.includes("deployer")) return "Deployer";
+    if (!existingNames.includes("presale")) return "Presale";
+    return "";
   }
 
   useEffect(() => {
@@ -728,22 +766,42 @@ export default function FormCreateNewbie() {
                 <p className="text-sm text-muted-foreground mt-0">
                   Need another slice for Team, Presale, Community, or Investors?
                 </p>
+                <div className="text-sm mt-2">
+                  <p
+                    className={`font-semibold ${
+                      totalAllocationPercent === 100
+                        ? "text-green-600"
+                        : "text-red-500"
+                    }`}
+                  >
+                    Total Allocation: {totalAllocationPercent}%
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-0">
+                    You can continue when total allocation is exactly 100%.
+                  </p>
+                </div>
               </div>
               <div className="flex items-center justify-between pt-2">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setCurrentStep("allocStartDate")}
+                  onClick={() =>
+                    setCurrentStep(
+                      isSimpleAllocation ? "allocSupply" : "allocStartDate"
+                    )
+                  }
                 >
                   Back
                 </Button>
                 <div className="flex items-center gap-2">
                   <Button
                     type="button"
+                    disabled={totalAllocationPercent === 100}
                     variant="secondary"
                     onClick={() => {
+                      const nextName = getNextDefaultAllocationName();
                       appendAllocation({
-                        name: "",
+                        name: nextName,
                         supply: 0,
                         vesting: 0,
                         startDate: new Date().toISOString(),
@@ -756,7 +814,8 @@ export default function FormCreateNewbie() {
                   </Button>
                   <Button
                     type="button"
-                    onClick={() => setCurrentStep("allocTotal")}
+                    onClick={() => setCurrentStep("presaleUnit")}
+                    disabled={totalAllocationPercent !== 100}
                   >
                     No, continue
                   </Button>
@@ -770,7 +829,7 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Total Allocation</h3>
                 <p className="text-sm text-muted-foreground mt-0">
-                  Do all your slices add up to a clean 100 percent?
+                  To continue, make sure total allocation equals exactly 100%.
                 </p>
                 <div className="text-sm mt-2">
                   <p
@@ -795,7 +854,7 @@ export default function FormCreateNewbie() {
                 <div className="flex items-center gap-2">
                   <Button
                     type="button"
-                    disabled={totalAllocationPercent < 100}
+                    disabled={totalAllocationPercent === 100}
                     variant="secondary"
                     onClick={appendEmptyAllocationAndStart}
                   >
