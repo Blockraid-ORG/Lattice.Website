@@ -22,6 +22,16 @@ import { StepId } from "@/types/form-create-project";
 import { steps } from "@/data/form-create-project";
 import ProgressHeader from "./components/ProgressHeader";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   SocialPlatform,
   SocialUrl,
   SocialAddMore,
@@ -53,6 +63,7 @@ export default function FormCreateNewbie() {
   const [allocationIndex, setAllocationIndex] = useState(0);
   const [presaleIndex] = useState(0);
   const [showWhitelist, setShowWhitelist] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const form = useForm<TFormProject>({
     resolver: zodResolver(formCreateProjectSchema),
@@ -282,9 +293,8 @@ export default function FormCreateNewbie() {
               <div className="flex justify-center gap-2">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="link"
                   onClick={handoffToNativeForm}
-                  disabled
                 >
                   Skip
                 </Button>
@@ -988,7 +998,7 @@ export default function FormCreateNewbie() {
                 show={showWhitelist}
                 onToggle={setShowWhitelist}
                 onBack={() => setCurrentStep("presaleClaimAfter")}
-                onNext={handoffToNativeForm}
+                onNext={() => setShowConfirm(true)}
               />
             </>
           )}
@@ -1002,6 +1012,32 @@ export default function FormCreateNewbie() {
           )}
         </form>
       </Form>
+
+      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmation</AlertDialogTitle>
+            <AlertDialogDescription>
+              You are about to proceed to the advanced form to finalize and
+              submit your project. You can come back and review before
+              submitting.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowConfirm(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowConfirm(false);
+                handoffToNativeForm();
+              }}
+            >
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
