@@ -164,7 +164,11 @@ export default function FormCreate() {
         presales: presales[0],
         allocations
       }
-      createProject(newValues)
+      createProject(newValues, {
+        onSuccess: () => {
+          router.push('/usr/my-project')
+        }
+      })
     } catch (error: any) {
       console.error(error)
       toast.error("Failed to save token")
