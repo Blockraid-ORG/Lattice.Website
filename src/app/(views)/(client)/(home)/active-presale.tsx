@@ -9,14 +9,12 @@ import { Button } from '@/components/ui/button';
 
 export default function ActivePresale() {
   const { data, isLoading } = useActivePresale()
-
-  console.log({ data })
   return (
     <section className='py-12 md:py-24 bg-[#D8E9FD]/20 dark:bg-[#001123]'>
       <div className="container">
         <div className='max-w-xl mb-12'>
-          <h2 className='text-2xl md:text-4xl font-bold max-w-xl'>Active Project</h2>
-          <p>Contribute now to get best price</p>
+          <h2 className='text-2xl md:text-4xl font-bold max-w-xl'>Active</h2>
+          {/* <p>Contribute now to get best price</p> */}
         </div>
         {
           isLoading ? (

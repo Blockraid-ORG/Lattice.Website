@@ -14,6 +14,10 @@ import FormRemoveAddress from "../form-remove-address";
 
 export const columns: ColumnDef<TAdditionalReward>[] = [
   {
+    accessorKey: 'scheduleId',
+    header: 'SID',
+  },
+  {
     accessorKey: 'project.name',
     header: 'Name',
     cell: ({ row }) => (
@@ -69,8 +73,9 @@ export const columns: ColumnDef<TAdditionalReward>[] = [
     cell: ({ row }) => <div>{row.original.contactAddress ? 'DEPLOYED' : 'OUT STANDING'}</div>
   },
   {
-    accessorKey: 'scheduleId',
-    header: 'Schedule ID',
+    accessorKey: '_count',
+    header: 'Eligible Wallet',
+    cell: ({ row }) => <div className="font-semibold">{row.original._count.userAdditionalReward}</div>
   },
   {
     id: "actions",

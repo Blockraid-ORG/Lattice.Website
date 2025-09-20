@@ -17,23 +17,23 @@ export default function Table({ projectId }: { projectId: string }) {
     router.push(`?${params.toString()}`)
   }
   return (
-
-    <DataTable<TAdditionalReward>
-      actions={
-        <>
-          {
-            lists?.data && <FormCreateAirdrop projectId={projectId} />
-          }
-        </>
-
-      }
-      data={lists?.data || []}
-      columns={columns}
-      pageCount={lists?.meta?.lastPage}
-      pageIndex={lists?.meta.currentPage ? lists?.meta.currentPage - 1 : 0}
-      pageSize={lists?.meta.lastPage}
-      onPageChange={onPageChange}
-      isLoading={isLoading}
-    />
+    <div className='bg-white border dark:bg-primary-foreground/50 p-4 rounded-lg'>
+      <DataTable<TAdditionalReward>
+        actions={
+          <>
+            {
+              lists?.data && <FormCreateAirdrop projectId={projectId} />
+            }
+          </>
+        }
+        data={lists?.data || []}
+        columns={columns}
+        pageCount={lists?.meta?.lastPage}
+        pageIndex={lists?.meta.currentPage ? lists?.meta.currentPage - 1 : 0}
+        pageSize={lists?.meta.lastPage}
+        onPageChange={onPageChange}
+        isLoading={isLoading}
+      />
+    </div>
   )
 }

@@ -3,6 +3,7 @@ import ActivePresale from './active-presale'
 import Community from './comnunity'
 import NewHero from './new-hero'
 import SupporChain from './suppor-chain'
+import ToolsIntegrated from './tools-integrated'
 import UpcomingPresale from './upcoming-presale'
 
 export default function Home() {
@@ -36,6 +37,7 @@ export default function Home() {
       <ActivePresale />
       <SupporChain />
       <Community />
+      <ToolsIntegrated />
     </>
   )
 }

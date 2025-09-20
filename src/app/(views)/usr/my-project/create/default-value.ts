@@ -34,13 +34,13 @@ export const defaultValues = {
   ],
   presales: [
     {
-      hardcap: '',
-      price: '',
-      maxContribution: '',
+      hardcap: 1,
+      price: 1,
+      maxContribution: 1,
       startDate: new Date().toISOString(),
-      whitelistDuration: 0,
-      sweepDuration: 0,
-      duration: 0,
+      whitelistDuration: 1,
+      sweepDuration: 1,
+      duration: 1,
       claimTime: 0,
       unit: '',
     }

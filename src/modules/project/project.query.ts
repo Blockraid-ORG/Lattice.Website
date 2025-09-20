@@ -1,5 +1,5 @@
 "use client"
-import { TFormProject } from "@/types/project";
+import { FormBaseProjectAllocationAddress, TFormProject } from "@/types/project";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import projectService from "./project.service";
@@ -189,6 +189,78 @@ export const useSetRewardScheduleId = () => {
       id: string,
       scheduleId: string,
     }) => projectService.SET_REWARD_SCHEDULE_ID(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get_project_by_id"]
+      });
+    },
+  });
+}
+export const useCreateProjectAllocationAddress = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: FormBaseProjectAllocationAddress) => projectService.CREATE_PROJECT_ALLOCATION_ADDRESS(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get_project_by_id"]
+      });
+    },
+  });
+}
+export const useDeleteIdsProjectAllocationAddress = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { ids: string[] }) => projectService.DELETE_IDS_PROJECT_ALLOCATION_ADDRESS(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get_project_by_id"]
+      });
+      toast.success('Success', {
+        description: 'Success set allocation address'
+      })
+    },
+  });
+}
+export const useDeleteProjectAllocationAddress = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { addresses: string[] }) => projectService.DELETE_PROJECT_ALLOCATION_ADDRESS(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get_project_by_id"]
+      });
+      toast.success('Success', {
+        description: 'Success set allocation address'
+      })
+    },
+  });
+}
+export const useFinalizeProjectAllocation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => projectService.FINALIZE_PROJECT_ALLOCATION(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get_project_by_id"]
+      });
+    },
+  });
+}
+export const useSetPauseProject = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => projectService.SET_PAUSE_PROJECT(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get_project_by_id"]
+      });
+    },
+  });
+}
+export const useSetContractPresaleProject = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: any) => projectService.SET_CONTRACT_PRESALE_PROJECT(data),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["get_project_by_id"]

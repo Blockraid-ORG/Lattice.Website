@@ -13,6 +13,8 @@ export type TFormVerifyProject = {
   note: string
   contractAddress?: string
   factoryAddress?: string
+  presaleAddress?: string
+  whitelistsAddress?: string
 }
 
 export type TSetWhitelist = {

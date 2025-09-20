@@ -406,6 +406,7 @@ export default function FormCreate() {
                   name="totalSupply"
                   label="Total Supply"
                   placeholder="Enter Supply"
+                  type="number"
                 />
               </div>
               <FormInput
@@ -512,19 +513,12 @@ export default function FormCreate() {
                           label="Vesting (mo)"
                           placeholder="1"
                           type="number"
-                          disabled={field.name === "Deployer"}
+                          min={"1"}
+                          disabled={
+                            field.name === "Presale" ||
+                            field.name === "Deployer"
+                          }
                         />
-                        {/* <FormSelect
-                          control={form.control}
-                          name={`allocations.${index}.vesting`}
-                          label={"Vesting (mo)"}
-                          placeholder="select vesting"
-                          groups={vestingCounts ? [{
-                            label: 'Vesting',
-                            options: vestingCounts ?? []
-                          }] : []}
-                          disabled={field.name === "Presale"}
-                        /> */}
                       </div>
                       <div className="flex-1">
                         <FormInput
@@ -533,7 +527,10 @@ export default function FormCreate() {
                           label="Start Date"
                           placeholder="e.g. 6"
                           type="date"
-                          disabled={field.name === "Deployer"}
+                          disabled={
+                            field.name === "Presale" ||
+                            field.name === "Deployer"
+                          }
                         />
                       </div>
                       <Button
@@ -584,12 +581,12 @@ export default function FormCreate() {
             </div>
             <div className="bg-form-token-gradient p-4 md:p-8 rounded-2xl">
               <div className="space-y-3">
-                <h3 className="text-lg font-semibold">Presales Info</h3>
+                <h3 className="text-lg font-semibold">Presales</h3>
                 <div>
                   {presalesFields.map((field, index) => (
                     <Fragment key={field.id}>
                       <div className="grid gap-6">
-                        <div className="grid lg:grid-cols-4 gap-3">
+                        <div className="grid lg:grid-cols-3 gap-3">
                           <FormSelect
                             control={form.control}
                             name={`presales.${index}.unit`}
@@ -606,97 +603,27 @@ export default function FormCreate() {
                                 : []
                             }
                           />
-                          <FormInput
-                            control={form.control}
-                            name={`presales.${index}.hardcap`}
-                            label="Hard Cap"
-                            placeholder="e.g. 100000"
-                          />
-                          <FormInput
-                            control={form.control}
-                            name={`presales.${index}.price`}
-                            label="Price Per Token"
-                            placeholder="e.g. 0.01"
-                          />
-                          <FormInput
-                            control={form.control}
-                            name={`presales.${index}.maxContribution`}
-                            label="Max Contribution"
-                            type="number"
-                            placeholder="e.g. 500"
-                          />
-                        </div>
-                        <div className="grid lg:grid-cols-3 gap-3">
-                          <FormInput
-                            control={form.control}
-                            name={`presales.${index}.startDate`}
-                            label="Start Date"
-                            type="datetime-local"
-                          />
-                          <FormSelect
-                            control={form.control}
-                            name={`presales.${index}.duration`}
-                            label="Duration"
-                            placeholder="select duration"
-                            groups={
-                              presalesDurations
-                                ? [
-                                    {
-                                      label: "Duration",
-                                      options: presalesDurations ?? [],
-                                    },
-                                  ]
-                                : []
-                            }
-                          />
-                          <FormSelect
-                            control={form.control}
-                            name={`presales.${index}.claimTime`}
-                            label="Claim Available After"
-                            placeholder="select duration"
-                            groups={
-                              presalesDurations
-                                ? [
-                                    {
-                                      label: "Duration",
-                                      options: presalesDurations ?? [],
-                                    },
-                                  ]
-                                : []
-                            }
-                          />
-                        </div>
-                      </div>
-                      <div ref={whitelistRef} className="mt-6">
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            onCheckedChange={onCheckedChange}
-                            id="enable-whitelist"
-                          />
-                          <Label htmlFor="enable-whitelist">
-                            Enable Whitelist
-                          </Label>
-                        </div>
-                        {showInputWL && (
-                          <div className="mt-4 pt-4 border-t space-y-3">
-                            <div className="flex items-end gap-1">
-                              <FormInput
-                                control={form.control}
-                                name={`presales.${index}.whitelistDuration`}
-                                label="Duration (Hours)"
-                                placeholder="Enter Dutaion"
-                                type="number"
+                          <div ref={whitelistRef}>
+                            <div className="flex items-center space-x-2 mt-10">
+                              <Switch
+                                onCheckedChange={onCheckedChange}
+                                id="enable-whitelist"
                               />
+                              <Label htmlFor="enable-whitelist">
+                                Enable Whitelist
+                              </Label>
                             </div>
-                            {/* <FormInput
-                                control={form.control}
-                                name={`whitelistAddress`}
-                                label="Address"
-                                isLongText
-                                rows={10}
-                              /> */}
                           </div>
-                        )}
+                          {showInputWL && (
+                            <FormInput
+                              control={form.control}
+                              name={`presales.${index}.whitelistDuration`}
+                              label="Duration (Hours)"
+                              placeholder="Enter Dutaion"
+                              type="number"
+                            />
+                          )}
+                        </div>
                       </div>
                     </Fragment>
                   ))}
