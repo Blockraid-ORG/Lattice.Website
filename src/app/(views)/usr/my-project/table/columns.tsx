@@ -103,13 +103,18 @@ export const columns: ColumnDef<TProject>[] = [
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
+                <Link href={`/usr/my-project/${row.original.id}/manage-locker`}>
+                  <Icon className="text-lg" name="pepicons-pop:list" /> Manage Locker
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
                 <Link href={`/usr/my-project/${row.original.id}/additional-reward`}>
                   <Icon className="text-lg" name="tabler:gift-filled" /> Reward
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href={`/usr/my-project/${row.original.id}/whitelist`}>
-                  <Icon className="text-lg" name="stash:list-add" /> Whitelist
+                <Link href={`/usr/my-project/${row.original.id}/presales`}>
+                  <Icon className="text-lg" name="carbon:sales-ops" /> Presale
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />

@@ -43,7 +43,7 @@ export default function DetailHeader({ data }: { data: TProject }) {
                   href={`${data.chains[0].chain.urlScanner}/address/${data.contractAddress}`}>
                   {
                     data.contractAddress ?
-                    cutString(data.contractAddress, 6): '-'
+                      cutString(data.contractAddress, 6) : '-'
                   }
                 </Link>
               </div>
