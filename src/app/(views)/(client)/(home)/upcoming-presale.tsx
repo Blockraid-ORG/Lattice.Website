@@ -15,8 +15,8 @@ export default function UpcomingPresale() {
           <section className='py-12 md:py-24 bg-[#D8E9FD]/20 dark:bg-[#001123]'>
             <div className="container">
               <div className='max-w-xl mb-12'>
-                <h2 className='text-2xl md:text-4xl font-bold max-w-xl'>Upcoming Project</h2>
-                <p>Contribute now to get best price</p>
+                <h2 className='text-2xl md:text-4xl font-bold max-w-xl'>Upcoming</h2>
+                {/* <p>Contribute now to get best price</p> */}
               </div>
               <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xxl:grid-cols-4 gap-2 md:gap-6">
                 {

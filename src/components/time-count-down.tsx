@@ -38,6 +38,6 @@ export default function TimeCountDown({ date }: { date?: string }) {
 
 const ItemCount = (props: { data: number | string }) => {
   return (
-    <div className='text-sm font-bold h-7 w-7 rounded bg-foreground text-primary-foreground flex items-center justify-center'>{props.data}</div>
+    <div className='text-sm font-bold h-7 w-7 font-mono rounded bg-foreground text-primary-foreground flex items-center justify-center'>{props.data}</div>
   )
 }

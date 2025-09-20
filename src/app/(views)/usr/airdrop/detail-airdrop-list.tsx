@@ -24,7 +24,13 @@ export default function DetailAirdropList({ data }: { data: TEligibleAirdrop }) 
   return (
     <Dialog open={open} onOpenChange={() => setOpen(!open)}>
       <DialogTrigger asChild>
-        <Button className='w-full'>Claim Now!</Button>
+        {
+          data.isClaimedAll ? (
+            <Button disabled className='w-full'>Claimed</Button>
+          ) : (
+            <Button className='w-full'>Claim Now!</Button>
+          )
+        }
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl overflow-hidden">
         {
@@ -46,13 +52,20 @@ export default function DetailAirdropList({ data }: { data: TEligibleAirdrop }) 
                 } {data.ticker}
                 </div>
                 <div>
-                  <Button
-                    disabled={item.isClaimed || claiming}
-                    onClick={() => handleClaim(item)}
-                    size='sm' className='px-4' variant='primary'>
-                    <Icon className='text-lg' name='ic:baseline-get-app' />
-                    Claim
-                  </Button>
+                  {
+                    item.isClaimed ? (
+                      <div>
+                        <Icon className='text-lg' name='mingcute:check-2-line' /> Claimed
+                      </div>
+                    ) : (
+                      <Button
+                        disabled={claiming}
+                        onClick={() => handleClaim(item)}
+                        size='sm' className='px-4' variant='primary'>
+                        <Icon className='text-lg' name='ic:baseline-get-app' /> Claim
+                      </Button>
+                    )
+                  }
                 </div>
               </div>
             ))}

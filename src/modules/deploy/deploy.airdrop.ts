@@ -6,10 +6,13 @@ import { TAdditionalReward, TAirdropItem } from '@/types/project';
 import { BrowserProvider, ethers } from 'ethers';
 import { useCallback } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
-// useSetClaimedAirdrop
 import dayjs from 'dayjs';
 import { toast } from 'sonner';
-import { useRemoveAllocations, useSetAllocations, useSetClaimedAirdrop } from '../additional-rewards/additional-reward.query';
+import {
+  useRemoveAllocations,
+  useSetAllocations,
+  useSetClaimedAirdrop
+} from '../additional-rewards/additional-reward.query';
 export function useAirdrop() {
   const { mutate: createSetAllocations } = useSetAllocations()
   const { mutate: createRemoveAllocations } = useRemoveAllocations()
@@ -38,7 +41,7 @@ export function useAirdrop() {
         AirdropAbi.abi,
         signer
       )
-      const contractERC20 = new ethers.Contract(data.project.contractAddress!, TokenAbi, signer);
+      const contractERC20 = new ethers.Contract(data.project.contractAddress!, TokenAbi.abi, signer);
       const txApprove = await contractERC20.approve(data.project.rewardContractAddress, ethers.parseUnits(data.amount, data.project.decimals));
       await txApprove.wait();
       const _start = dayjs(data.startDateClaim).unix()
@@ -130,6 +133,16 @@ export function useAirdrop() {
         description: "Success claim airdrop!"
       });
     } catch (error: any) {
+      if (error?.data?.message) {
+        console.log("Revert Reason:", error.data.message);
+        // 👉 "execution reverted: already claimed"
+      } else if (error?.data?.originalError?.message) {
+        console.log("Original Reason:", error.data.originalError.message);
+      } else if (error?.reason) {
+        console.log("Reason:", error.reason);
+      } else {
+        console.log("Unknown error:", error);
+      }
       toast.error('Error', {
         description: error?.sortMessage || "Failed claim airdrop!"
       });

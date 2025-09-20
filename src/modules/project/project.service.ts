@@ -1,7 +1,7 @@
 import axiosInstance from "@/lib/axios"
 import { BaseService } from "@/services/base.service"
 import { TPagination } from "@/types/pagination"
-import { TFormProject, TProject } from "@/types/project"
+import { FormBaseProjectAllocationAddress, TFormProject, TProject } from "@/types/project"
 import { TQueryParam } from "@/types/query"
 
 class ProjectService extends BaseService<TProject, TFormProject> {
@@ -82,6 +82,54 @@ class ProjectService extends BaseService<TProject, TFormProject> {
       method: 'POST',
       url: this.endpoint + '/set-reward-schedule-id',
       data,
+    })
+    return response.data.data
+  }
+  async CREATE_PROJECT_ALLOCATION_ADDRESS(data: FormBaseProjectAllocationAddress) {
+    const response = await axiosInstance({
+      method: 'POST',
+      url: this.endpoint + '/create-locker-allocation-address',
+      data,
+    })
+    return response.data.data
+  }
+  async DELETE_IDS_PROJECT_ALLOCATION_ADDRESS(data: { ids: string[] }) {
+    const response = await axiosInstance({
+      method: 'POST',
+      url: this.endpoint + '/delete-ids-locker-allocation-address',
+      data,
+    })
+    return response.data.data
+  }
+  async DELETE_PROJECT_ALLOCATION_ADDRESS(data: { addresses: string[] }) {
+    const response = await axiosInstance({
+      method: 'POST',
+      url: this.endpoint + '/delete-locker-allocation-address',
+      data,
+    })
+    return response.data.data
+  }
+  async FINALIZE_PROJECT_ALLOCATION(id: string) {
+    const response = await axiosInstance({
+      method: 'POST',
+      url: this.endpoint + '/finalize-locker-allocation',
+      data: { id },
+    })
+    return response.data.data
+  }
+  async SET_PAUSE_PROJECT(id: string) {
+    const response = await axiosInstance({
+      method: 'POST',
+      url: this.endpoint + '/set-pause',
+      data: { id },
+    })
+    return response.data.data
+  }
+  async SET_CONTRACT_PRESALE_PROJECT(data: any) {
+    const response = await axiosInstance({
+      method: 'POST',
+      url: this.endpoint + '/set-contract-presale-project',
+      data: data,
     })
     return response.data.data
   }

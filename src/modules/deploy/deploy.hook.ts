@@ -1,6 +1,7 @@
 'use client'
 import FactoryAbi from '@/lib/abis/factory.abi.json';
 import PresaleAbi from '@/lib/abis/presale.abi.json';
+import ERC20Abi from '@/lib/abis/erc20.abi.json';
 
 import { useVestingStore } from '@/store/useVestingStore';
 import { TProject } from '@/types/project';
@@ -11,14 +12,11 @@ import { useAccount, useWalletClient } from 'wagmi';
 import {
   useSetAllocationDeploy,
   useSetDistributedLocker,
+  useSetPauseProject,
   useSetRewardContractAddress,
   useUpdateAllocation
 } from '../project/project.query';
-import {
-  useDeployPresale,
-  useDeployProject,
-  useDeployWhitelist
-} from './deploy.query';
+import { useDeployProject } from './deploy.query';
 
 export function useDeployToken() {
   const { data: walletClient } = useWalletClient()
@@ -27,10 +25,9 @@ export function useDeployToken() {
   const { mutate: setAllocationDeploy } = useSetAllocationDeploy()
   const { mutate: setDistributedLocker } = useSetDistributedLocker()
   const { mutate: setRewardContractAddress } = useSetRewardContractAddress()
+  const { mutate: setPauseProject } = useSetPauseProject()
   const { data: vestings } = useVestingStore()
   const { mutate: deployProject } = useDeployProject()
-  const { mutate: deployWhitelist } = useDeployWhitelist()
-  const { mutate: deployPresale } = useDeployPresale()
 
   const deployFactoryContractBasic = useCallback(async () => {
     if (typeof window === 'undefined') return
@@ -112,11 +109,6 @@ export function useDeployToken() {
           ethers.parseUnits(
             (Number(amountSupply) * i.supply / 100).toString(),
             project.decimals).toString());
-        // const schedulesA = vestings.map(i => {
-        //   const valueScedule = Math.round(100 / i.vesting * 100)
-        //   const schedule = Array(i.vesting).fill(valueScedule);
-        //   return schedule
-        // })
         const schedules = vestings.map(i => {
           if (i.vesting === 0) {
             return ["10000"];
@@ -144,22 +136,6 @@ export function useDeployToken() {
           newDate.setDate(newDate.getDate() + (Number(i.vesting) * 30));
           return Math.floor(newDate.getTime() / 1000).toString();
         })
-
-        console.log({
-          schedules,
-          durations,
-          startTimes,
-          amounts,
-          lockerNames
-        })
-        console.log(JSON.stringify({
-          schedules,
-          durations,
-          startTimes,
-          amounts,
-          lockerNames
-        }))
-        // return
         const tx = await factory.deployAll(
           tokenName,
           symbol,
@@ -202,32 +178,44 @@ export function useDeployToken() {
             console.log('Error')
           }
         }
-        const originalDate = new Date(project.presales.startDate);
-        const newDate = new Date(originalDate);
-        newDate.setDate(newDate.getDate()); // + Number(project.presales.duration)
-        const startTime = Math.floor(newDate.getTime() / 1000);
+        console.log({ result })
+        // const originalDate = new Date(project.presales.startDate);
+        // const newDate = new Date(originalDate);
+        // newDate.setDate(newDate.getDate()); // + Number(project.presales.duration)
+        // const startTime = Math.floor(newDate.getTime() / 1000);
         const presale = await presaleFactory.deploy(
-          result.token,
-          result.whitelist,
-          address,
-          ethers.parseEther(project.presales.hardcap), // hardCap = 100 ETH,
-          ethers.parseEther(project.presales.price), // pricePerToken = 0.002 ETH,
-          ethers.parseEther(project.presales.maxContribution), // maxContribution = 5 ETH,
-          startTime,
-          Number(project.presales.duration) * second, // duration = 7 days,
-          Number(project.presales.whitelistDuration) * 60 * 60, // whitelistDuration = 2 days,
-          Number(project.presales.claimTime) * second, // claimDelay = 1 day,
-          Number(project.presales.sweepDuration) * second, // sweepDuration = 14 days
+          address
+          // result.token,
+          // result.whitelist,
+          // address,
+          // ethers.parseEther(project.presales.hardcap), // hardCap = 100 ETH,
+          // ethers.parseEther(project.presales.price), // pricePerToken = 0.002 ETH,
+          // ethers.parseEther(project.presales.maxContribution), // maxContribution = 5 ETH,
+          // startTime,
+          // Number(project.presales.duration) * second, // duration = 7 days,
+          // Number(project.presales.whitelistDuration) * 60 * 60, // whitelistDuration = 2 days,
+          // Number(project.presales.claimTime) * second, // claimDelay = 1 day,
+          // Number(project.presales.sweepDuration) * second, // sweepDuration = 14 days
         );
 
         await presale.waitForDeployment();
-
+        console.log({
+          projectId: project.id,
+          status: 'DEPLOYED',
+          note: 'Deployed by project owner',
+          contractAddress: result.token as string,
+          factoryAddress: factoryContract?.target as string,
+          presaleAddress: presale?.target as string,
+          whitelistsAddress: result?.whitelist as string
+        })
         deployProject({
           projectId: project.id,
           status: 'DEPLOYED',
           note: 'Deployed by project owner',
           contractAddress: result.token as string,
           factoryAddress: factoryContract?.target as string,
+          presaleAddress: presale?.target as string,
+          whitelistsAddress: result?.whitelist as string
         }, {
           onSuccess: async () => {
             try {
@@ -255,16 +243,11 @@ export function useDeployToken() {
                 : Promise.resolve();
 
               // 3. Deploy whitelist and presale
-              const deployWhitelistPromise = deployWhitelist({
-                id: project.presales.id,
-                whitelistContract: result.whitelist as string
-              });
+              // const deployWhitelistPromise = deployWhitelist({
+              //   id: project.id,
+              //   whitelistContract: result.whitelist as string
+              // });
 
-              const deployPresalePromise = deployPresale({
-                id: project.presales.id,
-                whitelistContract: result.whitelist as string,
-                contractAddress: presale.target as string
-              });
               const setRewardContractAddressPromise = setRewardContractAddress({
                 projectId: project.id,
                 rewardContract: {
@@ -277,8 +260,8 @@ export function useDeployToken() {
               await Promise.all([
                 ...updateVestingAllocations,
                 updatePresale,
-                deployWhitelistPromise,
-                deployPresalePromise,
+                // deployWhitelistPromise,
+                // deployPresalePromise,
                 setRewardContractAddressPromise
               ]);
             } catch (err: any) {
@@ -291,9 +274,48 @@ export function useDeployToken() {
       console.error({ error: error.message })
       toast.error('Something went wrong during deployment.');
     }
-  }, [walletClient, address, deployFactoryContractBasic, setAllocationDeploy, vestings, deployProject, updateAllocation, deployWhitelist, deployPresale, setRewardContractAddress])
+  }, [walletClient, address, deployFactoryContractBasic, setAllocationDeploy, vestings, deployProject, updateAllocation, setRewardContractAddress])
+
+  const setPauseAsset = useCallback(async (project: TProject) => {
+    if (typeof window === 'undefined') return
+    if (!walletClient || !address) throw new Error('Wallet not connected')
+    const provider = new BrowserProvider(walletClient as any)
+    const signer = await provider.getSigner(address)
+    if (!project.contractAddress) {
+      toast.warning('Warning', {
+        description: `Asset not deployed yet`
+      })
+      return
+    }
+    const erc20Contract = new ethers.Contract(
+      project.contractAddress,
+      ERC20Abi.abi,
+      signer
+    );
+    try {
+      if (!project.paused) {
+        await erc20Contract.pause()
+        // tx.await()
+      } else {
+        await erc20Contract.unpause()
+        // tx.await()
+      }
+      setPauseProject(project.id, {
+        onSuccess: () => {
+          toast.success('Success', {
+            description: `Success ${project.paused ? 'Pause' : 'Unpause'} Asset`
+          })
+        }
+      })
+
+    } catch (error: any) {
+      console.error("Change Status Asset failed:", error)
+    }
+
+  }, [address, setPauseProject, walletClient]);
   return {
     lockAndDistribute,
     deployFactoryBasic,
+    setPauseAsset
   }
 }

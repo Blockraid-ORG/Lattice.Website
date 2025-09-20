@@ -6,10 +6,20 @@ import PresaleInfo from './presale-info'
 import TokenInfo from './token-info'
 import TokenSats from '@/app/(views)/usr/my-project/[projectId]/(detail)/token-stats/token-information/content'
 import ContentLoader from './content-loader'
+import { useSwitchChain } from 'wagmi'
+import { useEffect } from 'react'
 
 export default function DetailProjectContent() {
   const { projectId } = useParams()
   const { data, isLoading } = useProjectDetail(projectId as string)
+  const { switchChain } = useSwitchChain();
+  useEffect(() => {
+    if (data && data.chains.length > 0) {
+      switchChain({
+        chainId: data?.chains[0].chain.chainid,
+      });
+    }
+  }, [data, switchChain]);
   return (
     <div>
       {

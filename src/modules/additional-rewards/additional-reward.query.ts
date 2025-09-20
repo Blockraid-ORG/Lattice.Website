@@ -125,7 +125,7 @@ export const useSetClaimedAirdrop = () => {
     mutationFn: (id: string) => additionalRewardService.SET_AIRDROP_CLAIMED(id),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["get_additional_reward", "get_eligible_airdrop"]
+        queryKey: ["get_eligible_airdrop"]
       });
       toast.success('Success', {
         description: "Success create data!"

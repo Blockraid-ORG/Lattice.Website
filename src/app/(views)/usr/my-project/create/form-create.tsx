@@ -8,16 +8,13 @@ import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { presalesDurations } from "@/data/constants"
 import { converToIpfs, pinata } from "@/lib/pinata"
 import { toUrlAsset } from "@/lib/utils"
 import { useCategoryList } from "@/modules/category/category.query"
 import { useChainList } from "@/modules/chain/chain.query"
-import { useUpdatePresaleWhitelist } from "@/modules/presales/presale.query"
 import { useCreateProject } from "@/modules/project/project.query"
 import { formCreateProjectSchema } from "@/modules/project/project.schema"
 import { useSocialList } from "@/modules/social/chain.query"
-// import { useUserVerified } from "@/modules/user-verified/user-verified.query"
 import { TFormProject, TFormProjectAllocation, TFormProjectPresale } from "@/types/project"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
@@ -33,8 +30,6 @@ type TTokenUnit = {
   disabled?: boolean
 }
 export default function FormCreate() {
-  const { mutate: updatePresaleWhitelist } = useUpdatePresaleWhitelist()
-  // const { data: verifiedAddress } = useUserVerified()
   const whitelistRef = useRef<HTMLDivElement>(null)
   const [showInputWL, setShowInputWL] = useState(false)
   const [tokenUnits, setTokenUtits] = useState<TTokenUnit[]>([])
@@ -128,21 +123,6 @@ export default function FormCreate() {
   }
   async function onSubmit(values: TFormProject) {
     try {
-      let arrayAddress: string[];
-      if (values.whitelistAddress && values.whitelistAddress !== "") {
-        arrayAddress = values.whitelistAddress.split(',')
-          .map((addr: string) => addr.trim())
-          .filter((addr: string) => addr !== '');
-        // const verifiedAddressArray = verifiedAddress?.map(i => i.walletAddress)
-        // const anyErrorAddr = arrayAddress?.filter((i: string) => !verifiedAddressArray?.includes(i))
-        // if (anyErrorAddr.length > 0) {
-        //   toast.error('Ups!', {
-        //     description: `${anyErrorAddr} \nis not verified address`
-        //   })
-        //   return
-        // }
-      }
-
       setLoading(true)
       let logoUrl, bannerUrl;
       const chainIds = values.chainId;
@@ -185,13 +165,7 @@ export default function FormCreate() {
         allocations
       }
       createProject(newValues, {
-        onSuccess: (res) => {
-          if (arrayAddress && arrayAddress.length > 0) {
-            updatePresaleWhitelist({
-              presaleId: res.presales.id,
-              walletAddress: arrayAddress
-            })
-          }
+        onSuccess: () => {
           router.push('/usr/my-project')
         }
       })
@@ -318,6 +292,7 @@ export default function FormCreate() {
                   name="totalSupply"
                   label="Total Supply"
                   placeholder="Enter Supply"
+                  type="number"
                 />
               </div>
               <FormInput
@@ -328,9 +303,6 @@ export default function FormCreate() {
                 placeholder="Enter Description"
               />
             </div>
-            {/* bg-white border dark:bg-primary-foreground/50
-            bg-white border dark:bg-primary-foreground/50
-            bg-white border dark:bg-primary-foreground/50  */}
             <div className='bg-form-token-gradient p-4 md:p-8 rounded-2xl'>
               <div className="space-y-3">
                 <h3 className="text-lg font-semibold">Website / Social Media</h3>
@@ -412,19 +384,9 @@ export default function FormCreate() {
                           label="Vesting (mo)"
                           placeholder="1"
                           type="number"
-                          disabled={field.name === "Deployer"}
+                          min={'1'}
+                          disabled={field.name === "Presale" || field.name === "Deployer"}
                         />
-                        {/* <FormSelect
-                          control={form.control}
-                          name={`allocations.${index}.vesting`}
-                          label={"Vesting (mo)"}
-                          placeholder="select vesting"
-                          groups={vestingCounts ? [{
-                            label: 'Vesting',
-                            options: vestingCounts ?? []
-                          }] : []}
-                          disabled={field.name === "Presale"}
-                        /> */}
                       </div>
                       <div className="flex-1">
                         <FormInput
@@ -433,7 +395,7 @@ export default function FormCreate() {
                           label="Start Date"
                           placeholder="e.g. 6"
                           type="date"
-                          disabled={field.name === "Deployer"}
+                          disabled={field.name === "Presale" || field.name === "Deployer"}
                         />
                       </div>
                       <Button
@@ -464,12 +426,12 @@ export default function FormCreate() {
             </div>
             <div className='bg-form-token-gradient p-4 md:p-8 rounded-2xl'>
               <div className="space-y-3">
-                <h3 className="text-lg font-semibold">Presales Info</h3>
+                <h3 className="text-lg font-semibold">Presales</h3>
                 <div>
                   {presalesFields.map((field, index) => (
                     <Fragment key={field.id}>
                       <div className="grid gap-6">
-                        <div className="grid lg:grid-cols-4 gap-3">
+                        <div className="grid lg:grid-cols-3 gap-3">
                           <FormSelect
                             control={form.control}
                             name={`presales.${index}.unit`}
@@ -480,82 +442,26 @@ export default function FormCreate() {
                               options: tokenUnits ?? []
                             }] : []}
                           />
-                          <FormInput
-                            control={form.control}
-                            name={`presales.${index}.hardcap`}
-                            label="Hard Cap"
-                            placeholder="e.g. 100000"
-                          />
-                          <FormInput
-                            control={form.control}
-                            name={`presales.${index}.price`}
-                            label="Price Per Token"
-                            placeholder="e.g. 0.01"
-                          />
-                          <FormInput
-                            control={form.control}
-                            name={`presales.${index}.maxContribution`}
-                            label="Max Contribution"
-                            type="number"
-                            placeholder="e.g. 500"
-                          />
-                        </div>
-                        <div className="grid lg:grid-cols-3 gap-3">
-                          <FormInput
-                            control={form.control}
-                            name={`presales.${index}.startDate`}
-                            label="Start Date" type="datetime-local"
-                          />
-                          <FormSelect
-                            control={form.control}
-                            name={`presales.${index}.duration`}
-                            label="Duration"
-                            placeholder="select duration"
-                            groups={presalesDurations ? [{
-                              label: 'Duration',
-                              options: presalesDurations ?? []
-                            }] : []}
-                          />
-                          <FormSelect
-                            control={form.control}
-                            name={`presales.${index}.claimTime`}
-                            label="Claim Available After"
-                            placeholder="select duration"
-                            groups={presalesDurations ? [{
-                              label: 'Duration',
-                              options: presalesDurations ?? []
-                            }] : []}
-                          />
-                        </div>
-                      </div>
-                      <div ref={whitelistRef} className="mt-6">
-                        <div className="flex items-center space-x-2">
-                          <Switch onCheckedChange={onCheckedChange} id="enable-whitelist" />
-                          <Label htmlFor="enable-whitelist">Enable Whitelist</Label>
-                        </div>
-                        {
-                          showInputWL && (
-                            <div className="mt-4 pt-4 border-t space-y-3">
-                              <div className="flex items-end gap-1">
-                                <FormInput
-                                  control={form.control}
-                                  name={`presales.${index}.whitelistDuration`}
-                                  label="Duration (Hours)"
-                                  placeholder="Enter Dutaion"
-                                  type="number"
-                                />
-                              </div>
-                              {/* <FormInput
-                                control={form.control}
-                                name={`whitelistAddress`}
-                                label="Address"
-                                isLongText
-                                rows={10}
-                              /> */}
+                          <div ref={whitelistRef}>
+                            <div className="flex items-center space-x-2 mt-10">
+                              <Switch onCheckedChange={onCheckedChange} id="enable-whitelist" />
+                              <Label htmlFor="enable-whitelist">Enable Whitelist</Label>
                             </div>
-                          )
-                        }
+                          </div>
+                          {
+                            showInputWL && (
+                              <FormInput
+                                control={form.control}
+                                name={`presales.${index}.whitelistDuration`}
+                                label="Duration (Hours)"
+                                placeholder="Enter Dutaion"
+                                type="number"
+                              />
+                            )
+                          }
+                        </div>
                       </div>
+
                     </Fragment>
                   ))}
                 </div>
