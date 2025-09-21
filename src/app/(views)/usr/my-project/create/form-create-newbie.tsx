@@ -9,7 +9,6 @@ import { ImageDropzone } from "@/components/image-dropzone";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 // moved to modular PresaleSteps
-import { presalesDurations } from "@/data/constants";
 import { formCreateProjectSchema } from "@/modules/project/project.schema";
 import { defaultValues } from "./default-value";
 import { TFormProject } from "@/types/project";
@@ -43,16 +42,7 @@ import {
   AllocationVesting,
   AllocationStartDate,
 } from "./components/AllocationSteps";
-import {
-  PresaleUnit,
-  PresaleHardcap,
-  PresalePrice,
-  PresaleMaxContribution,
-  PresaleStartDate as PresaleStartDateStep,
-  PresaleDuration,
-  PresaleClaimAfter,
-  PresaleWhitelist,
-} from "./components/PresaleSteps";
+import { PresaleUnit, PresaleWhitelist } from "./components/PresaleSteps";
 import { useFormCreateProject } from "@/store/useFormCreateProject";
 
 export default function FormCreateNewbie() {
@@ -262,6 +252,18 @@ export default function FormCreateNewbie() {
     }
   }
 
+  // Revoke object URLs when previews change or on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (bannerPreviewUrl) URL.revokeObjectURL(bannerPreviewUrl);
+    };
+  }, [bannerPreviewUrl]);
+  useEffect(() => {
+    return () => {
+      if (logoPreviewUrl) URL.revokeObjectURL(logoPreviewUrl);
+    };
+  }, [logoPreviewUrl]);
+
   useEffect(() => {
     if (socialFields.length === 0) {
       appendSocial({ socialId: "", url: "" } as any);
@@ -285,12 +287,6 @@ export default function FormCreateNewbie() {
       form.setValue("presales", [
         {
           unit: "",
-          hardcap: "",
-          price: "",
-          maxContribution: "",
-          startDate: "",
-          duration: "",
-          claimTime: "",
           whitelistDuration: 0,
         },
       ] as any);
@@ -736,6 +732,7 @@ export default function FormCreateNewbie() {
               socialIndex={socialIndex}
               onBack={goBack}
               onNext={validateAndNext}
+              onSkip={handoffToNativeForm}
             />
           )}
 
@@ -745,6 +742,15 @@ export default function FormCreateNewbie() {
               socialIndex={socialIndex}
               onBack={() => setCurrentStep("socialPlatform")}
               onNext={validateAndNext}
+            />
+          )}
+
+          {currentStep === "socialAddMore" && (
+            <SocialAddMore
+              onBack={() => setCurrentStep("socialUrl")}
+              onAddAnother={addAnotherSocial}
+              onNext={goNext}
+              onSkip={handoffToNativeForm}
             />
           )}
 
@@ -829,6 +835,13 @@ export default function FormCreateNewbie() {
                   Back
                 </Button>
                 <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="link"
+                    onClick={handoffToNativeForm}
+                  >
+                    Skip
+                  </Button>
                   <Button
                     type="button"
                     disabled={totalAllocationPercent === 100}
@@ -923,98 +936,6 @@ export default function FormCreateNewbie() {
             />
           )}
 
-          {currentStep === "presaleHardcap" && (
-            <PresaleHardcap
-              control={form.control}
-              index={presaleIndex}
-              onBack={() => setCurrentStep("presaleUnit")}
-              onNext={async () => {
-                const ok = await form.trigger([
-                  `presales.${presaleIndex}.hardcap`,
-                ] as any);
-                if (!ok) return;
-                goNext();
-              }}
-            />
-          )}
-
-          {currentStep === "presalePrice" && (
-            <PresalePrice
-              control={form.control}
-              index={presaleIndex}
-              onBack={() => setCurrentStep("presaleHardcap")}
-              onNext={async () => {
-                const ok = await form.trigger([
-                  `presales.${presaleIndex}.price`,
-                ] as any);
-                if (!ok) return;
-                goNext();
-              }}
-            />
-          )}
-
-          {currentStep === "presaleMaxContribution" && (
-            <PresaleMaxContribution
-              control={form.control}
-              index={presaleIndex}
-              onBack={() => setCurrentStep("presalePrice")}
-              onNext={async () => {
-                const ok = await form.trigger([
-                  `presales.${presaleIndex}.maxContribution`,
-                ] as any);
-                if (!ok) return;
-                goNext();
-              }}
-            />
-          )}
-
-          {currentStep === "presaleStartDate" && (
-            <PresaleStartDateStep
-              control={form.control}
-              index={presaleIndex}
-              onBack={() => setCurrentStep("presaleMaxContribution")}
-              onNext={async () => {
-                const ok = await form.trigger([
-                  `presales.${presaleIndex}.startDate`,
-                ] as any);
-                if (!ok) return;
-                goNext();
-              }}
-            />
-          )}
-
-          {currentStep === "presaleDuration" && (
-            <PresaleDuration
-              control={form.control}
-              index={presaleIndex}
-              durations={presalesDurations}
-              onBack={() => setCurrentStep("presaleStartDate")}
-              onNext={async () => {
-                const ok = await form.trigger([
-                  `presales.${presaleIndex}.duration`,
-                ] as any);
-                if (!ok) return;
-                goNext();
-              }}
-            />
-          )}
-
-          {currentStep === "presaleClaimAfter" && (
-            <PresaleClaimAfter
-              control={form.control}
-              index={presaleIndex}
-              durations={presalesDurations}
-              onBack={() => setCurrentStep("presaleDuration")}
-              onNext={async () => {
-                const ok = await form.trigger([
-                  `presales.${presaleIndex}.claimTime`,
-                ] as any);
-                if (!ok) return;
-                goNext();
-              }}
-            />
-          )}
-
           {currentStep === "presaleWhitelist" && (
             <>
               <PresaleWhitelist
@@ -1022,18 +943,10 @@ export default function FormCreateNewbie() {
                 index={presaleIndex}
                 show={showWhitelist}
                 onToggle={setShowWhitelist}
-                onBack={() => setCurrentStep("presaleClaimAfter")}
+                onBack={() => setCurrentStep("presaleUnit")}
                 onNext={() => setShowConfirm(true)}
               />
             </>
-          )}
-
-          {currentStep === "socialAddMore" && (
-            <SocialAddMore
-              onBack={() => setCurrentStep("socialUrl")}
-              onAddAnother={addAnotherSocial}
-              onNext={goNext}
-            />
           )}
         </form>
       </Form>

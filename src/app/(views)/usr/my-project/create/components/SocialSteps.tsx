@@ -10,6 +10,7 @@ type PlatformProps = {
   control: any;
   socialIndex: number;
   onBack: () => void;
+  onSkip: () => void;
   onNext: () => void;
 };
 
@@ -17,6 +18,7 @@ export function SocialPlatform({
   socialsOptions,
   control,
   onBack,
+  onSkip,
   onNext,
   socialIndex,
 }: PlatformProps) {
@@ -41,9 +43,14 @@ export function SocialPlatform({
         <Button type="button" variant="outline" onClick={onBack}>
           Back
         </Button>
-        <Button type="button" onClick={onNext}>
-          Next
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="link" onClick={onSkip}>
+            Skip
+          </Button>
+          <Button type="button" onClick={onNext}>
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -89,9 +96,15 @@ type AddMoreProps = {
   onBack: () => void;
   onAddAnother: () => void;
   onNext: () => void;
+  onSkip: () => void;
 };
 
-export function SocialAddMore({ onBack, onAddAnother, onNext }: AddMoreProps) {
+export function SocialAddMore({
+  onBack,
+  onAddAnother,
+  onNext,
+  onSkip,
+}: AddMoreProps) {
   return (
     <div className="space-y-4">
       <div>
@@ -106,6 +119,9 @@ export function SocialAddMore({ onBack, onAddAnother, onNext }: AddMoreProps) {
           Back
         </Button>
         <div className="flex items-center gap-2">
+          <Button type="button" variant="link" onClick={onSkip}>
+            Skip
+          </Button>
           <Button type="button" variant="secondary" onClick={onAddAnother}>
             Yes, add another
           </Button>
