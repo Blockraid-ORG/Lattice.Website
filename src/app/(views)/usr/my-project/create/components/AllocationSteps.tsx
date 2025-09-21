@@ -3,6 +3,7 @@
 import React from "react";
 import { FormInput } from "@/components/form-input";
 import { Button } from "@/components/ui/button";
+import { useWatch } from "react-hook-form";
 
 export function AllocationIntro({
   onBack,
@@ -90,6 +91,15 @@ export function AllocationName({
   onBack: () => void;
   onNext: () => void;
 }) {
+  const currentName = useWatch({
+    control,
+    name: `allocations.${index}.name` as const,
+  });
+  const isLocked =
+    String(currentName || "")
+      .trim()
+      .toLowerCase()
+      .match(/^(presale|deployer)$/) !== null;
   return (
     <div className="space-y-4">
       <div>
@@ -103,6 +113,7 @@ export function AllocationName({
           name={`allocations.${index}.name`}
           label=""
           placeholder="e.g. Team"
+          disabled={isLocked}
         />
       </div>
       <div className="flex items-center justify-between pt-2">

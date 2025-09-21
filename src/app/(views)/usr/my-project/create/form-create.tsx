@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { presalesDurations } from "@/data/constants";
 import { converToIpfs, pinata } from "@/lib/pinata";
 import { toUrlAsset } from "@/lib/utils";
 import { useCategoryList } from "@/modules/category/category.query";
@@ -17,7 +16,6 @@ import { useUpdatePresaleWhitelist } from "@/modules/presales/presale.query";
 import { useCreateProject } from "@/modules/project/project.query";
 import { formCreateProjectSchema } from "@/modules/project/project.schema";
 import { useSocialList } from "@/modules/social/chain.query";
-// import { useUserVerified } from "@/modules/user-verified/user-verified.query"
 import {
   TFormProject,
   TFormProjectAllocation,
@@ -45,11 +43,12 @@ export default function FormCreate() {
     bannerFile,
     logoPreview,
     bannerPreview,
+    reset: resetFormCreateProject,
   } = useFormCreateProject();
   const { mutate: updatePresaleWhitelist } = useUpdatePresaleWhitelist();
   const whitelistRef = useRef<HTMLDivElement>(null);
   const [showInputWL, setShowInputWL] = useState(false);
-  const [tokenUnits, setTokenUtits] = useState<TTokenUnit[]>([]);
+  const [tokenUnits, setTokenUnits] = useState<TTokenUnit[]>([]);
   const { mutate: createProject } = useCreateProject();
   const [logo, setLogo] = useState<File | null>(logoFile ?? null);
   const [banner, setBanner] = useState<File | null>(bannerFile ?? null);
@@ -68,7 +67,7 @@ export default function FormCreate() {
     try {
       if (!formNewbie || Object.keys(formNewbie || {}).length === 0) return;
 
-      const normalizeDate = (v: any) => (v instanceof Date ? v : new Date(v));
+      // const normalizeDate = (v: any) => (v instanceof Date ? v : new Date(v));
       const safeNumber = (v: any, def = 0) =>
         v === undefined || v === null || v === "" ? def : Number(v);
 
@@ -93,7 +92,7 @@ export default function FormCreate() {
           ...a,
           supply: safeNumber(a?.supply, 0),
           vesting: safeNumber(a?.vesting, 0),
-          startDate: normalizeDate(a?.startDate || new Date().toISOString()),
+          startDate: a?.startDate || new Date().toISOString(),
         })),
         presales: (formNewbie.presales && formNewbie.presales.length > 0
           ? formNewbie.presales
@@ -102,16 +101,7 @@ export default function FormCreate() {
           idx === 0
             ? {
                 ...p,
-                hardcap: safeNumber(p?.hardcap, 0),
-                price: safeNumber(p?.price, 0),
-                maxContribution: safeNumber(p?.maxContribution, 0),
-                duration: safeNumber(p?.duration, 0),
-                claimTime: safeNumber(p?.claimTime, 0),
                 whitelistDuration: safeNumber(p?.whitelistDuration, 0),
-                sweepDuration: safeNumber(p?.sweepDuration, 0),
-                startDate: normalizeDate(
-                  p?.startDate || new Date().toISOString()
-                ),
               }
             : p
         ),
@@ -147,10 +137,12 @@ export default function FormCreate() {
       }
     } catch {}
   }, [form]);
+
   const { fields, append, remove } = useFieldArray<TFormProjectAllocation>({
     control: form.control,
     name: "allocations",
   });
+
   const {
     fields: socialFields,
     append: appendSocial,
@@ -159,6 +151,7 @@ export default function FormCreate() {
     control: form.control,
     name: "socials",
   });
+
   const { fields: presalesFields } = useFieldArray({
     control: form.control,
     name: "presales",
@@ -193,7 +186,7 @@ export default function FormCreate() {
 
   function onChangeValue(chainId: string) {
     const c = chains?.find((i) => i.value === chainId);
-    setTokenUtits([
+    setTokenUnits([
       {
         label: `${c?.ticker}`,
         value: `${c?.ticker}`,
@@ -279,10 +272,13 @@ export default function FormCreate() {
         onSuccess: (res) => {
           if (arrayAddress && arrayAddress.length > 0) {
             updatePresaleWhitelist({
-              presaleId: res.presales.id,
+              presaleId: res.presales[0].id,
               walletAddress: arrayAddress,
             });
           }
+          // clear local draft store after successful submission
+          resetFormCreateProject();
+
           router.push("/usr/my-project");
         },
       });
@@ -364,7 +360,7 @@ export default function FormCreate() {
                   />
                 ) : (
                   <div className="p-4 text-center text-gray-500">
-                    'Loading chains...'
+                    Loading chains...
                   </div>
                 )}
                 {categories &&
@@ -389,10 +385,12 @@ export default function FormCreate() {
                   />
                 ) : (
                   <div className="p-4 text-center text-gray-500">
-                    'Loading categories...'
+                    Loading categories...
                   </div>
                 )}
-                {projectTypes && (
+                {projectTypes &&
+                projectTypes.length > 0 &&
+                form.getValues().projectTypeId ? (
                   <FormSelect
                     control={form.control}
                     name="projectTypeId"
@@ -410,6 +408,10 @@ export default function FormCreate() {
                       },
                     ]}
                   />
+                ) : (
+                  <div className="p-4 text-center text-gray-500">
+                    Loading project types...
+                  </div>
                 )}
                 <FormInput
                   control={form.control}
@@ -427,9 +429,6 @@ export default function FormCreate() {
                 placeholder="Enter Description"
               />
             </div>
-            {/* bg-white border dark:bg-primary-foreground/50
-            bg-white border dark:bg-primary-foreground/50
-            bg-white border dark:bg-primary-foreground/50  */}
             <div className="bg-form-token-gradient p-4 md:p-8 rounded-2xl">
               <div className="space-y-3">
                 <h3 className="text-lg font-semibold">
@@ -618,6 +617,10 @@ export default function FormCreate() {
                               <Switch
                                 onCheckedChange={onCheckedChange}
                                 id="enable-whitelist"
+                                checked={
+                                  form.getValues().presales[index]
+                                    .whitelistDuration > 0
+                                }
                               />
                               <Label htmlFor="enable-whitelist">
                                 Enable Whitelist

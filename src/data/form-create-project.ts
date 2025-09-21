@@ -127,39 +127,39 @@ export const steps: Step[] = [
     title: "Presales Info",
     description: "Unit — What will buyers pay with—USDT or another token?",
   },
-  {
-    id: "presaleHardcap",
-    title: "Presales Info",
-    description:
-      "Hard Cap — What’s the maximum you plan to raise this round—say 100000?",
-  },
-  {
-    id: "presalePrice",
-    title: "Presales Info",
-    description: "Price Per Token — What’s the price for one token—like 0.01?",
-  },
-  {
-    id: "presaleMaxContribution",
-    title: "Presales Info",
-    description:
-      "Max Contribution — What’s the per-wallet cap to keep things fair—maybe 500?",
-  },
-  {
-    id: "presaleStartDate",
-    title: "Presales Info",
-    description: "Start Date — When will the sale open?",
-  },
-  {
-    id: "presaleDuration",
-    title: "Presales Info",
-    description:
-      "Duration — How long will the sale window stay open—like 14 days?",
-  },
-  {
-    id: "presaleClaimAfter",
-    title: "Presales Info",
-    description: "Claim Available After — When can buyers claim their tokens?",
-  },
+  // {
+  //   id: "presaleHardcap",
+  //   title: "Presales Info",
+  //   description:
+  //     "Hard Cap — What’s the maximum you plan to raise this round—say 100000?",
+  // },
+  // {
+  //   id: "presalePrice",
+  //   title: "Presales Info",
+  //   description: "Price Per Token — What’s the price for one token—like 0.01?",
+  // },
+  // {
+  //   id: "presaleMaxContribution",
+  //   title: "Presales Info",
+  //   description:
+  //     "Max Contribution — What’s the per-wallet cap to keep things fair—maybe 500?",
+  // },
+  // {
+  //   id: "presaleStartDate",
+  //   title: "Presales Info",
+  //   description: "Start Date — When will the sale open?",
+  // },
+  // {
+  //   id: "presaleDuration",
+  //   title: "Presales Info",
+  //   description:
+  //     "Duration — How long will the sale window stay open—like 14 days?",
+  // },
+  // {
+  //   id: "presaleClaimAfter",
+  //   title: "Presales Info",
+  //   description: "Claim Available After — When can buyers claim their tokens?",
+  // },
   {
     id: "presaleWhitelist",
     title: "Presales Info",
