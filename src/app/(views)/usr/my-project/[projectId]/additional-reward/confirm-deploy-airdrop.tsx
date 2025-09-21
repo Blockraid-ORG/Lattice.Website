@@ -1,5 +1,12 @@
 import { Icon } from '@/components/icon'
-import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { useUpdateAdditionalReward } from '@/modules/additional-rewards/additional-reward.query'
 import { useAirdrop } from '@/modules/deploy/deploy.airdrop'
@@ -7,33 +14,43 @@ import { TAdditionalReward } from '@/types/project'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-export default function ConfirmDeployAirdrop({ data }: { data: TAdditionalReward }) {
+export default function ConfirmDeployAirdrop({ data,}: { data: TAdditionalReward}) {
   const { mutate: setContractAddressAirdrop } = useUpdateAdditionalReward(data.id)
   const { deployAirdrop } = useAirdrop()
   const [open, setOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   function handleDeploy() {
     setIsSubmitting(true)
-    deployAirdrop(data).then(response => {
-      setContractAddressAirdrop({
-        contractAddress: response as string
-      }, {
-        onSuccess: () => {
-          setOpen(false)
-          toast.success('Success', {
-            description: `Deploy success: ${response}`
-          })
-        }
-      })
-    }).finally(() => setIsSubmitting(false))
-  }
-  function onOpenChange(state: boolean) {
-    setOpen(state)
+    deployAirdrop(data).then(async (contract: any) => {
+      if (contract)
+        setContractAddressAirdrop({
+          contractAddress: contract.rewardContractAddress || '',
+          scheduleId: contract.scheduleId || ''
+        }, {
+          onSuccess: () => {
+            toast.success('Success', {
+              description: "Success deploy airdrop!"
+            })
+            setIsSubmitting(false)
+            setOpen(false)
+          },
+          onError: () => {
+            setIsSubmitting(false)
+            toast.error('Error', {
+              description: "Fail to deploy airdrop!"
+            })
+          }
+        })
+    }).finally(() => {
+      setIsSubmitting(false)
+      setOpen(false)
+    })
   }
   return (
-    <AlertDialog onOpenChange={onOpenChange} open={open}>
+    <AlertDialog onOpenChange={() => setOpen(!open)} open={open}>
       <AlertDialogTrigger asChild>
         <Button
+          className='w-full'
           disabled={!!data.contactAddress}
           size={'sm'}
         >

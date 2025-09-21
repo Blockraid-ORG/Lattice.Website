@@ -5,9 +5,6 @@ import { useSearchParams } from "next/navigation";
 import additionalRewardService from "./additional-reward.service";
 import { TFormAdditionalReward } from "@/types/additional-reward";
 import { toast } from "sonner";
-import { TAirdropItem } from "@/types/project";
-
-
 export const useAdditionalReward = (projectId: string) => {
   const searchString = useSearchParams();
   const query = toObjectQuery(searchString)
@@ -50,9 +47,10 @@ export const useCreateAdditionalReward = () => {
 export const useUpdateAdditionalReward = (id: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { contractAddress: string }) => additionalRewardService.SET_CONTRACT_ADDRESS({
+    mutationFn: (data: { contractAddress: string, scheduleId: string }) => additionalRewardService.SET_CONTRACT_ADDRESS({
       id,
-      contractAddress: data.contractAddress
+      contractAddress: data.contractAddress,
+      scheduleId: data.scheduleId
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -124,10 +122,10 @@ export const useEligibleAirdrop = () => {
 export const useSetClaimedAirdrop = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: TAirdropItem) => additionalRewardService.SET_AIRDROP_CLAIMED(data.id, { isClaimed: true }),
+    mutationFn: (id: string) => additionalRewardService.SET_AIRDROP_CLAIMED(id),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["get_additional_reward"]
+        queryKey: ["get_eligible_airdrop"]
       });
       toast.success('Success', {
         description: "Success create data!"

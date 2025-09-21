@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { presalesDurations, vestingCounts } from "@/data/constants";
+import { presalesDurations } from "@/data/constants";
 import { converToIpfs, pinata } from "@/lib/pinata";
 import { toUrlAsset } from "@/lib/utils";
 import { useCategoryList } from "@/modules/category/category.query";
@@ -29,7 +29,9 @@ import { Fragment, useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { defaultValues } from "./default-value";
+import { useEffect } from "react";
 import { useProjectTypeList } from "@/modules/project-types/project-types.query";
+import { useFormCreateProject } from "@/store/useFormCreateProject";
 
 type TTokenUnit = {
   value: string;
@@ -37,14 +39,20 @@ type TTokenUnit = {
   disabled?: boolean;
 };
 export default function FormCreate() {
+  const {
+    form: formNewbie,
+    logoFile,
+    bannerFile,
+    logoPreview,
+    bannerPreview,
+  } = useFormCreateProject();
   const { mutate: updatePresaleWhitelist } = useUpdatePresaleWhitelist();
-  // const { data: verifiedAddress } = useUserVerified()
   const whitelistRef = useRef<HTMLDivElement>(null);
   const [showInputWL, setShowInputWL] = useState(false);
   const [tokenUnits, setTokenUtits] = useState<TTokenUnit[]>([]);
   const { mutate: createProject } = useCreateProject();
-  const [logo, setLogo] = useState<File | null>(null);
-  const [banner, setBanner] = useState<File | null>(null);
+  const [logo, setLogo] = useState<File | null>(logoFile ?? null);
+  const [banner, setBanner] = useState<File | null>(bannerFile ?? null);
   const { data: chains } = useChainList();
   const { data: categories } = useCategoryList();
   const { data: socials } = useSocialList();
@@ -55,11 +63,94 @@ export default function FormCreate() {
     resolver: zodResolver(formCreateProjectSchema),
     defaultValues: defaultValues,
   });
+
+  useEffect(() => {
+    try {
+      if (!formNewbie || Object.keys(formNewbie || {}).length === 0) return;
+
+      const normalizeDate = (v: any) => (v instanceof Date ? v : new Date(v));
+      const safeNumber = (v: any, def = 0) =>
+        v === undefined || v === null || v === "" ? def : Number(v);
+
+      const normalized = {
+        ...defaultValues,
+        ...formNewbie,
+        // scalars
+        decimals:
+          formNewbie.decimals !== undefined
+            ? formNewbie.decimals
+            : defaultValues.decimals,
+        totalSupply:
+          formNewbie.totalSupply !== undefined
+            ? formNewbie.totalSupply
+            : defaultValues.totalSupply,
+        // arrays
+        allocations: (formNewbie.allocations &&
+        formNewbie.allocations.length > 0
+          ? formNewbie.allocations
+          : defaultValues.allocations
+        ).map((a: any) => ({
+          ...a,
+          supply: safeNumber(a?.supply, 0),
+          vesting: safeNumber(a?.vesting, 0),
+          startDate: normalizeDate(a?.startDate || new Date().toISOString()),
+        })),
+        presales: (formNewbie.presales && formNewbie.presales.length > 0
+          ? formNewbie.presales
+          : defaultValues.presales
+        ).map((p: any, idx: number) =>
+          idx === 0
+            ? {
+                ...p,
+                hardcap: safeNumber(p?.hardcap, 0),
+                price: safeNumber(p?.price, 0),
+                maxContribution: safeNumber(p?.maxContribution, 0),
+                duration: safeNumber(p?.duration, 0),
+                claimTime: safeNumber(p?.claimTime, 0),
+                whitelistDuration: safeNumber(p?.whitelistDuration, 0),
+                sweepDuration: safeNumber(p?.sweepDuration, 0),
+                startDate: normalizeDate(
+                  p?.startDate || new Date().toISOString()
+                ),
+              }
+            : p
+        ),
+        socials:
+          formNewbie.socials && formNewbie.socials.length > 0
+            ? formNewbie.socials
+            : defaultValues.socials,
+      } as unknown as TFormProject;
+
+      form.reset(normalized);
+
+      if (normalized.chainId) {
+        onChangeValue(String((normalized as any).chainId));
+      }
+
+      const wl = (normalized.presales as any)?.[0]?.whitelistDuration;
+      setShowInputWL(!!wl && Number(wl) > 0);
+    } catch {}
+    // onChangeValue is stable from props; suppress exhaustive-deps for it intentionally
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formNewbie, form]);
+
+  useEffect(() => {
+    try {
+      const v =
+        typeof window !== "undefined"
+          ? localStorage.getItem("createProjectDraft")
+          : null;
+      if (v) {
+        const parsed = JSON.parse(v);
+        form.reset(parsed);
+        localStorage.removeItem("createProjectDraft");
+      }
+    } catch {}
+  }, [form]);
   const { fields, append, remove } = useFieldArray<TFormProjectAllocation>({
     control: form.control,
     name: "allocations",
   });
-
   const {
     fields: socialFields,
     append: appendSocial,
@@ -139,14 +230,6 @@ export default function FormCreate() {
           .split(",")
           .map((addr: string) => addr.trim())
           .filter((addr: string) => addr !== "");
-        // const verifiedAddressArray = verifiedAddress?.map(i => i.walletAddress)
-        // const anyErrorAddr = arrayAddress?.filter((i: string) => !verifiedAddressArray?.includes(i))
-        // if (anyErrorAddr.length > 0) {
-        //   toast.error('Ups!', {
-        //     description: `${anyErrorAddr} \nis not verified address`
-        //   })
-        //   return
-        // }
       }
 
       setLoading(true);
@@ -203,8 +286,8 @@ export default function FormCreate() {
           router.push("/usr/my-project");
         },
       });
-    } catch (error: any) {
-      error;
+    } catch (error) {
+      console.error(error);
       toast.error("Failed to save token");
     } finally {
       setLoading(false);
@@ -222,6 +305,7 @@ export default function FormCreate() {
               <div className="mb-6">
                 <ImageDropzone
                   className="aspect-[12/4] bg-white dark:bg-slate-900"
+                  externalPreview={bannerPreview ?? undefined}
                   onChange={(file) => setBanner(file)}
                 />
               </div>
@@ -229,6 +313,7 @@ export default function FormCreate() {
                 <div className="w-44 h-44 shrink-0 mx-auto md:mx-0">
                   <ImageDropzone
                     className="aspect-square bg-white dark:bg-slate-900"
+                    externalPreview={logoPreview ?? undefined}
                     onChange={(file) => setLogo(file)}
                   />
                 </div>
@@ -321,6 +406,7 @@ export default function FormCreate() {
                   name="totalSupply"
                   label="Total Supply"
                   placeholder="Enter Supply"
+                  type="number"
                 />
               </div>
               <FormInput
@@ -403,9 +489,12 @@ export default function FormCreate() {
                         <FormInput
                           control={form.control}
                           name={`allocations.${index}.name`}
-                          label={"Allocation"}
+                          label={"Allocations"}
                           placeholder="e.g. Team"
-                          disabled={field.name === "Presale"}
+                          disabled={
+                            field.name === "Presale" ||
+                            field.name === "Deployer"
+                          }
                         />
                       </div>
                       <div className="flex-1">
@@ -418,20 +507,16 @@ export default function FormCreate() {
                         />
                       </div>
                       <div className="flex-1">
-                        <FormSelect
+                        <FormInput
                           control={form.control}
                           name={`allocations.${index}.vesting`}
-                          label={"Vesting (mo)"}
-                          placeholder="select vesting"
-                          groups={
-                            vestingCounts
-                              ? [
-                                  {
-                                    label: "Vesting",
-                                    options: vestingCounts ?? [],
-                                  },
-                                ]
-                              : []
+                          label="Vesting (mo)"
+                          placeholder="1"
+                          type="number"
+                          min={"1"}
+                          disabled={
+                            field.name === "Presale" ||
+                            field.name === "Deployer"
                           }
                         />
                       </div>
@@ -442,12 +527,14 @@ export default function FormCreate() {
                           label="Start Date"
                           placeholder="e.g. 6"
                           type="date"
+                          disabled={
+                            field.name === "Presale" ||
+                            field.name === "Deployer"
+                          }
                         />
                       </div>
                       <Button
-                        disabled={
-                          field.name === "Presale" || field.name === "Airdrop"
-                        }
+                        disabled={field.name === "Deployer"}
                         className="ms-auto"
                         size={"icon"}
                         type="button"
@@ -494,12 +581,12 @@ export default function FormCreate() {
             </div>
             <div className="bg-form-token-gradient p-4 md:p-8 rounded-2xl">
               <div className="space-y-3">
-                <h3 className="text-lg font-semibold">Presales Info</h3>
+                <h3 className="text-lg font-semibold">Presales</h3>
                 <div>
                   {presalesFields.map((field, index) => (
                     <Fragment key={field.id}>
                       <div className="grid gap-6">
-                        <div className="grid lg:grid-cols-4 gap-3">
+                        <div className="grid lg:grid-cols-3 gap-3">
                           <FormSelect
                             control={form.control}
                             name={`presales.${index}.unit`}
@@ -516,98 +603,27 @@ export default function FormCreate() {
                                 : []
                             }
                           />
-                          <FormInput
-                            control={form.control}
-                            name={`presales.${index}.hardcap`}
-                            label="Hard Cap"
-                            placeholder="e.g. 100000"
-                          />
-                          <FormInput
-                            control={form.control}
-                            name={`presales.${index}.price`}
-                            label="Price Per Token"
-                            placeholder="e.g. 0.01"
-                          />
-                          <FormInput
-                            control={form.control}
-                            name={`presales.${index}.maxContribution`}
-                            label="Max Contribution"
-                            type="number"
-                            placeholder="e.g. 500"
-                          />
-                        </div>
-                        <div className="grid lg:grid-cols-3 gap-3">
-                          <FormInput
-                            control={form.control}
-                            name={`presales.${index}.startDate`}
-                            label="Start Date"
-                            type="datetime-local"
-                          />
-                          <FormSelect
-                            control={form.control}
-                            name={`presales.${index}.duration`}
-                            label="Duration"
-                            placeholder="select duration"
-                            groups={
-                              presalesDurations
-                                ? [
-                                    {
-                                      label: "Duration",
-                                      options: presalesDurations ?? [],
-                                    },
-                                  ]
-                                : []
-                            }
-                          />
-                          <FormSelect
-                            control={form.control}
-                            name={`presales.${index}.claimTime`}
-                            label="Claim Available After"
-                            placeholder="select duration"
-                            groups={
-                              presalesDurations
-                                ? [
-                                    {
-                                      label: "Duration",
-                                      options: presalesDurations ?? [],
-                                    },
-                                  ]
-                                : []
-                            }
-                          />
-                        </div>
-                      </div>
-                      <div ref={whitelistRef} className="mt-6">
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            onCheckedChange={onCheckedChange}
-                            id="enable-whitelist"
-                          />
-                          <Label htmlFor="enable-whitelist">
-                            Enable Whitelist
-                          </Label>
-                        </div>
-
-                        {showInputWL && (
-                          <div className="mt-4 pt-4 border-t space-y-3">
-                            <div className="flex items-end gap-1">
-                              <FormInput
-                                control={form.control}
-                                name={`presales.${index}.whitelistDuration`}
-                                label="Duration (Hours)"
-                                placeholder="Enter Dutaion"
-                                type="number"
+                          <div ref={whitelistRef}>
+                            <div className="flex items-center space-x-2 mt-10">
+                              <Switch
+                                onCheckedChange={onCheckedChange}
+                                id="enable-whitelist"
                               />
+                              <Label htmlFor="enable-whitelist">
+                                Enable Whitelist
+                              </Label>
                             </div>
+                          </div>
+                          {showInputWL && (
                             <FormInput
                               control={form.control}
-                              name={`whitelistAddress`}
-                              label="Address"
-                              isLongText
-                              rows={10}
+                              name={`presales.${index}.whitelistDuration`}
+                              label="Duration (Hours)"
+                              placeholder="Enter Dutaion"
+                              type="number"
                             />
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
                     </Fragment>
                   ))}

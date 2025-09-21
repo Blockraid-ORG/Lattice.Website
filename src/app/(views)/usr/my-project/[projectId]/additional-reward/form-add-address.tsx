@@ -52,7 +52,7 @@ export function FormAddress({ data }: { data: TAdditionalReward }) {
     const text = e.clipboardData.getData("text");
     const rows = text.split("\n").map(r => r.trim()).filter(Boolean);
     const parsed = rows.map(r => {
-      const [address, amount] = r.split(/\t|,/); // bisa tab atau koma
+      const [address, amount] = r.split(/\t|,/);
       return {
         address: address?.trim().toLowerCase() ?? "",
         amount: Number(amount?.trim() ?? 0),

@@ -14,8 +14,8 @@ export default function NewHero() {
           <div className='order-1 md:order-0'>
             <div className='space-y-2 md:space-y-8 text-center md:text-start relative'>
               <h1 className='text-3xl md:text-6xl font-bold max-w-xl'>
-                Tokenize Invest <br />
-                Thrive
+                Tokenize, Invest, <br />
+                Thrive.
               </h1>
               <p className='text-sm sm:text-lg md:text-2xl max-w-lg dark:text-blue-200'>
                 Empowering the future of real-world asset investing, unlocking global access, fractional ownership, and seamless trading.
@@ -30,12 +30,6 @@ export default function NewHero() {
           </div>
           <div className='order-0 md:order-1 relative mb-4 md:mb-12 md:mt-24'>
             <div className="flex justify-center md:justify-end md:pr-8"><ChainHero /></div>
-            {/* <div className='max-w-xl md:-mt-6 mx-auto aspect-[500/500] will-change-transform relative z-0'>
-              <Image
-                className='object-cover h-full w-full rounded-3xl border-2 hover:scale-105 duration-300 hover:translate-y-4'
-                alt='rocket' src={'/ills/ill-hero-3.png'}
-                width={500} height={500} />
-            </div> */}
             <div className='max-w-xl md:-mt-6 mx-auto aspect-[521/285] will-change-transform relative z-0'>
               <Image
                 className='object-cover h-full w-full rounded-3xl bg-white/20 dark:bg-black/10 backdrop-blur-[2px] border border-white/10 hover:scale-105 duration-300 hover:translate-y-4'

@@ -6,19 +6,22 @@ import { Icon } from "./icon";
 import { Web3Provider } from "@ethersproject/providers";
 import { useRouter } from "next/navigation";
 import {
+  useWeb3Auth,
   useWeb3AuthConnect,
   useWeb3AuthDisconnect,
 } from "@web3auth/modal/react";
 import { useRequestNonce, useVerifySignature } from "@/modules/auth/auth.query";
 export default function LaunchAppButton() {
   const router = useRouter();
+  const { provider } = useWeb3Auth();
   const { connect, isConnected, loading: connecting } = useWeb3AuthConnect();
   const { disconnect } = useWeb3AuthDisconnect();
   const { mutate: requestNonce } = useRequestNonce();
   const { mutate: verifySignature } = useVerifySignature();
   async function handleConnect() {
     try {
-      const web3Provider = await connect();
+      await connect();
+      const web3Provider = provider;
       if (!web3Provider) return;
       const result = await web3Provider.request({ method: "eth_accounts" });
       const accounts = Array.isArray(result) ? (result as string[]) : [];
@@ -30,8 +33,8 @@ export default function LaunchAppButton() {
           onSuccess: async (data) => {
             try {
               const nonce = data.data.nonce;
-              const provider = new Web3Provider(web3Provider);
-              const signer = provider.getSigner();
+              const ethersProvider = new Web3Provider(web3Provider);
+              const signer = ethersProvider.getSigner();
               const signature = await signer.signMessage(nonce);
 
               verifySignature(

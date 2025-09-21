@@ -3,12 +3,12 @@
 import { useProjectDetail } from "@/modules/project/project.query"
 import { useParams } from "next/navigation"
 
-import PresaleHeader from "./presale-header"
 import Table from "./table"
 import { useEffect } from "react"
 import { useSwitchChain } from "wagmi"
+import RewardHeader from "./reward-header"
 export default function ContectAddressReward() {
-    const { switchChain } = useSwitchChain();
+  const { switchChain } = useSwitchChain();
   const { projectId } = useParams()
   const { data, isLoading } = useProjectDetail(projectId.toString())
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function ContectAddressReward() {
       {
         !isLoading && data ? (
           <div className="space-y-4">
-            <PresaleHeader data={data} />
+            <RewardHeader data={data} />
             <Table projectId={projectId.toString()} />
           </div>
         ) : (
