@@ -71,7 +71,7 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogTrigger asChild>
-        <Button size={'lg'}>Create Presale</Button>
+        <Button>Create Presale</Button>
       </DialogTrigger>
       <DialogContent>
         <Form {...form}>

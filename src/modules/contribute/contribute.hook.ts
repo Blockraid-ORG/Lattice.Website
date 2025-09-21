@@ -4,14 +4,14 @@ import { TProject } from '@/types/project';
 import { BrowserProvider, ethers } from 'ethers';
 import { useCallback } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
-import {
-  useCreateClaimedPresale
-} from '../transaction-presale/transaction-presale.query';
+// import {
+//   useCreateClaimedPresale
+// } from '../transaction-presale/transaction-presale.query';
 export function useContribute() {
   const { data: walletClient } = useWalletClient()
   const { address } = useAccount()
   // const { mutate: contributeMutate } = useCreateContribute()
-  const { mutate: createClaimed } = useCreateClaimedPresale()
+  // const { mutate: createClaimed } = useCreateClaimedPresale()
 
   const contributePresale = useCallback(async (project: TProject, amount: number) => {
     console.log({project,amount})
@@ -124,7 +124,7 @@ export function useContribute() {
     //     description: rawMessage
     //   })
     // }
-  }, [address, createClaimed, walletClient])
+  }, [])
 
   return {
     claimPresale,

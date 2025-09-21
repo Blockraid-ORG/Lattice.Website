@@ -1,15 +1,26 @@
-import { BrowserProvider, ethers } from "ethers"
-import { useAccount, useWalletClient } from "wagmi"
 import PresaleAbi from '@/lib/abis/presale.abi.json';
+import WhitelistAbi from '@/lib/abis/whitelist.abi.json';
+import { FormProjectAddressWhitelist, TPresale, TProject } from "@/types/project";
+import { BrowserProvider, ethers, parseUnits } from "ethers";
 import { useCallback } from "react";
-import { TPresale, TProject } from "@/types/project";
 import { toast } from "sonner";
-import { useUpdateNewPresale } from "./presale.query";
+import { useAccount, useWalletClient } from "wagmi";
+import {
+  useAddProjectWhitelistAddress,
+  useCreateContributePresale,
+  useRemoveProjectWhitelistAddress,
+  useUpdateNewPresale
+} from "./presale.query";
+import { useCreateClaimedPresale } from '../transaction-presale/transaction-presale.query';
 type TActivatePresale = { data: TProject, item: TPresale }
 export function useDeployPresaleSC() {
   const { data: walletClient } = useWalletClient()
   const { address } = useAccount()
   const { mutate: updatePresale } = useUpdateNewPresale()
+  const { mutate: addProjectWhitelistAddress } = useAddProjectWhitelistAddress()
+  const { mutate: removeProjectWhitelistAddress } = useRemoveProjectWhitelistAddress()
+  const { mutate: createContributePresale } = useCreateContributePresale()
+  const { mutate: createClaimed } = useCreateClaimedPresale()
 
   const activatePresale = useCallback(async ({ data, item }: TActivatePresale) => {
     if (typeof window === 'undefined') return
@@ -46,12 +57,13 @@ export function useDeployPresaleSC() {
       updatePresale({
         id: item.id,
         data: {
-          presaleSCID: Number(presaleId)
+          presaleSCID: Number(presaleId),
+          isActive: true,
         }
       }, {
         onSuccess: () => {
           toast.success('Success', {
-            description:`Success activate presale ID: ${presaleId}` 
+            description: `Success activate presale ID: ${presaleId}`
           })
         }
       })
@@ -61,7 +73,135 @@ export function useDeployPresaleSC() {
   },
     [address, updatePresale, walletClient],
   )
+
+  const addToWhitelist = useCallback(async (
+    data: FormProjectAddressWhitelist[],
+    whitelistAddress: string
+  ) => {
+    if (typeof window === 'undefined') return
+    if (!walletClient || !address) throw new Error('Wallet not connected')
+    const provider = new BrowserProvider(walletClient as any)
+    const signer = await provider.getSigner(address)
+    const contract = new ethers.Contract(whitelistAddress, WhitelistAbi.abi, signer)
+    const arrayAddress = data.map(i => i.walletAddress)
+    const tx = await contract.addToWhitelist(arrayAddress)
+    await tx.wait()
+    addProjectWhitelistAddress(data)
+  },
+    [addProjectWhitelistAddress, address, walletClient],
+  )
+
+  const removeFromWhitelist = useCallback(async (
+    ids: string[],
+    walletAddress: string[],
+    whitelistAddress: string
+  ) => {
+    if (typeof window === 'undefined') return
+    if (!walletClient || !address) throw new Error('Wallet not connected')
+    const provider = new BrowserProvider(walletClient as any)
+    const signer = await provider.getSigner(address)
+    const contract = new ethers.Contract(whitelistAddress, WhitelistAbi.abi, signer)
+    const tx = await contract.removeFromWhitelist(walletAddress)
+    await tx.wait()
+    removeProjectWhitelistAddress(ids)
+  },
+    [removeProjectWhitelistAddress, address, walletClient],
+  )
+
+  const contributePresale = useCallback(async (
+    { data, presale, amount }: {
+      data: TProject,
+      presale: TPresale,
+      amount: string
+    }
+  ) => {
+    try {
+      if (typeof window === 'undefined') return
+      if (!walletClient || !address) throw new Error('Wallet not connected')
+      const provider = new BrowserProvider(walletClient as any)
+      const signer = await provider.getSigner(address)
+
+      const contract = new ethers.Contract(data.presaleAddress!, PresaleAbi.abi, signer)
+
+      const tx = await contract.contribute(presale.presaleSCID, address, {
+        value: parseUnits(amount.toString(), data.decimals)
+      })
+      await tx.wait()
+      createContributePresale({
+        projectId: data.id,
+        presaleId: presale.id,
+        price: presale.price,
+        count: Number(amount),
+        transactionHash: tx.hash as string
+      })
+
+    } catch (error: any) {
+      console.log(error)
+      toast.error('Error', {
+        description: 'Contribution Failed: Presale is inactive!'
+      })
+    }
+  },
+    [address, createContributePresale, walletClient],
+  )
+  const getContribution = useCallback(async ({ data, item }: TActivatePresale) => {
+    if (typeof window === 'undefined') return
+    if (!walletClient || !address) throw new Error('Wallet not connected')
+    const provider = new BrowserProvider(walletClient as any)
+    const signer = await provider.getSigner(address)
+
+    try {
+      const contract = new ethers.Contract(data.presaleAddress!, PresaleAbi.abi, signer)
+      const tx = await contract.getContribution(item.presaleSCID, address)
+      console.log(tx)
+      return tx
+    } catch (error: any) {
+      console.log(error)
+      toast.error('Error', {
+        description: 'Contribution Failed: Presale is inactive!'
+      })
+    }
+  },
+    [address, walletClient],
+  )
+  const claimPresale = useCallback(async ({ data, item }: TActivatePresale) => {
+    if (!walletClient || !address) throw new Error("Wallet not connected")
+    const provider = new BrowserProvider(walletClient as any)
+    const signer = await provider.getSigner(address)
+    const presaleAddress = data.presaleAddress
+    if (!presaleAddress || !item.presaleSCID) throw new Error("Presale address is not set")
+    try {
+      const presaleFactory = new ethers.Contract(presaleAddress, PresaleAbi.abi, signer)
+      const userAddress = await signer.getAddress()
+      const tx = await presaleFactory.claim(item.presaleSCID!, userAddress)
+      console.log({ tx })
+      await tx.wait()
+      createClaimed({
+        amount: '1',
+        presaleId: item.id,
+        transactionHash: tx.hash
+      })
+      toast.success("Claim successful", {
+        description: `Transaction hash: ${tx.hash}`
+      })
+    } catch (error:any) {
+      console.log(error)
+      toast.error('Error', {
+        description: 'Claim Failed: Presale is on going!'
+      })
+    }
+  },
+    [address, createClaimed, walletClient],
+  )
+
+
+
   return {
-    activatePresale
+    activatePresale,
+    addToWhitelist,
+    removeFromWhitelist,
+    contributePresale,
+    getContribution,
+    claimPresale
   }
 }

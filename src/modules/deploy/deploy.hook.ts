@@ -178,36 +178,8 @@ export function useDeployToken() {
             console.log('Error')
           }
         }
-        console.log({ result })
-        // const originalDate = new Date(project.presales.startDate);
-        // const newDate = new Date(originalDate);
-        // newDate.setDate(newDate.getDate()); // + Number(project.presales.duration)
-        // const startTime = Math.floor(newDate.getTime() / 1000);
-        const presale = await presaleFactory.deploy(
-          address
-          // result.token,
-          // result.whitelist,
-          // address,
-          // ethers.parseEther(project.presales.hardcap), // hardCap = 100 ETH,
-          // ethers.parseEther(project.presales.price), // pricePerToken = 0.002 ETH,
-          // ethers.parseEther(project.presales.maxContribution), // maxContribution = 5 ETH,
-          // startTime,
-          // Number(project.presales.duration) * second, // duration = 7 days,
-          // Number(project.presales.whitelistDuration) * 60 * 60, // whitelistDuration = 2 days,
-          // Number(project.presales.claimTime) * second, // claimDelay = 1 day,
-          // Number(project.presales.sweepDuration) * second, // sweepDuration = 14 days
-        );
-
+        const presale = await presaleFactory.deploy(address);
         await presale.waitForDeployment();
-        console.log({
-          projectId: project.id,
-          status: 'DEPLOYED',
-          note: 'Deployed by project owner',
-          contractAddress: result.token as string,
-          factoryAddress: factoryContract?.target as string,
-          presaleAddress: presale?.target as string,
-          whitelistsAddress: result?.whitelist as string
-        })
         deployProject({
           projectId: project.id,
           status: 'DEPLOYED',
@@ -241,13 +213,6 @@ export function useDeployToken() {
                   contractAddress: presale.target as string
                 })
                 : Promise.resolve();
-
-              // 3. Deploy whitelist and presale
-              // const deployWhitelistPromise = deployWhitelist({
-              //   id: project.id,
-              //   whitelistContract: result.whitelist as string
-              // });
-
               const setRewardContractAddressPromise = setRewardContractAddress({
                 projectId: project.id,
                 rewardContract: {
@@ -256,12 +221,9 @@ export function useDeployToken() {
                 }
               });
 
-              // Run all promises in parallel (if they are not dependent)
               await Promise.all([
                 ...updateVestingAllocations,
                 updatePresale,
-                // deployWhitelistPromise,
-                // deployPresalePromise,
                 setRewardContractAddressPromise
               ]);
             } catch (err: any) {

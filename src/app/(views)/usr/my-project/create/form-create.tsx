@@ -8,12 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { presalesDurations } from "@/data/constants";
+// import { presalesDurations } from "@/data/constants";
 import { converToIpfs, pinata } from "@/lib/pinata";
 import { toUrlAsset } from "@/lib/utils";
 import { useCategoryList } from "@/modules/category/category.query";
 import { useChainList } from "@/modules/chain/chain.query";
-import { useUpdatePresaleWhitelist } from "@/modules/presales/presale.query";
+// import { useUpdatePresaleWhitelist } from "@/modules/presales/presale.query";
 import { useCreateProject } from "@/modules/project/project.query";
 import { formCreateProjectSchema } from "@/modules/project/project.schema";
 import { useSocialList } from "@/modules/social/chain.query";
@@ -46,7 +46,7 @@ export default function FormCreate() {
     logoPreview,
     bannerPreview,
   } = useFormCreateProject();
-  const { mutate: updatePresaleWhitelist } = useUpdatePresaleWhitelist();
+  // const { mutate: updatePresaleWhitelist } = useUpdatePresaleWhitelist();
   const whitelistRef = useRef<HTMLDivElement>(null);
   const [showInputWL, setShowInputWL] = useState(false);
   const [tokenUnits, setTokenUtits] = useState<TTokenUnit[]>([]);
@@ -224,13 +224,13 @@ export default function FormCreate() {
   }
   async function onSubmit(values: TFormProject) {
     try {
-      let arrayAddress: string[];
-      if (values.whitelistAddress && values.whitelistAddress !== "") {
-        arrayAddress = values.whitelistAddress
-          .split(",")
-          .map((addr: string) => addr.trim())
-          .filter((addr: string) => addr !== "");
-      }
+      // let arrayAddress: string[];
+      // if (values.whitelistAddress && values.whitelistAddress !== "") {
+      //   arrayAddress = values.whitelistAddress
+      //     .split(",")
+      //     .map((addr: string) => addr.trim())
+      //     .filter((addr: string) => addr !== "");
+      // }
 
       setLoading(true);
       let logoUrl, bannerUrl;
@@ -276,13 +276,13 @@ export default function FormCreate() {
         allocations,
       };
       createProject(newValues, {
-        onSuccess: (res) => {
-          if (arrayAddress && arrayAddress.length > 0) {
-            updatePresaleWhitelist({
-              presaleId: res.presales.id,
-              walletAddress: arrayAddress,
-            });
-          }
+        onSuccess: () => {
+          // if (arrayAddress && arrayAddress.length > 0) {
+          //   updatePresaleWhitelist({
+          //     presaleId: res.presales.id,
+          //     walletAddress: arrayAddress,
+          //   });
+          // }
           router.push("/usr/my-project");
         },
       });
