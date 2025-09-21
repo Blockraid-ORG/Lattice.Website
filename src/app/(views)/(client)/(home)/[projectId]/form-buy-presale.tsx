@@ -72,12 +72,10 @@
 //   )
 // }
 
-import { TProject } from '@/types/project'
-import React from 'react'
+import { TProject } from "@/types/project";
+import React from "react";
 
 export default function FormBuyPresale({ data }: { data: TProject }) {
-  console.log(data)
-  return (
-    <div>FormBuyPresale</div>
-  )
+  console.log(data);
+  return <div>FormBuyPresale</div>;
 }

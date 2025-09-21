@@ -16,6 +16,9 @@ export default function CreateProjectPage() {
   const [open, setOpen] = useState(true);
   const { formType, setFormType } = useFormCreateProject();
   const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [hasChosen, setHasChosen] = useState(false);
+
+  const { reset: resetFormCreateProject } = useFormCreateProject();
 
   useEffect(() => {
     try {
@@ -36,6 +39,10 @@ export default function CreateProjectPage() {
     } catch {}
   }, [setFormType]);
 
+  useEffect(() => {
+    resetFormCreateProject();
+  }, [resetFormCreateProject]);
+
   return (
     <>
       <div className="max-w-5xl mx-auto px-3 pt-6">
@@ -43,8 +50,22 @@ export default function CreateProjectPage() {
         {formType === "advanced" && <FormCreate />}
       </div>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent hideClose>
+      <Dialog
+        open={open}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen && !hasChosen) return;
+          setOpen(nextOpen);
+        }}
+      >
+        <DialogContent
+          hideClose
+          onPointerDownOutside={(e) => {
+            if (!hasChosen) e.preventDefault();
+          }}
+          onEscapeKeyDown={(e) => {
+            if (!hasChosen) e.preventDefault();
+          }}
+        >
           <DialogHeader>
             <DialogTitle>How do you identify yourself?</DialogTitle>
           </DialogHeader>
@@ -52,6 +73,7 @@ export default function CreateProjectPage() {
             <Button
               variant="secondary"
               onClick={() => {
+                setHasChosen(true);
                 setFormType("newbie");
                 setOpen(false);
                 if (dontShowAgain) {
@@ -66,6 +88,7 @@ export default function CreateProjectPage() {
             </Button>
             <Button
               onClick={() => {
+                setHasChosen(true);
                 setFormType("advanced");
                 setOpen(false);
                 if (dontShowAgain) {
