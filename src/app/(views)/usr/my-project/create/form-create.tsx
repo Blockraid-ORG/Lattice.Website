@@ -343,7 +343,7 @@ export default function FormCreate() {
               </div>
 
               <div className="grid lg:grid-cols-2 gap-3 my-6">
-                {chains && (
+                {chains && chains.length > 0 && form.getValues().chainId ? (
                   <FormSelect
                     control={form.control}
                     name="chainId"
@@ -362,8 +362,14 @@ export default function FormCreate() {
                       },
                     ]}
                   />
+                ) : (
+                  <div className="p-4 text-center text-gray-500">
+                    'Loading chains...'
+                  </div>
                 )}
-                {categories && (
+                {categories &&
+                categories.length > 0 &&
+                form.getValues().categoryId ? (
                   <FormSelect
                     control={form.control}
                     name="categoryId"
@@ -381,6 +387,10 @@ export default function FormCreate() {
                       },
                     ]}
                   />
+                ) : (
+                  <div className="p-4 text-center text-gray-500">
+                    'Loading categories...'
+                  </div>
                 )}
                 {projectTypes && (
                   <FormSelect
