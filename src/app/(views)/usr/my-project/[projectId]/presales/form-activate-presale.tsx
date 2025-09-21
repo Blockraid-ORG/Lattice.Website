@@ -21,13 +21,11 @@ export default function FormActivatePresale({ data, item }: { data: TProject, it
     activatePresale({ data, item }).then(() => {
       setOpen(false)
     }).finally(() => setIsSubmitting(false))
-
   }
   return (
     <AlertDialog onOpenChange={() => setOpen(!open)} open={open}>
       <AlertDialogTrigger asChild>
-        <Button size={'sm'} disabled={!!item?.presaleSCID}>
-          {data?.presaleSCID}
+        <Button size={'sm'} disabled={!!item?.presaleSCID || data.status !== 'DEPLOYED'}>
           <Icon className='text-base' name='material-symbols-light:upload-sharp' /> Activate
         </Button>
       </AlertDialogTrigger>

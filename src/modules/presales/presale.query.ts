@@ -1,7 +1,7 @@
 "use client"
 import { toObjectQuery } from "@/lib/param";
 import { TFormUpdateWhitelist } from "@/types/deploy";
-import { TFormProjectPresale } from "@/types/project";
+import { FormProjectAddressWhitelist, TFormContributePresale, TFormProjectPresale } from "@/types/project";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -54,6 +54,7 @@ export const useCreateNewPresale = () => {
     }
   });
 }
+
 export const useUpdateNewPresale = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -70,6 +71,7 @@ export const useUpdateNewPresale = () => {
     }
   });
 }
+
 export const useDeletePresale = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -88,4 +90,90 @@ export const useDeletePresale = () => {
       })
     }
   });
+}
+
+export const useAddProjectWhitelistAddress = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: FormProjectAddressWhitelist[]) => presaleService.ADD_PROJECT_WHITELIST_ADDRESS(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get_project_by_id"]
+      });
+      toast.success('Success', {
+        description: "Success add whitelist address!"
+      })
+    },
+    onError: () => {
+      toast.error('Error', {
+        description: "Fail to submit data"
+      })
+    }
+  });
+}
+export const useRemoveProjectWhitelistAddress = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: string[]) => presaleService.REMOVE_PROJECT_WHITELIST_ADDRESS(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get_project_by_id"]
+      });
+      toast.success('Success', {
+        description: "Success remove whitelist address!"
+      })
+    },
+    onError: () => {
+      toast.error('Error', {
+        description: "Fail to remove data"
+      })
+    }
+  });
+}
+
+// Extra For Client
+export const usePresaleActive = () => {
+  const searchString = useSearchParams();
+  const query = toObjectQuery(searchString)
+  const queryChain = useQuery({
+    queryKey: ["get_presale_dep", query],
+    queryFn: () => presaleService.GetPresaleActive(query),
+    enabled: true
+  });
+  return queryChain
+}
+export const useDetailPresale = (id: string) => {
+  const queryChain = useQuery({
+    queryKey: ["get_detail_presale",id],
+    queryFn: () => presaleService.GetPresaleById(id),
+    enabled: !!id
+  });
+  return queryChain
+}
+
+export const useCreateContributePresale = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: TFormContributePresale) => presaleService.CreateContributePresale(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get_my_contribution"]
+      });
+    },
+    onError: () => {
+      toast.error('Error', {
+        description: "Fail to submit data"
+      })
+    }
+  });
+}
+export const useMyContribution = () => {
+  const searchString = useSearchParams();
+  const query = toObjectQuery(searchString)
+  const queryChain = useQuery({
+    queryKey: ["get_my_contribution", query],
+    queryFn: () => presaleService.GetPresaleActive(query),
+    enabled: true
+  });
+  return queryChain
 }

@@ -174,11 +174,6 @@ export const useSetRewardContractAddress = () => {
         rewardContractAddress: string
       }
     }) => projectService.SET_REWARD_CONTRACT_ADDRESS(data.rewardContract),
-    onSuccess: () => {
-      toast.success('Success', {
-        description: `Reward contract address has been set!`
-      })
-    },
   });
 }
 

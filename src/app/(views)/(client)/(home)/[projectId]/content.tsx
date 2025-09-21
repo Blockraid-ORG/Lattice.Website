@@ -26,15 +26,17 @@ export default function DetailProjectContent() {
         isLoading ? <ContentLoader /> : (
           <>
             {data && <DetailHeader data={data} />}
-            {data && <TokenInfo data={data} />}
-            {
-              data && (
-                <div className="container bg-white shadow shadow-neutral-100/5 border p-6 dark:bg-neutral-950 rounded-xl">
-                  <TokenSats data={data} />
-                </div>
-              )
-            }
-            {data && <PresaleInfo data={data} />}
+            <div className='-mt-16'>
+              {data && <PresaleInfo data={data} />}
+              {data && <TokenInfo data={data} />}
+              {
+                data && (
+                  <div className="container bg-white shadow shadow-neutral-100/5 border p-6 dark:bg-neutral-950 rounded-xl">
+                    <TokenSats data={data} />
+                  </div>
+                )
+              }
+            </div>
           </>
         )
       }

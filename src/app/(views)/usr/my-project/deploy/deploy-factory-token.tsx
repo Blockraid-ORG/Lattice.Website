@@ -99,7 +99,7 @@ export function DeployFactoryToken({ data }: { data: TProject }) {
                   {data.allocations.map(item => (
                     <div key={item.id} className="flex items-center justify-between py-2 border-b border-dashed text-sm">
                       <div className="flex-1">
-                        <div>Contract {item.name} {`(${item.supply}%)`}</div>
+                        <div>{item.name !== 'Deployer' ? 'Contract': ''} {item.name} {`(${item.supply}%)`}</div>
                       </div>
                       <div>
                         {

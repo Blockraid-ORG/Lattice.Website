@@ -8,3 +8,8 @@ export const formUpdateWhitelistSchema = z.object({
 export const formRemoveAllocationSchema = z.object({
   address: z.string(),
 });
+
+export const formProjectAddressWhitelistSchema = z.object({
+  projectId: z.string().uuid(),
+  walletAddress: z.string(),
+});

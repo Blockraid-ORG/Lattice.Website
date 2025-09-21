@@ -8,7 +8,7 @@ export default function PresaleHeader({ data }: { data: TProject }) {
   return (
     <div className="grid gap-4 lg:grid-cols-2 items-center bg-white border dark:bg-primary-foreground/50 p-4 rounded-lg">
       <div className="flex flex-col md:flex-row gap-2 items-center">
-        <div className="h-24 w-24 rounded-xl overflow-hidden">
+        <div className="h-32 w-32 rounded-xl overflow-hidden">
           <Image className="w-full h-full object-contain" width={100} height={100} src={toUrlAsset(data.logo)} alt={data?.logo} />
         </div>
         <div className="space-y-2 flex-1">
@@ -35,6 +35,11 @@ export default function PresaleHeader({ data }: { data: TProject }) {
               </div>
             </div>
           </div>
+          <div className="flex">
+            <div className="w-32 md:w-1/3">Asset Type</div>
+            <div className='w-3 shrink-0'>:</div>
+            <div className="flex-1">{data.projectType?.name}</div>
+          </div>
         </div>
       </div>
       <div className="space-y-2">
@@ -43,11 +48,7 @@ export default function PresaleHeader({ data }: { data: TProject }) {
           <div className='w-3 shrink-0'>:</div>
           <div className="flex-1">{NumberComma(Number(data.totalSupply))}</div>
         </div>
-        <div className="flex">
-          <div className="w-32 md:w-1/3">Asset Type</div>
-          <div className='w-3 shrink-0'>:</div>
-          <div className="flex-1">{data.projectType?.name}</div>
-        </div>
+        
         <div className="flex">
           <div className="w-32 md:w-1/3">Asset Contract</div>
           <div className='w-3 shrink-0'>:</div>
@@ -63,6 +64,15 @@ export default function PresaleHeader({ data }: { data: TProject }) {
           <div className="flex-1 text-sm break-all">
             <a className="text-xs font-semibold underline text-blue-500 block break-all" href={`${data.chains[0].chain.urlScanner}/address/${data.presaleAddress}`} target="_blank" rel="noopener noreferrer">
               {data.presaleAddress}
+            </a>
+          </div>
+        </div>
+        <div className="flex">
+          <div className="w-32 md:w-1/3">Whitelist Contract</div>
+          <div className='w-3 shrink-0'>:</div>
+          <div className="flex-1 text-sm break-all">
+            <a className="text-xs font-semibold underline text-blue-500 block break-all" href={`${data.chains[0].chain.urlScanner}/address/${data.whitelistsAddress}`} target="_blank" rel="noopener noreferrer">
+              {data.whitelistsAddress}
             </a>
           </div>
         </div>

@@ -8,15 +8,15 @@ import {
   TableRow
 } from "@/components/ui/table"
 import { cutString, NumberComma } from "@/lib/utils"
-import { useContribute } from "@/modules/contribute/contribute.hook"
+import { useDeployPresaleSC } from "@/modules/presales/presale.deploy"
 import { useMyContribution } from '@/modules/transaction-presale/transaction-presale.query'
-import { TProject } from '@/types/project'
+import { TPresale, TProject } from '@/types/project'
 import Link from "next/link"
 import { useState } from "react"
 
-export default function TableMyContribution({ data }: { data: TProject }) {
-  const { data: myContributions } = useMyContribution(data.id, data.presales[0].id)
-  const { claimPresale } = useContribute()
+export default function MyContributionInfo({ data, presale }: { data: TProject, presale: TPresale }) {
+  const { data: myContributions } = useMyContribution(data.id, presale.id)
+  const { claimPresale } = useDeployPresaleSC()
   const totalAmount = myContributions?.reduce(
     (acc: number, item: any) => acc + Number(item.count),
     0
@@ -32,7 +32,10 @@ export default function TableMyContribution({ data }: { data: TProject }) {
   const [isClaiming, setIsClaiming] = useState(false)
   async function onClaimPresale() {
     setIsClaiming(true)
-    claimPresale(data).finally(() => setIsClaiming(false))
+    claimPresale({
+      data,
+      item: presale
+    }).finally(() => setIsClaiming(false))
   }
   return (
     <div>
@@ -47,7 +50,7 @@ export default function TableMyContribution({ data }: { data: TProject }) {
             </div>
           </div>
           <div>
-            <p className='text-sm text-neutral-500'>Total Token</p>
+            <p className='text-sm text-neutral-500'>Reward</p>
             <div className='flex gap-2 items-center'>
               <h2 className='font-bold'>{NumberComma(totalToken)}</h2>
               <p className='text-xs font-medium'>{data.ticker}</p>
@@ -76,7 +79,7 @@ export default function TableMyContribution({ data }: { data: TProject }) {
               <TableHead className="w-[100px]">#</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Token</TableHead>
-              <TableHead>Tx Hash</TableHead>
+              <TableHead className="text-end">Tx hash</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -103,4 +106,3 @@ export default function TableMyContribution({ data }: { data: TProject }) {
     </div>
   )
 }
-
