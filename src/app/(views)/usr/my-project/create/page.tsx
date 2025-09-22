@@ -14,7 +14,7 @@ import { useFormCreateProject } from "@/store/useFormCreateProject";
 
 export default function CreateProjectPage() {
   const [open, setOpen] = useState(true);
-  const { formType, setFormType, setUserChoice } = useFormCreateProject();
+  const { formType, setFormType } = useFormCreateProject();
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [hasChosen, setHasChosen] = useState(false);
 
@@ -42,7 +42,6 @@ export default function CreateProjectPage() {
   function handleChangeNativeForm() {
     setHasChosen(true);
     setFormType("advanced");
-    setUserChoice("advanced");
     setOpen(false);
     if (dontShowAgain) {
       try {
@@ -55,7 +54,6 @@ export default function CreateProjectPage() {
   function handleChangeNewbieForm() {
     setHasChosen(true);
     setFormType("newbie");
-    setUserChoice("newbie");
     setOpen(false);
     if (dontShowAgain) {
       try {

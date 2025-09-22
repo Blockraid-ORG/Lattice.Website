@@ -6,8 +6,6 @@ type TFormCreateProjectStore = {
   setForm: (form: TFormProject) => void;
   formType: "newbie" | "advanced";
   setFormType: (formType: "newbie" | "advanced") => void;
-  userChoice: "newbie" | "advanced";
-  setUserChoice: (userChoice: "newbie" | "advanced") => void;
   logoFile?: File | null;
   bannerFile?: File | null;
   logoPreview?: string | null;
@@ -25,10 +23,8 @@ export const useFormCreateProject = create<TFormCreateProjectStore>()(
   (set) => ({
     form: {} as TFormProject,
     formType: "advanced",
-    userChoice: "advanced",
     setForm: (form) => set(() => ({ form })),
     setFormType: (formType) => set(() => ({ formType })),
-    setUserChoice: (userChoice) => set(() => ({ userChoice })),
     logoFile: null,
     bannerFile: null,
     logoPreview: null,
