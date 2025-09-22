@@ -46,13 +46,13 @@ export default function FormCreate() {
     bannerPreview,
     reset: resetFormCreateProject,
   } = useFormCreateProject();
-  // const { mutate: updatePresaleWhitelist } = useUpdatePresaleWhitelist();
   const whitelistRef = useRef<HTMLDivElement>(null);
   const [showInputWL, setShowInputWL] = useState(false);
   const [tokenUnits, setTokenUnits] = useState<TTokenUnit[]>([]);
   const { mutate: createProject } = useCreateProject();
   const [logo, setLogo] = useState<File | null>(logoFile ?? null);
   const [banner, setBanner] = useState<File | null>(bannerFile ?? null);
+  const [isFormReady, setIsFormReady] = useState(false);
   const { data: chains } = useChainList();
   const { data: categories } = useCategoryList();
   const { data: socials } = useSocialList();
@@ -66,7 +66,11 @@ export default function FormCreate() {
 
   useEffect(() => {
     try {
-      if (!formNewbie || Object.keys(formNewbie || {}).length === 0) return;
+      console.log("formNewbie", formNewbie);
+      if (!formNewbie || Object.keys(formNewbie || {}).length === 0) {
+        setIsFormReady(true);
+        return;
+      }
 
       // const normalizeDate = (v: any) => (v instanceof Date ? v : new Date(v));
       const safeNumber = (v: any, def = 0) =>
@@ -120,7 +124,13 @@ export default function FormCreate() {
 
       const wl = (normalized.presales as any)?.[0]?.whitelistDuration;
       setShowInputWL(!!wl && Number(wl) > 0);
-    } catch {}
+
+      // Set form ready after all processing is complete
+      setIsFormReady(true);
+    } catch (error) {
+      console.error("Error in useEffect:", error);
+      setIsFormReady(true);
+    }
     // onChangeValue is stable from props; suppress exhaustive-deps for it intentionally
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formNewbie, form]);
@@ -138,6 +148,13 @@ export default function FormCreate() {
       }
     } catch {}
   }, [form]);
+
+  // Set form ready when API data is available
+  useEffect(() => {
+    if (chains && categories && projectTypes) {
+      setIsFormReady(true);
+    }
+  }, [chains, categories, projectTypes]);
 
   const { fields, append, remove } = useFieldArray<TFormProjectAllocation>({
     control: form.control,
@@ -162,6 +179,7 @@ export default function FormCreate() {
     (sum: number, a: TFormProjectAllocation) => sum + Number(a.supply || 0),
     0
   );
+
   async function uploadLogo() {
     const urlRequest = await fetch("/api/upload");
     const urlResponse = await urlRequest.json();
@@ -216,16 +234,9 @@ export default function FormCreate() {
       }, 100);
     }
   }
+
   async function onSubmit(values: TFormProject) {
     try {
-      // let arrayAddress: string[];
-      // if (values.whitelistAddress && values.whitelistAddress !== "") {
-      //   arrayAddress = values.whitelistAddress
-      //     .split(",")
-      //     .map((addr: string) => addr.trim())
-      //     .filter((addr: string) => addr !== "");
-      // }
-
       setLoading(true);
       let logoUrl, bannerUrl;
       const chainIds = values.chainId;
@@ -290,6 +301,7 @@ export default function FormCreate() {
       setLoading(false);
     }
   }
+
   return (
     <div>
       <div className="max-w-5xl mx-auto py-12 px-3">
@@ -340,7 +352,7 @@ export default function FormCreate() {
               </div>
 
               <div className="grid lg:grid-cols-2 gap-3 my-6">
-                {chains && chains.length > 0 && form.getValues().chainId ? (
+                {isFormReady && chains && chains.length > 0 && (
                   <FormSelect
                     control={form.control}
                     name="chainId"
@@ -359,14 +371,8 @@ export default function FormCreate() {
                       },
                     ]}
                   />
-                ) : (
-                  <div className="p-4 text-center text-gray-500">
-                    Loading chains...
-                  </div>
                 )}
-                {categories &&
-                categories.length > 0 &&
-                form.getValues().categoryId ? (
+                {isFormReady && categories && categories.length > 0 && (
                   <FormSelect
                     control={form.control}
                     name="categoryId"
@@ -384,14 +390,8 @@ export default function FormCreate() {
                       },
                     ]}
                   />
-                ) : (
-                  <div className="p-4 text-center text-gray-500">
-                    Loading categories...
-                  </div>
                 )}
-                {projectTypes &&
-                projectTypes.length > 0 &&
-                form.getValues().projectTypeId ? (
+                {isFormReady && projectTypes && projectTypes.length > 0 && (
                   <FormSelect
                     control={form.control}
                     name="projectTypeId"
@@ -409,9 +409,10 @@ export default function FormCreate() {
                       },
                     ]}
                   />
-                ) : (
-                  <div className="p-4 text-center text-gray-500">
-                    Loading project types...
+                )}
+                {!isFormReady && (
+                  <div className="col-span-2 p-4 text-center text-gray-500">
+                    Loading form...
                   </div>
                 )}
                 <FormInput

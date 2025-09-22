@@ -208,6 +208,7 @@ export default function FormCreateNewbie() {
 
   // Next Form Advanced
   const { setForm, setFormType, setMedia } = useFormCreateProject();
+
   function handoffToNativeForm() {
     const draft = form.getValues();
     setForm(draft);
