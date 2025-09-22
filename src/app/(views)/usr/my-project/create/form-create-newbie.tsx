@@ -6,6 +6,7 @@ import { Form } from "@/components/ui/form";
 import { FormInput } from "@/components/form-input";
 import { FormSelect } from "@/components/form-select";
 import { ImageDropzone } from "@/components/image-dropzone";
+import { Icon } from "@/components/icon";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 // moved to modular PresaleSteps
@@ -330,8 +331,8 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Cover Image</h3>
                 <p className="text-sm text-muted-foreground">
-                  Can you set the scene with a wide banner that stays light so
-                  the page loads fast?
+                  Upload a wide banner (landscape). Keep file size modest so the
+                  page loads fast and looks crisp.
                 </p>
                 <div className="mt-3">
                   <ImageDropzone
@@ -371,8 +372,8 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Logo</h3>
                 <p className="text-sm text-muted-foreground">
-                  Will you add a crisp square logo so people recognize you at a
-                  glance?
+                  Upload a clear square logo (1:1). Centered artwork with
+                  transparent background works best.
                 </p>
                 <div className="w-40 mt-3">
                   <ImageDropzone
@@ -412,7 +413,8 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Name</h3>
                 <p className="text-sm text-muted-foreground mt-0">
-                  What should we call your company or project?
+                  Type your company or project name exactly as you want it shown
+                  to users.
                 </p>
                 <FormInput
                   control={form.control}
@@ -447,7 +449,7 @@ export default function FormCreateNewbie() {
                 <h3 className="text-xl font-semibold">Ticker</h3>
                 <p className="text-sm text-muted-foreground mt-0">
                   Which CAPS ticker will you fly under—any length you like, with
-                  3–5 letters recommended, like SPN
+                  3–5 letters recommended, like SPN?
                 </p>
                 <FormInput
                   control={form.control}
@@ -481,7 +483,8 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Decimal</h3>
                 <p className="text-sm text-muted-foreground mt-0">
-                  Shall we keep decimals at 18 so everything runs smoothly?
+                  Use <strong>18</strong>; this is the common standard so
+                  balances and math display correctly
                 </p>
                 <FormInput
                   control={form.control}
@@ -512,48 +515,134 @@ export default function FormCreateNewbie() {
           )}
 
           {currentStep === "chainId" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">Select Chain</h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  Which network will be home for your launch—start with BNB if
-                  you’re new?
-                </p>
-                {chains && (
-                  <FormSelect
-                    className="mt-2"
-                    control={form.control}
-                    name="chainId"
-                    label=""
-                    placeholder=""
-                    onChangeValue={() => {}}
-                    groups={[
-                      {
-                        label: "Network",
-                        options: chains.map((i) => ({
-                          ...i,
-                          iconUrl: i.logo && toUrlAsset(i.logo),
-                        })),
-                      },
-                    ]}
-                  />
-                )}
-                <div className="flex items-center justify-between pt-2">
-                  <Button type="button" variant="outline" onClick={goBack}>
-                    Back
-                  </Button>
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      type="button"
-                      variant="link"
-                      onClick={handoffToNativeForm}
-                    >
-                      Skip
-                    </Button>
-                    <Button type="button" onClick={validateAndNext}>
-                      Next
-                    </Button>
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-xl font-semibold">Select Chain</h3>
+                  <p className="text-sm text-muted-foreground mt-0">
+                    Choose where your project runs:
+                  </p>
+                </div>
+                <div className="grid gap-3">
+                  <div className="p-4 border rounded-lg bg-card border-dashed">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0"></div>
+                      <div className="space-y-1">
+                        <h4 className="font-semibold text-sm">BNB (Mainnet)</h4>
+                        <p className="text-xs text-muted-foreground">
+                          fast, low fees, broad wallets.{" "}
+                          <span className="italic">Regional</span>: strong
+                          SEA/Asia. <span className="italic">Audience</span>:
+                          retail-friendly; SMEs/startups.
+                        </p>
+                      </div>
+                    </div>
                   </div>
+
+                  <div className="p-4 border rounded-lg bg-card border-dashed">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 flex-shrink-0"></div>
+                      <div className="space-y-1">
+                        <h4 className="font-semibold text-sm">
+                          Polygon (Mainnet)
+                        </h4>
+                        <p className="text-xs text-muted-foreground">
+                          very low fees, big EVM apps.{" "}
+                          <span className="italic">Regional</span>: global,
+                          strong India/Asia.{" "}
+                          <span className="italic">Audience</span>: retail apps,
+                          gaming, brand collabs.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 border rounded-lg bg-card border-dashed">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                      <div className="space-y-1">
+                        <h4 className="font-semibold text-sm">ETH (Mainnet)</h4>
+                        <p className="text-xs text-muted-foreground">
+                          most established, highest liquidity; higher fees.{" "}
+                          <span className="italic">Regional</span>: global (deep
+                          US/EU). <span className="italic">Audience</span>:
+                          institution-friendly; major DeFi/custody.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 border rounded-lg bg-card border-dashed">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-2 h-2 rounded-full bg-gray-400 mt-2 flex-shrink-0"></div>
+                      <div className="space-y-1">
+                        <h4 className="font-semibold text-sm text-muted-foreground">
+                          ETH Sepolia (Testnet)
+                        </h4>
+                        <p className="text-xs text-muted-foreground">
+                          Ethereum testnet for QA/demos;{" "}
+                          <strong>no real funds</strong>.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 border rounded-lg bg-card border-dashed">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-2 h-2 rounded-full bg-yellow-400 mt-2 flex-shrink-0"></div>
+                      <div className="space-y-1">
+                        <h4 className="font-semibold text-sm text-muted-foreground">
+                          BSC Testnet
+                        </h4>
+                        <p className="text-xs text-muted-foreground">
+                          BNB Chain testnet for QA/demos;{" "}
+                          <strong>no real funds</strong>.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {chains && (
+                  <div className="space-y-2">
+                    <FormSelect
+                      control={form.control}
+                      name="chainId"
+                      label=""
+                      placeholder="Choose a blockchain network..."
+                      onChangeValue={() => {}}
+                      groups={[
+                        {
+                          label: "Available Networks",
+                          options: chains.map((i) => ({
+                            ...i,
+                            iconUrl: i.logo && toUrlAsset(i.logo),
+                          })),
+                        },
+                      ]}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between pt-4">
+                <Button type="button" variant="outline" onClick={goBack}>
+                  <Icon name="tabler:arrow-left" className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handoffToNativeForm}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    Skip
+                  </Button>
+                  <Button type="button" onClick={validateAndNext}>
+                    Next
+                    <Icon name="tabler:arrow-right" className="w-4 h-4 ml-2" />
+                  </Button>
                 </div>
               </div>
             </div>
@@ -561,46 +650,44 @@ export default function FormCreateNewbie() {
 
           {currentStep === "categoryId" && (
             <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">Select Category</h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  Where does your project live in the business world—what
-                  category fits best?
-                </p>
-                {categories && (
-                  <FormSelect
-                    className="mt-2"
-                    control={form.control}
-                    name="categoryId"
-                    label=""
-                    placeholder="Pick the best fit"
-                    groups={[
-                      {
-                        label: "Category",
-                        options: categories.map((i) => ({
-                          ...i,
-                          iconName: i.icon,
-                        })),
-                      },
-                    ]}
-                  />
-                )}
-                <div className="flex items-center justify-between pt-2">
-                  <Button type="button" variant="outline" onClick={goBack}>
-                    Back
+              <h3 className="text-xl font-semibold">Select Category</h3>
+              <p className="text-sm text-muted-foreground mt-0">
+                Pick the business category that best describes your project to
+                help users find it.
+              </p>
+              {categories && (
+                <FormSelect
+                  className="mt-2"
+                  control={form.control}
+                  name="categoryId"
+                  label=""
+                  placeholder="Pick the best fit"
+                  groups={[
+                    {
+                      label: "Category",
+                      options: categories.map((i) => ({
+                        ...i,
+                        iconName: i.icon,
+                      })),
+                    },
+                  ]}
+                />
+              )}
+              <div className="flex items-center justify-between pt-2">
+                <Button type="button" variant="outline" onClick={goBack}>
+                  Back
+                </Button>
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="link"
+                    onClick={handoffToNativeForm}
+                  >
+                    Skip
                   </Button>
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      type="button"
-                      variant="link"
-                      onClick={handoffToNativeForm}
-                    >
-                      Skip
-                    </Button>
-                    <Button type="button" onClick={validateAndNext}>
-                      Next
-                    </Button>
-                  </div>
+                  <Button type="button" onClick={validateAndNext}>
+                    Next
+                  </Button>
                 </div>
               </div>
             </div>
@@ -608,11 +695,42 @@ export default function FormCreateNewbie() {
 
           {currentStep === "projectTypeId" && (
             <div className="space-y-4">
-              <div>
+              <div className="space-y-2">
                 <h3 className="text-xl font-semibold">Select Type</h3>
                 <p className="text-sm text-muted-foreground mt-0">
-                  Which raise style will you choose: Equity or Debt?
+                  Choose how you raise funds:
                 </p>
+              </div>
+
+              <div className="grid gap-3">
+                <div className="p-4 border rounded-lg bg-card border-dashed">
+                  <div className="flex items-start space-x-3">
+                    <div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0"></div>
+                    <div className="space-y-1">
+                      <h4 className="font-semibold text-sm">Equity</h4>
+                      <p className="text-xs text-muted-foreground">
+                        you sell ownership (dilution); potential upside via
+                        dividends/exit; may include governance.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 border rounded-lg bg-card border-dashed">
+                  <div className="flex items-start space-x-3">
+                    <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 flex-shrink-0"></div>
+                    <div className="space-y-1">
+                      <h4 className="font-semibold text-sm">Debt</h4>
+                      <p className="text-xs text-muted-foreground">
+                        you borrow capital; coupon + principal schedule; no
+                        dilution; may require collateral or covenants.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
                 {projectTypes && (
                   <FormSelect
                     className="mt-2"
@@ -631,22 +749,23 @@ export default function FormCreateNewbie() {
                     ]}
                   />
                 )}
-                <div className="flex items-center justify-between pt-2">
-                  <Button type="button" variant="outline" onClick={goBack}>
-                    Back
+              </div>
+
+              <div className="flex items-center justify-between pt-2">
+                <Button type="button" variant="outline" onClick={goBack}>
+                  Back
+                </Button>
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="link"
+                    onClick={handoffToNativeForm}
+                  >
+                    Skip
                   </Button>
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      type="button"
-                      variant="link"
-                      onClick={handoffToNativeForm}
-                    >
-                      Skip
-                    </Button>
-                    <Button type="button" onClick={validateAndNext}>
-                      Next
-                    </Button>
-                  </div>
+                  <Button type="button" onClick={validateAndNext}>
+                    Next
+                  </Button>
                 </div>
               </div>
             </div>
@@ -657,7 +776,9 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Total Supply</h3>
                 <p className="text-sm text-muted-foreground mt-0">
-                  What total token count will you mint—say 100000000?
+                  Enter total <strong>shares</strong> representing 100% of your
+                  project (e.g.,
+                  <strong>100,000,000</strong>); this defines all future splits.
                 </p>
                 <FormInput
                   control={form.control}
@@ -691,8 +812,8 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Description</h3>
                 <p className="text-sm text-muted-foreground mt-0">
-                  In one or two lines, how would you introduce your project to
-                  someone new?
+                  Explain your project in one or two short lines; focus on what
+                  it is and who it serves.
                 </p>
                 <FormInput
                   control={form.control}
@@ -806,7 +927,8 @@ export default function FormCreateNewbie() {
                   Add another allocation?
                 </h3>
                 <p className="text-sm text-muted-foreground mt-0">
-                  Need another slice for Team, Presale, Community, or Investors?
+                  Add more rows (Team, Presale, Community, Investors) until your
+                  plan is complete.
                 </p>
                 <div className="text-sm mt-2">
                   <p
@@ -819,7 +941,8 @@ export default function FormCreateNewbie() {
                     Total Allocation: {totalAllocationPercent}%
                   </p>
                   <p className="text-sm text-muted-foreground mt-0">
-                    You can continue when total allocation is exactly 100%.
+                    Check that all rows together equal <strong>100%</strong>{" "}
+                    before you proceed.
                   </p>
                 </div>
               </div>
