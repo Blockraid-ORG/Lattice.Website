@@ -27,8 +27,8 @@ export function SocialPlatform({
       <div>
         <h3 className="text-xl font-semibold">Website / Social Media</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          Add your site and social links so investors can check quickly. Which
-          platform do you want to spotlight first?
+          Choose the website or social platform you’ll share (site, X/Twitter,
+          Discord, etc.).
         </p>
         <FormSelect
           className="mt-2"
@@ -69,7 +69,8 @@ export function SocialUrl({ control, onBack, onNext, socialIndex }: UrlProps) {
       <div>
         <h3 className="text-xl font-semibold">URL</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          What’s the live URL to your site or social page?
+          Paste a working link to your site or social page; test it opens
+          correctly.
         </p>
         <FormInput
           control={control}
@@ -108,10 +109,10 @@ export function SocialAddMore({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-xl font-semibold">Add another social?</h3>
+        <h3 className="text-xl font-semibold">Add Social?</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          Would you like to add another social link so investors can check
-          quickly?
+          Add extra links so people can verify you easily (docs, community,
+          announcements).
         </p>
       </div>
       <div className="flex items-center justify-between pt-2">

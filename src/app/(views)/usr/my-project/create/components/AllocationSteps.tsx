@@ -51,7 +51,8 @@ export function AllocationSupply({
       <div>
         <h3 className="text-xl font-semibold">Supply (%)</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          What percentage of total supply does this row deserve?
+          Percent of total <strong>shares</strong> for this row (e.g., Team
+          15%); the sum of all rows must equal 100%.
         </p>
         <FormInput
           control={control}
@@ -105,8 +106,8 @@ export function AllocationName({
       <div>
         <h3 className="text-xl font-semibold">Allocation</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          How will you split supply across team, investors, community, and
-          others?
+          Name the bucket (e.g., Team, Investors, Community, Treasury, Presale)
+          so readers see where shares go.
         </p>
         <FormInput
           control={control}
@@ -144,7 +145,8 @@ export function AllocationVesting({
       <div>
         <h3 className="text-xl font-semibold">Vesting (mo)</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          Over how many months should this portion unlock—use 0 for no lock?
+          Months until shares unlock; use <strong>0</strong> for no lock; longer
+          vesting can align incentives.
         </p>
         <FormInput
           control={control}
@@ -180,9 +182,10 @@ export function AllocationStartDate({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-xl font-semibold">Start Date</h3>
+        <h3 className="text-xl font-semibold">Start Date (vesting)</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          When should unlocking begin for this row?
+          Date when this row’s shares begin unlocking; pairs with the vesting
+          duration.
         </p>
         <FormInput
           control={control}

@@ -39,6 +39,30 @@ export default function CreateProjectPage() {
     } catch {}
   }, [setFormType]);
 
+  function handleChangeNativeForm() {
+    setHasChosen(true);
+    setFormType("advanced");
+    setOpen(false);
+    if (dontShowAgain) {
+      try {
+        localStorage.setItem("createModeDialogHidden", "true");
+        localStorage.setItem("createPreferredFormType", "advanced");
+      } catch {}
+    }
+  }
+
+  function handleChangeNewbieForm() {
+    setHasChosen(true);
+    setFormType("newbie");
+    setOpen(false);
+    if (dontShowAgain) {
+      try {
+        localStorage.setItem("createModeDialogHidden", "true");
+        localStorage.setItem("createPreferredFormType", "newbie");
+      } catch {}
+    }
+  }
+
   useEffect(() => {
     resetFormCreateProject();
   }, [resetFormCreateProject]);
@@ -70,37 +94,10 @@ export default function CreateProjectPage() {
             <DialogTitle>How do you identify yourself?</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setHasChosen(true);
-                setFormType("newbie");
-                setOpen(false);
-                if (dontShowAgain) {
-                  try {
-                    localStorage.setItem("createModeDialogHidden", "true");
-                    localStorage.setItem("createPreferredFormType", "newbie");
-                  } catch {}
-                }
-              }}
-            >
+            <Button variant="secondary" onClick={handleChangeNewbieForm}>
               Web3 Beginner
             </Button>
-            <Button
-              onClick={() => {
-                setHasChosen(true);
-                setFormType("advanced");
-                setOpen(false);
-                if (dontShowAgain) {
-                  try {
-                    localStorage.setItem("createModeDialogHidden", "true");
-                    localStorage.setItem("createPreferredFormType", "advanced");
-                  } catch {}
-                }
-              }}
-            >
-              Web3 Native
-            </Button>
+            <Button onClick={handleChangeNativeForm}>Web3 Native</Button>
           </div>
           <div className="flex items-center gap-2 pt-3">
             <input

@@ -26,7 +26,8 @@ export function PresaleUnit({
       <div>
         <h3 className="text-xl font-semibold">Presales Info</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          Unit — What will buyers pay with—USDT or another token?
+          Payment asset buyers will use (e.g., <strong>USDT</strong> or{" "}
+          <strong>BNB</strong>); pick what fits your chosen chain.
         </p>
         <FormSelect
           className="mt-2"
@@ -75,10 +76,16 @@ export function PresaleWhitelist({
         </div>
         {show && (
           <div className="mt-4">
+            <label htmlFor="enable-whitelist">Whitelist Duration (hours)</label>
+            <p className="text-sm text-muted-foreground mt-0">
+              How long the allowlist stays open (e.g., <strong>10 hours</strong>{" "}
+              or <strong>0</strong> for none); only approved wallets can join
+              during this window.
+            </p>
             <FormInput
               control={control}
               name={`presales.${index}.whitelistDuration`}
-              label="Whitelist Duration (hours)"
+              label=""
               type="number"
               placeholder="e.g. 24"
             />
