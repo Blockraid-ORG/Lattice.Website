@@ -63,8 +63,11 @@ export default function CreateProjectPage() {
     }
   }
 
+  // Reset state global when component unmounts
   useEffect(() => {
-    resetFormCreateProject();
+    return () => {
+      resetFormCreateProject();
+    };
   }, [resetFormCreateProject]);
 
   return (
