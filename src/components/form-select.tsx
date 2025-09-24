@@ -53,7 +53,8 @@ export function FormSelect<T extends FieldValues>({
   groups,
   className,
   control,
-  onChangeValue
+  onChangeValue,
+  disabled
 }: SelectInputProps<T>) {
   // const { control } = useFormContext()
   return (
@@ -65,6 +66,7 @@ export function FormSelect<T extends FieldValues>({
           {label && <FormLabel>{label}</FormLabel>}
           <FormControl>
             <Select
+              disabled={disabled}
               value={field.value}
               onValueChange={(val) => {
                 field.onChange(val)

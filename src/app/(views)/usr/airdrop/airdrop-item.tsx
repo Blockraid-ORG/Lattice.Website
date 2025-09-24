@@ -2,14 +2,12 @@ import { Icon } from '@/components/icon';
 import { Skeleton } from '@/components/ui/skeleton';
 import { NumberComma } from '@/lib/utils';
 import { TEligibleAirdrop } from '@/types/project';
-// import { ethers } from 'ethers';
 import Image from 'next/image';
 import { useState } from 'react';
 import DetailAirdropList from './detail-airdrop-list';
 
 export default function AirdropItem({ data }: { data: TEligibleAirdrop }) {
   const [isLoaded, setIsLoaded] = useState(false);
-  // const amount = ethers.parseUnits(data.totalEligible.toString(), data.decimals)
   return (
     <div className='rounded-2xl hover:scale-105 duration-200 bg-white dark:bg-white/5 border shadow-md border-slate-300/20 overflow-hidden'>
       <div className='aspect-[4/3] relative p-2 overflow-hidden rounded-xl'>

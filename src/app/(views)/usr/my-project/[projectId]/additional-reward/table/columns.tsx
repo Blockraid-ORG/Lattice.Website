@@ -1,14 +1,22 @@
 'use client'
-import dayjs from "dayjs";
+import { Icon } from "@/components/icon";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import { cn, cutString, NumberComma } from "@/lib/utils";
 import { TAdditionalReward } from "@/types/project";
 import { ColumnDef } from "@tanstack/react-table";
+import dayjs from "dayjs";
 import ConfirmDeployAirdrop from "../confirm-deploy-airdrop";
 import { FormAddress } from "../form-add-address";
 import FormRemoveAddress from "../form-remove-address";
 
 
 export const columns: ColumnDef<TAdditionalReward>[] = [
+  {
+    accessorKey: 'scheduleId',
+    header: 'SID',
+  },
   {
     accessorKey: 'project.name',
     header: 'Name',
@@ -65,15 +73,31 @@ export const columns: ColumnDef<TAdditionalReward>[] = [
     cell: ({ row }) => <div>{row.original.contactAddress ? 'DEPLOYED' : 'OUT STANDING'}</div>
   },
   {
+    accessorKey: '_count',
+    header: 'Eligible Wallet',
+    cell: ({ row }) => <div className="font-semibold">{row.original._count.userAdditionalReward}</div>
+  },
+  {
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
       return (
-        <div className="flex items-center justify-end gap-1 flex-wrap">
-          <ConfirmDeployAirdrop data={row.original} />
-          <FormAddress data={row.original} />
-          <FormRemoveAddress data={row.original} />
-        </div>
+        <Popover>
+          <PopoverTrigger>
+            <Button variant="outline" size="icon">
+              <Icon name="material-symbols:more-horiz" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-44" side="left" align="start">
+            <div className="text-center text-sm font-semibold mb-2">Actions</div>
+            <Separator className="mb-4" />
+            <div className="flex flex-col gap-2">
+              <ConfirmDeployAirdrop data={row.original} />
+              <FormAddress data={row.original} />
+              <FormRemoveAddress data={row.original} />
+            </div>
+          </PopoverContent>
+        </Popover>
       )
     }
   }

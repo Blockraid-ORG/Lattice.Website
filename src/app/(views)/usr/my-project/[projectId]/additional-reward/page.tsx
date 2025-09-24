@@ -4,8 +4,9 @@ import ContectAddressReward from './content'
 export default function WhitelistPage() {
   return (
     <PageContainer
-      title='Additional Reward'
-      subtitle='List of addresses eligible for rewards'
+      canBack
+      title='Airdrop'
+      subtitle='Create and manage your airdrop contract and distribution'
     >
       <ContectAddressReward />
     </PageContainer>

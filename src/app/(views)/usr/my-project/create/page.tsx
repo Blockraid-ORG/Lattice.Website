@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,10 +10,31 @@ import {
 } from "@/components/ui/dialog";
 import FormCreate from "./form-create";
 import FormCreateNewbie from "./form-create-newbie";
+import { useFormCreateProject } from "@/store/useFormCreateProject";
 
 export default function CreateProjectPage() {
   const [open, setOpen] = useState(true);
-  const [formType, setFormType] = useState<"newbie" | "advanced" | null>(null);
+  const { formType, setFormType } = useFormCreateProject();
+  const [dontShowAgain, setDontShowAgain] = useState(false);
+
+  useEffect(() => {
+    try {
+      const hidden =
+        typeof window !== "undefined" &&
+        localStorage.getItem("createModeDialogHidden") === "true";
+      const preferred =
+        typeof window !== "undefined"
+          ? (localStorage.getItem("createPreferredFormType") as
+              | "newbie"
+              | "advanced"
+              | null)
+          : null;
+      if (hidden) {
+        if (preferred) setFormType(preferred);
+        setOpen(false);
+      }
+    } catch {}
+  }, [setFormType]);
 
   return (
     <>
@@ -25,10 +46,7 @@ export default function CreateProjectPage() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent hideClose>
           <DialogHeader>
-            <DialogTitle>
-              Choose how you want to start: I&apos;m Web3 Native or I&apos;m
-              Web3 Newbie
-            </DialogTitle>
+            <DialogTitle>How do you identify yourself?</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Button
@@ -36,18 +54,44 @@ export default function CreateProjectPage() {
               onClick={() => {
                 setFormType("newbie");
                 setOpen(false);
+                if (dontShowAgain) {
+                  try {
+                    localStorage.setItem("createModeDialogHidden", "true");
+                    localStorage.setItem("createPreferredFormType", "newbie");
+                  } catch {}
+                }
               }}
             >
-              I&apos;m Web3 Newbie
+              Web3 Beginner
             </Button>
             <Button
               onClick={() => {
                 setFormType("advanced");
                 setOpen(false);
+                if (dontShowAgain) {
+                  try {
+                    localStorage.setItem("createModeDialogHidden", "true");
+                    localStorage.setItem("createPreferredFormType", "advanced");
+                  } catch {}
+                }
               }}
             >
-              I&apos;m Web3 Native
+              Web3 Native
             </Button>
+          </div>
+          <div className="flex items-center gap-2 pt-3">
+            <input
+              id="dont-show-again"
+              type="checkbox"
+              checked={dontShowAgain}
+              onChange={(e) => setDontShowAgain(e.target.checked)}
+            />
+            <label
+              htmlFor="dont-show-again"
+              className="text-sm text-muted-foreground"
+            >
+              Don&apos;t show this again
+            </label>
           </div>
         </DialogContent>
       </Dialog>

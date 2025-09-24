@@ -15,7 +15,7 @@ import Link from "next/link"
 import { useState } from "react"
 
 export default function TableMyContribution({ data }: { data: TProject }) {
-  const { data: myContributions } = useMyContribution(data.id, data.presales.id)
+  const { data: myContributions } = useMyContribution(data.id, data.presales[0].id)
   const { claimPresale } = useContribute()
   const totalAmount = myContributions?.reduce(
     (acc: number, item: any) => acc + Number(item.count),
@@ -25,7 +25,7 @@ export default function TableMyContribution({ data }: { data: TProject }) {
   const totalToken = myContributions?.reduce((acc: number, item: any) => {
     const tokenAmount =
       (Number(item.count) * (10 ** data.decimals)) /
-      (Number(data.presales.price) * (10 ** data.decimals))
+      (Number(data.presales[0].price) * (10 ** data.decimals))
     return acc + tokenAmount
   }, 0) ?? 0
 
@@ -37,13 +37,13 @@ export default function TableMyContribution({ data }: { data: TProject }) {
   return (
     <div>
       <div className="py-4 border-b">
-        <h2 className='text-lg md:text-xl mb-3 font-semibold'>Contrubution Info</h2>
+        <h2 className='text-lg md:text-xl mb-3 font-semibold'>Contribution Info</h2>
         <div className='grid grid-cols-2 md:grid-cols-4 gap-2 w-full'>
           <div>
             <p className='text-sm text-neutral-500'>Total Contribution</p>
             <div className='flex gap-2 items-center'>
               <h2 className='font-bold'>{NumberComma(totalAmount)}</h2>
-              <p className='text-xs font-medium'>{data.presales.unit.split('/').pop()}</p>
+              <p className='text-xs font-medium'>{data.presales[0].unit.split('/').pop()}</p>
             </div>
           </div>
           <div>
@@ -63,7 +63,7 @@ export default function TableMyContribution({ data }: { data: TProject }) {
         </div>
         <div className="mt-4">
           {/* {
-            !dayjs(data.presales.startDate).add(+data.presales.duration, "day").isAfter(dayjs()) && (
+            !dayjs(data.presales[0].startDate).add(+data.presales[0].duration, "day").isAfter(dayjs()) && (
               <Button
                 disabled={isClaiming} onClick={onClaimPresale}
                 size={'lg'}
@@ -93,7 +93,7 @@ export default function TableMyContribution({ data }: { data: TProject }) {
                 <TableCell className="font-medium">{index + 1}</TableCell>
                 <TableCell>{item.count} {data.chains[0].chain.ticker}</TableCell>
                 <TableCell>
-                  {NumberComma(+(item.count * (10 ** data.decimals)) / (+data.presales.price * (10 ** data.decimals)))} {data.ticker}
+                  {NumberComma(+(item.count * (10 ** data.decimals)) / (+data.presales[0].price * (10 ** data.decimals)))} {data.ticker}
                 </TableCell>
                 <TableCell className="text-end">
                   <Link

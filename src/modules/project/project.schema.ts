@@ -8,7 +8,7 @@ export const allocationSchema = z.object({
 });
 
 export const presalesSchema = z.object({
-  hardcap: z.coerce.number().min(1, "Hard cap required"),
+  hardcap: z.coerce.number().min(0.001, "Hard cap required"),
   price: z.coerce.number().min(0.00000001, "Price must be greater than 0"),
   unit: z.string().min(1, "Unit is required"),
   maxContribution: z.coerce.number().min(0, "Max contribution required"),
@@ -16,7 +16,9 @@ export const presalesSchema = z.object({
   startDate: z.coerce.date(),
   claimTime: z.coerce.number().min(0),
   whitelistDuration: z.coerce.number().optional(),
+  whitelistAddress: z.string().optional(),
   sweepDuration: z.coerce.number().min(0).optional(),
+  presaleSCID: z.string().optional(),
 });
 export const socialSchema = z.object({
   socialId: z.string().uuid(),
@@ -30,7 +32,7 @@ export const formCreateProjectSchema = z.object({
   whitelistAddress: z.string().optional(),
   banner: z.string().min(1),
   ticker: z.string().min(1),
-  decimals: z.coerce.number().min(10),
+  decimals: z.coerce.number().min(1),
   totalSupply: z.coerce.number().min(1),
   status: z.enum(["PENDING", "APPROVED", "REJECTED", "DEPLOYED"]),
   detail: z.string().min(1),
@@ -62,3 +64,16 @@ export const formBuyPresale = (max: number) =>
       .min(0.001, "Amount required")
       .max(max, `Max contribution ${max}`),
   });
+
+export const formProjectAllocationSchema = z.object({
+  address: z.string().min(1, "Address is required"),
+  amount: z.coerce
+    .number()
+    .refine((v) => v > 0, { message: "Must be greater than 0" })
+    .refine((v) => v <= 100, { message: "Max 100%" }),
+});
+export const formBaseProjectAllocationSchema = z.object({
+  items: z
+    .array(formProjectAllocationSchema)
+    .min(1, "At least one recipient is required"),
+});
