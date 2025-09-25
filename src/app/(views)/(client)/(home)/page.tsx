@@ -1,4 +1,5 @@
 
+import FaqSection from '../_components/faq'
 import ActivePresale from './active-presale'
 import Community from './comnunity'
 import NewHero from './new-hero'
@@ -36,6 +37,7 @@ export default function Home() {
       <UpcomingPresale />
       <ActivePresale />
       <SupporChain />
+      <FaqSection />
       <Community />
       <ToolsIntegrated />
     </>

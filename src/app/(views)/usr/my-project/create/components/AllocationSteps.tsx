@@ -15,7 +15,7 @@ export function AllocationIntro({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-xl font-semibold">Allocations</h3>
+        <h3 className="text-xl font-semibold">Allocations (set per row)</h3>
         <p className="text-sm text-muted-foreground mt-0">
           Split your token supply. You can add multiple slices and we&apos;ll
           make sure it totals 100%.
@@ -51,8 +51,7 @@ export function AllocationSupply({
       <div>
         <h3 className="text-xl font-semibold">Supply (%)</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          Percent of total <strong>shares</strong> for this row (e.g., Team
-          15%); the sum of all rows must equal 100%.
+          Percent of total shares for this row (e.g., Team 15%); the sum of all rows must equal 100%.
         </p>
         <FormInput
           control={control}
@@ -106,8 +105,7 @@ export function AllocationName({
       <div>
         <h3 className="text-xl font-semibold">Allocation</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          Name the bucket (e.g., Team, Investors, Community, Treasury, Presale)
-          so readers see where shares go.
+          Name the bucket (e.g., Team, Investors, Community, Treasury, Presale) so readers see where shares go.
         </p>
         <FormInput
           control={control}
@@ -143,7 +141,7 @@ export function AllocationVesting({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-xl font-semibold">Vesting (mo)</h3>
+        <h3 className="text-xl font-semibold">Lock Period (mo)</h3>
         <p className="text-sm text-muted-foreground mt-0">
           Months until shares unlock; use <strong>0</strong> for no lock; longer
           vesting can align incentives.

@@ -103,7 +103,6 @@ export default function FormCreateNewbie() {
         value: `${selectedChain?.ticker ?? ""}`,
       },
       { label: "USDC", value: "USDC", disabled: true },
-      { label: "USDT", value: "USDT", disabled: true },
     ],
     [selectedChain]
   );
@@ -331,8 +330,7 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Cover Image</h3>
                 <p className="text-sm text-muted-foreground">
-                  Upload a wide banner (landscape). Keep file size modest so the
-                  page loads fast and looks crisp.
+                  A wide canvas that represents your project—show the mood, key message, or campaign
                 </p>
                 <div className="mt-3">
                   <ImageDropzone
@@ -372,8 +370,7 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Logo</h3>
                 <p className="text-sm text-muted-foreground">
-                  Upload a clear square logo (1:1). Centered artwork with
-                  transparent background works best.
+                  A small mark that represents your project/brand everywhere—clear and instantly recognizable.
                 </p>
                 <div className="w-40 mt-3">
                   <ImageDropzone
@@ -413,8 +410,7 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Name</h3>
                 <p className="text-sm text-muted-foreground mt-0">
-                  Type your company or project name exactly as you want it shown
-                  to users.
+                  Type your company or project name exactly as you want it shown to users.
                 </p>
                 <FormInput
                   control={form.control}
@@ -448,8 +444,7 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Ticker</h3>
                 <p className="text-sm text-muted-foreground mt-0">
-                  Which CAPS ticker will you fly under—any length you like, with
-                  3–5 letters recommended, like SPN?
+                  Enter 3 CAPITAL letters; the system adds the instrument type automatically.
                 </p>
                 <FormInput
                   control={form.control}
@@ -483,8 +478,7 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Decimal</h3>
                 <p className="text-sm text-muted-foreground mt-0">
-                  Use <strong>18</strong>; this is the common standard so
-                  balances and math display correctly
+                  The smallest share unit (like kilo meter to meter which has 3 decimals). Common smallest share unit in web3 has 18 decimals.  
                 </p>
                 <FormInput
                   control={form.control}
@@ -652,8 +646,7 @@ export default function FormCreateNewbie() {
             <div className="space-y-4">
               <h3 className="text-xl font-semibold">Select Category</h3>
               <p className="text-sm text-muted-foreground mt-0">
-                Pick the business category that best describes your project to
-                help users find it.
+                Pick the business category that best describes your project to help users find it.
               </p>
               {categories && (
                 <FormSelect
@@ -776,9 +769,10 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Total Supply</h3>
                 <p className="text-sm text-muted-foreground mt-0">
-                  Enter total <strong>shares</strong> representing 100% of your
+                  {/* Enter total <strong>shares</strong> representing 100% of your
                   project (e.g.,
-                  <strong>100,000,000</strong>); this defines all future splits.
+                  <strong>100,000,000</strong>); this defines all future splits. */}
+                  Enter total <b>shares</b> for the project (e.g., 100,000,000).
                 </p>
                 <FormInput
                   control={form.control}
@@ -812,15 +806,14 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Description</h3>
                 <p className="text-sm text-muted-foreground mt-0">
-                  Explain your project in one or two short lines; focus on what
-                  it is and who it serves.
+                  Write three short lines which covers your project background, objective, and what&#39;s being tokenized.
                 </p>
                 <FormInput
                   control={form.control}
                   name="detail"
                   isLongText
                   label=""
-                  placeholder="One or two lines to introduce your project"
+                  placeholder="background, objective, what's being tokenized."
                 />
                 <div className="flex items-center justify-between pt-2">
                   <Button type="button" variant="outline" onClick={goBack}>
