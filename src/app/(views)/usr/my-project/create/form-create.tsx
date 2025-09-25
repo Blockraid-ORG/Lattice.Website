@@ -521,7 +521,7 @@ export default function FormCreate() {
                         <FormInput
                           control={form.control}
                           name={`allocations.${index}.vesting`}
-                          label="Vesting (mo)"
+                          label="Lock Period (mo)"
                           placeholder="1"
                           type="number"
                           min={"1"}
