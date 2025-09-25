@@ -1,5 +1,6 @@
 import PresaleAbi from '@/lib/abis/presale.abi.json';
 import WhitelistAbi from '@/lib/abis/whitelist.abi.json';
+import TokenAbi from '@/lib/abis/erc20.abi.json';
 import { FormProjectAddressWhitelist, TPresale, TProject } from "@/types/project";
 import { BrowserProvider, ethers, parseUnits } from "ethers";
 import { useCallback } from "react";
@@ -40,6 +41,11 @@ export function useDeployPresaleSC() {
       const newDate = new Date(originalDate);
       newDate.setDate(newDate.getDate()); // + Number(project.presales.duration)
       const startTime = Math.floor(newDate.getTime() / 1000);
+
+      const contractERC20 = new ethers.Contract(data.contractAddress!, TokenAbi.abi, signer);
+      const amountToApprove = Number(item.hardcap) / Number(item.price)
+      const txApprove = await contractERC20.approve(data.rewardContractAddress, ethers.parseUnits(amountToApprove.toString(), data.decimals));
+      await txApprove.wait();
 
       await presale.activatePresale(
         data.contractAddress,
@@ -184,7 +190,7 @@ export function useDeployPresaleSC() {
       toast.success("Claim successful", {
         description: `Transaction hash: ${tx.hash}`
       })
-    } catch (error:any) {
+    } catch (error: any) {
       console.log(error)
       toast.error('Error', {
         description: 'Claim Failed: Presale is on going!'

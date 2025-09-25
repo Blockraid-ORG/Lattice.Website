@@ -31,7 +31,7 @@ export const formCreateProjectSchema = z.object({
   slug: z.string().optional(),
   whitelistAddress: z.string().optional(),
   banner: z.string().min(1),
-  ticker: z.string().min(1),
+  ticker: z.string().min(3).max(3),
   decimals: z.coerce.number().min(1),
   totalSupply: z.coerce.number().min(1),
   status: z.enum(["PENDING", "APPROVED", "REJECTED", "DEPLOYED"]),

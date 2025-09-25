@@ -26,7 +26,7 @@ export function PresaleUnit({
       <div>
         <h3 className="text-xl font-semibold">Presales Info</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          Payment asset buyers will use (e.g., <strong>USDT</strong> or{" "}
+          Payment asset buyers will use (e.g., <strong>USDC</strong> or{" "}
           <strong>BNB</strong>); pick what fits your chosen chain.
         </p>
         <FormSelect
