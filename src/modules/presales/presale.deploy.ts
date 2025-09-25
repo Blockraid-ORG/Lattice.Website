@@ -44,7 +44,7 @@ export function useDeployPresaleSC() {
 
       const contractERC20 = new ethers.Contract(data.contractAddress!, TokenAbi.abi, signer);
       const amountToApprove = Number(item.hardcap) / Number(item.price)
-      const txApprove = await contractERC20.approve(data.rewardContractAddress, ethers.parseUnits(amountToApprove.toString(), data.decimals));
+      const txApprove = await contractERC20.approve(data.presaleAddress, ethers.parseUnits(amountToApprove.toString(), data.decimals));
       await txApprove.wait();
 
       await presale.activatePresale(
