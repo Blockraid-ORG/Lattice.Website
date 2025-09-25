@@ -122,6 +122,11 @@ export default function FormCreate() {
         onChangeValue(String((normalized as any).chainId));
       }
 
+      if (normalized.presales[0].whitelistDuration) {
+        setShowInputWL(normalized.presales[0].whitelistDuration > 0);
+        onCheckedChange(normalized.presales[0].whitelistDuration > 0);
+      }
+
       const wl = (normalized.presales as any)?.[0]?.whitelistDuration;
       setShowInputWL(!!wl && Number(wl) > 0);
 
@@ -619,10 +624,7 @@ export default function FormCreate() {
                               <Switch
                                 onCheckedChange={onCheckedChange}
                                 id="enable-whitelist"
-                                checked={
-                                  form.getValues().presales[index]
-                                    .whitelistDuration > 0
-                                }
+                                checked={showInputWL}
                               />
                               <Label htmlFor="enable-whitelist">
                                 Enable Whitelist
