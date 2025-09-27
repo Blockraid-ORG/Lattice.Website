@@ -133,6 +133,14 @@ class ProjectService extends BaseService<TProject, TFormProject> {
     })
     return response.data.data
   }
+  async CREATE_PAYMENT_FEE_PROJECT(data: any) {
+    const response = await axiosInstance({
+      method: 'POST',
+      url: this.endpoint + '/create-payment-fee-project',
+      data: data,
+    })
+    return response.data.data
+  }
 }
 
 const projectService = new ProjectService()

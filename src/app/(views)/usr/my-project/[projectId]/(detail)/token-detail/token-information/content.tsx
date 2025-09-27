@@ -15,8 +15,11 @@ import RowItem from "../../row-item";
 import TokenSats from "../../token-stats/token-information/content";
 import PresaleManagement from "../presales";
 import SetPauseAsset from "./set-pause-asset";
+import SetPaymentProject from "./set-payment-project";
+import { TMasterPayment } from "@/types/payment";
+import { TPagination } from "@/types/pagination";
 
-export default function TokenInformation({ data }: { data: TProject }) {
+export default function TokenInformation({ data, addressPool }: { data: TProject, addressPool?: TPagination<TMasterPayment> }) {
   const search = useSearchParams()
   const tabActive = search.get('tab')
   return (
@@ -185,6 +188,11 @@ export default function TokenInformation({ data }: { data: TProject }) {
                       <div className="w-1/3">Asset Status</div>
                       <div className="w-3 shrink-0">:</div>
                       <SetPauseAsset data={data} />
+                    </div>
+                    <div className="flex py-2 border-t items-center">
+                      <div className="w-1/3">Payment Status</div>
+                      <div className="w-3 shrink-0">:</div>
+                      <SetPaymentProject data={data} addressPool={addressPool} />
                     </div>
                   </div>
                 </div>
