@@ -180,10 +180,28 @@ export default function FormCreate() {
     name: "presales",
   });
   const allocations = form.watch("allocations");
+  const socialsValues = form.watch("socials");
   const totalPercent = allocations.reduce(
     (sum: number, a: TFormProjectAllocation) => sum + Number(a.supply || 0),
     0
   );
+
+  // Function to get available social platforms for a specific field index
+  const getAvailableSocialPlatforms = (currentIndex: number) => {
+    if (!socials) return [];
+
+    // Get all selected social IDs except the current field
+    const selectedSocialIds = socialsValues
+      .map((social: { socialId: string; url: string }, index: number) =>
+        index !== currentIndex ? social.socialId : null
+      )
+      .filter(Boolean);
+
+    // Filter out already selected platforms
+    return socials.filter(
+      (social) => !selectedSocialIds.includes(social.value)
+    );
+  };
 
   async function uploadLogo() {
     const urlRequest = await fetch("/api/upload");
@@ -196,6 +214,7 @@ export default function FormCreate() {
     const url = converToIpfs(upload.cid);
     return url;
   }
+
   async function uploadBanner() {
     const urlRequest = await fetch("/api/upload");
     const urlResponse = await urlRequest.json();
@@ -451,14 +470,14 @@ export default function FormCreate() {
                       groups={[
                         {
                           label: "Social",
-                          options: socials
-                            ? socials.map((i) => {
-                                return {
-                                  ...i,
-                                  iconName: i.icon,
-                                };
-                              })
-                            : [],
+                          options: getAvailableSocialPlatforms(index).map(
+                            (i) => {
+                              return {
+                                ...i,
+                                iconName: i.icon,
+                              };
+                            }
+                          ),
                         },
                       ]}
                       placeholder="Select platform"
