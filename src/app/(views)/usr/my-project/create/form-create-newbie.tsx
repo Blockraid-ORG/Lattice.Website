@@ -591,21 +591,6 @@ export default function FormCreateNewbie() {
 
                   <div className="p-4 border rounded-lg bg-card border-dashed">
                     <div className="flex items-start space-x-3">
-                      <div className="w-2 h-2 rounded-full bg-gray-400 mt-2 flex-shrink-0"></div>
-                      <div className="space-y-1">
-                        <h4 className="font-semibold text-sm text-muted-foreground">
-                          ETH Sepolia (Testnet)
-                        </h4>
-                        <p className="text-xs text-muted-foreground">
-                          Ethereum testnet for QA/demos;{" "}
-                          <strong>no real funds</strong>.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 border rounded-lg bg-card border-dashed">
-                    <div className="flex items-start space-x-3">
                       <div className="w-2 h-2 rounded-full bg-yellow-400 mt-2 flex-shrink-0"></div>
                       <div className="space-y-1">
                         <h4 className="font-semibold text-sm text-muted-foreground">
@@ -796,7 +781,8 @@ export default function FormCreateNewbie() {
                   {/* Enter total <strong>shares</strong> representing 100% of your
                   project (e.g.,
                   <strong>100,000,000</strong>); this defines all future splits. */}
-                  Enter total <b>shares</b> for the project (e.g., 100,000,000).
+                  Enter total <b>shares</b> for the project. Refers to ONDO
+                  Project, it has total supply of 10,000,000,000.
                 </p>
                 <FormInput
                   control={form.control}
@@ -946,8 +932,8 @@ export default function FormCreateNewbie() {
                   Add another allocation?
                 </h3>
                 <p className="text-sm text-muted-foreground mt-0">
-                  Add more rows (Team, Presale, Community, Investors) until your
-                  plan is complete.
+                  Add more allocations (Team, Presale, Community, Investors)
+                  until your plan is complete.
                 </p>
                 <div className="text-sm mt-2">
                   <p

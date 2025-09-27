@@ -66,7 +66,6 @@ export default function FormCreate() {
 
   useEffect(() => {
     try {
-      console.log("formNewbie", formNewbie);
       if (!formNewbie || Object.keys(formNewbie || {}).length === 0) {
         setIsFormReady(true);
         return;

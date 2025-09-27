@@ -110,10 +110,6 @@ export function SocialAddMore({
     <div className="space-y-4">
       <div>
         <h3 className="text-xl font-semibold">+ Add Social</h3>
-        <p className="text-sm text-muted-foreground mt-0">
-          Add extra links so people can verify you easily (docs, community,
-          announcements).
-        </p>
       </div>
       <div className="flex items-center justify-between pt-2">
         <Button type="button" variant="outline" onClick={onBack}>
