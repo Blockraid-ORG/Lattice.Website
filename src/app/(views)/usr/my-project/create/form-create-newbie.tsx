@@ -81,6 +81,7 @@ export default function FormCreateNewbie() {
     name: "presales",
   });
   const allocations = form.watch("allocations");
+  const socialsValues = form.watch("socials");
   const totalAllocationPercent = (allocations || []).reduce(
     (sum: number, a: any) => sum + Number(a?.supply || 0),
     0
@@ -106,6 +107,23 @@ export default function FormCreateNewbie() {
     ],
     [selectedChain]
   );
+
+  // Function to get available social platforms for a specific field index
+  const getAvailableSocialPlatforms = (currentIndex: number) => {
+    if (!socials) return [];
+
+    // Get all selected social IDs except the current field
+    const selectedSocialIds = socialsValues
+      .map((social: { socialId: string; url: string }, index: number) =>
+        index !== currentIndex ? social.socialId : null
+      )
+      .filter(Boolean);
+
+    // Filter out already selected platforms
+    return socials.filter(
+      (social) => !selectedSocialIds.includes(social.value)
+    );
+  };
   const currentIndex = useMemo(
     () => steps.findIndex((s) => s.id === currentStep),
     [currentStep]
@@ -330,7 +348,8 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Cover Image</h3>
                 <p className="text-sm text-muted-foreground">
-                  A wide canvas that represents your project—show the mood, key message, or campaign
+                  A wide canvas that represents your project—show the mood, key
+                  message, or campaign
                 </p>
                 <div className="mt-3">
                   <ImageDropzone
@@ -370,7 +389,8 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Logo</h3>
                 <p className="text-sm text-muted-foreground">
-                  A small mark that represents your project/brand everywhere—clear and instantly recognizable.
+                  A small mark that represents your project/brand
+                  everywhere—clear and instantly recognizable.
                 </p>
                 <div className="w-40 mt-3">
                   <ImageDropzone
@@ -410,7 +430,8 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Name</h3>
                 <p className="text-sm text-muted-foreground mt-0">
-                  Type your company or project name exactly as you want it shown to users.
+                  Type your company or project name exactly as you want it shown
+                  to users.
                 </p>
                 <FormInput
                   control={form.control}
@@ -444,7 +465,8 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Ticker</h3>
                 <p className="text-sm text-muted-foreground mt-0">
-                  Enter 3 CAPITAL letters; the system adds the instrument type automatically.
+                  Enter 3 CAPITAL letters; the system adds the instrument type
+                  automatically.
                 </p>
                 <FormInput
                   control={form.control}
@@ -478,7 +500,8 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Decimal</h3>
                 <p className="text-sm text-muted-foreground mt-0">
-                  The smallest share unit (like kilo meter to meter which has 3 decimals). Common smallest share unit in web3 has 18 decimals.  
+                  The smallest share unit (like kilo meter to meter which has 3
+                  decimals). Common smallest share unit in web3 has 18 decimals.
                 </p>
                 <FormInput
                   control={form.control}
@@ -568,21 +591,6 @@ export default function FormCreateNewbie() {
 
                   <div className="p-4 border rounded-lg bg-card border-dashed">
                     <div className="flex items-start space-x-3">
-                      <div className="w-2 h-2 rounded-full bg-gray-400 mt-2 flex-shrink-0"></div>
-                      <div className="space-y-1">
-                        <h4 className="font-semibold text-sm text-muted-foreground">
-                          ETH Sepolia (Testnet)
-                        </h4>
-                        <p className="text-xs text-muted-foreground">
-                          Ethereum testnet for QA/demos;{" "}
-                          <strong>no real funds</strong>.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 border rounded-lg bg-card border-dashed">
-                    <div className="flex items-start space-x-3">
                       <div className="w-2 h-2 rounded-full bg-yellow-400 mt-2 flex-shrink-0"></div>
                       <div className="space-y-1">
                         <h4 className="font-semibold text-sm text-muted-foreground">
@@ -646,7 +654,8 @@ export default function FormCreateNewbie() {
             <div className="space-y-4">
               <h3 className="text-xl font-semibold">Select Category</h3>
               <p className="text-sm text-muted-foreground mt-0">
-                Pick the business category that best describes your project to help users find it.
+                Pick the business category that best describes your project to
+                help users find it.
               </p>
               {categories && (
                 <FormSelect
@@ -772,7 +781,8 @@ export default function FormCreateNewbie() {
                   {/* Enter total <strong>shares</strong> representing 100% of your
                   project (e.g.,
                   <strong>100,000,000</strong>); this defines all future splits. */}
-                  Enter total <b>shares</b> for the project (e.g., 100,000,000).
+                  Enter total <b>shares</b> for the project. Refers to ONDO
+                  Project, it has total supply of 10,000,000,000.
                 </p>
                 <FormInput
                   control={form.control}
@@ -806,7 +816,8 @@ export default function FormCreateNewbie() {
               <div>
                 <h3 className="text-xl font-semibold">Description</h3>
                 <p className="text-sm text-muted-foreground mt-0">
-                  Write three short lines which covers your project background, objective, and what&#39;s being tokenized.
+                  Write three short lines which covers your project background,
+                  objective, and what&#39;s being tokenized.
                 </p>
                 <FormInput
                   control={form.control}
@@ -838,11 +849,12 @@ export default function FormCreateNewbie() {
 
           {currentStep === "socialPlatform" && (
             <SocialPlatform
-              socialsOptions={
-                socials
-                  ? socials.map((i: any) => ({ ...i, iconName: i.icon }))
-                  : []
-              }
+              socialsOptions={getAvailableSocialPlatforms(socialIndex).map(
+                (i: any) => ({
+                  ...i,
+                  iconName: i.icon,
+                })
+              )}
               control={form.control}
               socialIndex={socialIndex}
               onBack={goBack}
@@ -920,8 +932,8 @@ export default function FormCreateNewbie() {
                   Add another allocation?
                 </h3>
                 <p className="text-sm text-muted-foreground mt-0">
-                  Add more rows (Team, Presale, Community, Investors) until your
-                  plan is complete.
+                  Add more allocations (Team, Presale, Community, Investors)
+                  until your plan is complete.
                 </p>
                 <div className="text-sm mt-2">
                   <p

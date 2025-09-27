@@ -27,7 +27,8 @@ export function SocialPlatform({
       <div>
         <h3 className="text-xl font-semibold">Platform</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          Choose the website or social platform you&apos;ll share (site, X/Twitter, Discord, etc.).
+          Choose the website or social platform you&apos;ll share (site,
+          X/Twitter, Discord, etc.).
         </p>
         <FormSelect
           className="mt-2"
@@ -68,7 +69,8 @@ export function SocialUrl({ control, onBack, onNext, socialIndex }: UrlProps) {
       <div>
         <h3 className="text-xl font-semibold">URL</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          Paste a working link to your site or social page; test it opens correctly.
+          Paste a working link to your site or social page; test it opens
+          correctly.
         </p>
         <FormInput
           control={control}
@@ -108,9 +110,6 @@ export function SocialAddMore({
     <div className="space-y-4">
       <div>
         <h3 className="text-xl font-semibold">+ Add Social</h3>
-        <p className="text-sm text-muted-foreground mt-0">
-          Add extra links so people can verify you easily (docs, community, announcements).
-        </p>
       </div>
       <div className="flex items-center justify-between pt-2">
         <Button type="button" variant="outline" onClick={onBack}>
