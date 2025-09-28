@@ -181,7 +181,7 @@ export function AllocationStartDate({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-xl font-semibold">Start Date (vesting)</h3>
+        <h3 className="text-xl font-semibold">Start Date</h3>
         <p className="text-sm text-muted-foreground mt-0">
           Date when this allocation’s shares begin unlocking; pairs with the
           vesting duration.

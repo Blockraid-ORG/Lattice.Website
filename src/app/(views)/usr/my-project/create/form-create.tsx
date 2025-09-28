@@ -272,10 +272,10 @@ export default function FormCreate() {
       const presales = values.presales.map((item: TFormProjectPresale) => {
         return {
           ...item,
-          duration: Number(item.duration),
-          hardcap: String(item.hardcap),
-          price: String(item.price),
-          maxContribution: String(item.maxContribution),
+          duration: Number(item.duration) || 10,
+          hardcap: String(item.hardcap) || "1",
+          price: String(item.price) || "0.01",
+          maxContribution: String(item.maxContribution) || "0.1",
           whitelistDuration: item.whitelistDuration || 0,
           sweepDuration: item.sweepDuration || 0,
           chainId: chainIds,
@@ -300,9 +300,17 @@ export default function FormCreate() {
         banner: bannerUrl,
         chainIds: [chainIds],
         chainId: undefined,
-        presales: presales[0],
+        presales: {
+          ...presales[0],
+          startDate: new Date(),
+          hardcap: "1",
+          price: "0.01",
+          maxContribution: "0.1",
+        },
         allocations,
       };
+      // console.log({ newValues, presales })
+      // return
       createProject(newValues, {
         onSuccess: () => {
           // if (arrayAddress && arrayAddress.length > 0) {
