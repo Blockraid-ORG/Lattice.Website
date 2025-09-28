@@ -15,10 +15,10 @@ export function AllocationIntro({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-xl font-semibold">Allocations (set per row)</h3>
+        <h3 className="text-xl font-semibold">Allocations</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          Split your token supply. You can add multiple slices and we&apos;ll
-          make sure it totals 100%.
+          Split your token supply into several allocations and we&apos;ll make
+          sure it totals 100%.
         </p>
       </div>
       <div className="flex items-center justify-between pt-2">
@@ -51,7 +51,8 @@ export function AllocationSupply({
       <div>
         <h3 className="text-xl font-semibold">Supply (%)</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          Percent of total shares for this row (e.g., Team 15%); the sum of all rows must equal 100%.
+          Percent of total shares (e.g., Team 15%), check the current total
+          before adding.
         </p>
         <FormInput
           control={control}
@@ -105,7 +106,8 @@ export function AllocationName({
       <div>
         <h3 className="text-xl font-semibold">Allocation</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          Name the bucket (e.g., Team, Investors, Community, Treasury, Presale) so readers see where shares go.
+          Name the bucket (e.g., Team, Investors, Community, Treasury, Presale)
+          so readers see where shares go.
         </p>
         <FormInput
           control={control}
@@ -143,8 +145,7 @@ export function AllocationVesting({
       <div>
         <h3 className="text-xl font-semibold">Lock Period (mo)</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          Months until shares unlock; use <strong>0</strong> for no lock; longer
-          vesting can align incentives.
+          Months until shares unlock
         </p>
         <FormInput
           control={control}
@@ -180,10 +181,10 @@ export function AllocationStartDate({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-xl font-semibold">Start Date (vesting)</h3>
+        <h3 className="text-xl font-semibold">Start Date</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          Date when this row’s shares begin unlocking; pairs with the vesting
-          duration.
+          Date when this allocation’s shares begin unlocking; pairs with the
+          vesting duration.
         </p>
         <FormInput
           control={control}
