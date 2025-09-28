@@ -133,10 +133,11 @@ export default function FormEdit() {
       }
       const presales = values.presales.map((item: TFormProjectPresale) => {
         return {
-          // ...item,
-          // hardcap: String(item.hardcap),
-          // price: String(item.price),
-          // maxContribution: String(item.maxContribution),
+          ...item,
+          startDate: new Date(),
+          hardcap: String(0.01),
+          price: String(0.01),
+          maxContribution: String(0.01),
           chainId: chainIds,
           unit: item.unit,
           duration: Number(item.whitelistDuration),
