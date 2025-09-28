@@ -44,6 +44,8 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
 
   async function onSubmit(values: TFormProjectPresale) {
     setIsSubmiting(true)
+    // console.log({ values })
+    // return
     createNewPresale({
       ...values,
       price: String(values.price),
