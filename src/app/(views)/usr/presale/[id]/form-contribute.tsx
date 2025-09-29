@@ -16,7 +16,7 @@ import { TFormBuyPresale, TPresale, TProject } from '@/types/project'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-export default function FormContribute({ data, presale }: { data: TProject, presale: TPresale }) {
+export default function FormContribute({ data, presale, onSuccess }: { data: TProject, presale: TPresale, onSuccess?: () => void; }) {
   const [open, setOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const { contributePresale } = useDeployPresaleSC()
@@ -30,6 +30,7 @@ export default function FormContribute({ data, presale }: { data: TProject, pres
     setSubmitting(true)
     contributePresale({ data, presale, amount: values.amount }).then(() => {
       setOpen(false)
+      onSuccess?.();
     }).finally(() => {
       setSubmitting(false)
     })
