@@ -12,14 +12,22 @@ export const presalesSchema = z.object({
   price: z.coerce.number().min(0.00000001, "Price must be greater than 0").optional(),
   unit: z.string().min(1, "Unit is required"),
   maxContribution: z.coerce.number().min(0, "Max contribution required").optional(),
-  duration: z.coerce.number().min(1, "Duration is required").optional(),
+  duration: z.coerce.number().optional(),
   startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
   claimTime: z.coerce.number().min(0).optional(),
   whitelistDuration: z.coerce.number().optional(),
   whitelistAddress: z.string().optional(),
   sweepDuration: z.coerce.number().min(0).optional(),
   presaleSCID: z.string().optional(),
-});
+}).refine(
+  (data) =>
+    !data.startDate || !data.endDate || data.endDate >= data.startDate,
+  {
+    message: "End Date cannot be earlier than Start Date",
+    path: ["endDate"], // error diarahkan ke endDate
+  }
+)
 export const socialSchema = z.object({
   socialId: z.string().uuid(),
   url: z.string().url(),
