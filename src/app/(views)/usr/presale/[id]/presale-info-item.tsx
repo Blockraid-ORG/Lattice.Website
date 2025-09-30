@@ -12,7 +12,11 @@ import FormContribute from './form-contribute'
 import MyContributionInfo from './my-contribution-info'
 export default function PresaleInfoItem({ data, presale }: { data: TProject, presale: TPresale }) {
   const { data: walletClient } = useWalletClient()
-  const [contributionInfo, setContributionInfo] = useState<{ claimable: string; contribution: string } | null>(null);
+  const [contributionInfo, setContributionInfo] = useState<{
+    claimable: string;
+    contribution: string;
+    claimedToken: string;
+  } | null>(null);
   const [presaleSc, setPresaleSc] = useState<TPresaleSC | null>(null)
   const { address } = useAccount()
 
@@ -43,14 +47,16 @@ export default function PresaleInfoItem({ data, presale }: { data: TProject, pre
   const getPresaleData = useCallback(async () => {
     const provider = new BrowserProvider(walletClient as any)
     const contract = new Contract(data.presaleAddress!, PresaleAbi.abi, provider)
-    const [claimable, contribution] = await Promise.all([
+    const [claimable, contribution, claimedToken] = await Promise.all([
       contract.getClaimableTokens(presale.presaleSCID!, address),
       contract.getContribution(presale.presaleSCID!, address),
+      contract.getClaimedTokens(presale.presaleSCID!, address),
     ]);
 
     return {
       claimable: ethers.formatUnits(claimable, data.decimals),
       contribution: ethers.formatUnits(contribution, data.decimals),
+      claimedToken: ethers.formatUnits(claimedToken, data.decimals),
     };
   },[address, data, presale.presaleSCID, walletClient])
 
@@ -63,6 +69,8 @@ export default function PresaleInfoItem({ data, presale }: { data: TProject, pre
   const progress = presaleSc
     ? (Number(presaleSc.totalRaised) / Number(presaleSc.hardCap)) * 100
     : 0
+
+  console.log({ contributionInfo })
   return (
     <div className='bg-white shadow shadow-neutral-100/5 border p-6 pb-0 dark:bg-neutral-950 rounded-xl my-6'>
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 w-full'>
@@ -127,6 +135,11 @@ export default function PresaleInfoItem({ data, presale }: { data: TProject, pre
         data={data}
         presale={presale}
         presaleSc={presaleSc}
+        onSuccess={async () => {
+          await fetchPresale();
+          const res = await getPresaleData();
+          setContributionInfo(res);
+        }}
       />
     </div>
   )
