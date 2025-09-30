@@ -8,18 +8,26 @@ export const allocationSchema = z.object({
 });
 
 export const presalesSchema = z.object({
-  hardcap: z.coerce.number().min(0.001, "Hard cap required"),
-  price: z.coerce.number().min(0.00000001, "Price must be greater than 0"),
+  hardcap: z.coerce.number().min(0.001, "Hard cap required").optional(),
+  price: z.coerce.number().min(0.00000001, "Price must be greater than 0").optional(),
   unit: z.string().min(1, "Unit is required"),
-  maxContribution: z.coerce.number().min(0, "Max contribution required"),
-  duration: z.coerce.number().min(1, "Duration is required"),
-  startDate: z.coerce.date(),
-  claimTime: z.coerce.number().min(0),
+  maxContribution: z.coerce.number().min(0, "Max contribution required").optional(),
+  duration: z.coerce.number().optional(),
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
+  claimTime: z.coerce.number().min(0).optional(),
   whitelistDuration: z.coerce.number().optional(),
   whitelistAddress: z.string().optional(),
   sweepDuration: z.coerce.number().min(0).optional(),
   presaleSCID: z.string().optional(),
-});
+}).refine(
+  (data) =>
+    !data.startDate || !data.endDate || data.endDate >= data.startDate,
+  {
+    message: "End Date cannot be earlier than Start Date",
+    path: ["endDate"], // error diarahkan ke endDate
+  }
+)
 export const socialSchema = z.object({
   socialId: z.string().uuid(),
   url: z.string().url(),
@@ -31,7 +39,7 @@ export const formCreateProjectSchema = z.object({
   slug: z.string().optional(),
   whitelistAddress: z.string().optional(),
   banner: z.string().min(1),
-  ticker: z.string().min(3).max(3),
+  ticker: z.string().min(3).max(5),
   decimals: z.coerce.number().min(1),
   totalSupply: z.coerce.number().min(1),
   status: z.enum(["PENDING", "APPROVED", "REJECTED", "DEPLOYED"]),

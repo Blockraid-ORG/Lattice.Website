@@ -35,6 +35,7 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
       maxContribution: '',
       duration: '',
       startDate: '',
+      endDate:'',
       claimTime: '',
       whitelistDuration: '',
       sweepDuration: '',
@@ -59,8 +60,6 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
       }
     })
   }
-
-
   function onOpenChange(state: boolean) {
     setOpen(state)
     if (state) {
@@ -131,6 +130,14 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
                 <p className='text-[11px]'>When your presale begins, it automatically detects your timezone.</p>
               </div>
               <div>
+                <FormInput
+                  control={form.control}
+                  name={`endDate`}
+                  label="End Date (sale)" type="datetime-local"
+                />
+                <p className='text-[11px]'>When your presale ending, it automatically detects your timezone.</p>
+              </div>
+              {/* <div>
                 <FormSelect
                   control={form.control}
                   name={`duration`}
@@ -142,7 +149,7 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
                   }] : []}
                 />
                 <p className='text-[11px]'>How long the sale runs (e.g., 14 days)</p>
-              </div>
+              </div> */}
               <div>
                 <FormSelect
                   control={form.control}

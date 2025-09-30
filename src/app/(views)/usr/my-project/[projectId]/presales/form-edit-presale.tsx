@@ -37,6 +37,7 @@ export default function FormEditPresale({ data, item }: { data: TProject, item:T
       maxContribution: '',
       duration: '',
       startDate: '',
+      endDate: '',
       claimTime: '',
       whitelistDuration: '',
       sweepDuration: '',
@@ -77,6 +78,9 @@ export default function FormEditPresale({ data, item }: { data: TProject, item:T
         duration: String(item.duration),
         startDate: item.startDate
           ? dayjs(item.startDate).format("YYYY-MM-DDTHH:mm")
+          : "",
+        endDate: item.endDate
+          ? dayjs(item.endDate).format("YYYY-MM-DDTHH:mm")
           : "",
         claimTime: String(item.claimTime),
         whitelistDuration: item.whitelistDuration,
@@ -141,7 +145,12 @@ export default function FormEditPresale({ data, item }: { data: TProject, item:T
                 name={`startDate`}
                 label="Start Date" type="datetime-local"
               />
-              <FormSelect
+              <FormInput
+                control={form.control}
+                name={`endDate`}
+                label="End Date" type="datetime-local"
+              />
+              {/* <FormSelect
                 control={form.control}
                 name={`duration`}
                 label="Duration"
@@ -150,7 +159,7 @@ export default function FormEditPresale({ data, item }: { data: TProject, item:T
                   label: 'Duration',
                   options: presalesDurations ?? []
                 }] : []}
-              />
+              /> */}
               <FormSelect
                 control={form.control}
                 name={`claimTime`}

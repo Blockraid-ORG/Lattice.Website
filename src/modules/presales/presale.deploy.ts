@@ -37,28 +37,36 @@ export function useDeployPresaleSC() {
     const presale = new ethers.Contract(data.presaleAddress, PresaleAbi.abi, signer);
     try {
       const second = 24 * 60 * 60;
-      const originalDate = new Date(item.startDate);
-      const newDate = new Date(originalDate);
-      newDate.setDate(newDate.getDate()); // + Number(project.presales.duration)
-      const startTime = Math.floor(newDate.getTime() / 1000);
+      const startTime = Math.floor(new Date(item.startDate).getTime() / 1000);
+      const endTime = Math.floor(new Date(item.endDate!).getTime() / 1000);
+      const duration = endTime - startTime;
+      if (duration <= 0) {
+        toast.error('Error', {
+          description:'End Date must be greater than Start Date'
+        })
+        throw new Error("End Date must be greater than Start Date");
+      }
+
 
       const contractERC20 = new ethers.Contract(data.contractAddress!, TokenAbi.abi, signer);
       const amountToApprove = Number(item.hardcap) / Number(item.price)
       const txApprove = await contractERC20.approve(data.presaleAddress, ethers.parseUnits(amountToApprove.toString(), data.decimals));
       await txApprove.wait();
 
-      await presale.activatePresale(
+      const presaleAction = await presale.activatePresale(
         data.contractAddress,
         data.whitelistsAddress,
-        ethers.parseEther(item.hardcap),
-        ethers.parseEther(item.price),
-        ethers.parseEther(item.maxContribution),
+        ethers.parseUnits(item.hardcap, data.decimals),
+        ethers.parseUnits(item.price, data.decimals),
+        ethers.parseUnits(item.maxContribution,data.decimals),
         startTime,
-        Number(item.duration) * second,
+        duration,
         Number(item.whitelistDuration) * 60 * 60,
         Number(item.claimTime) * second,
         Number(item.sweepDuration) * second
       );
+
+      await presaleAction.wait()
       const presaleId = (await presale.presaleCount()).toString();
       updatePresale({
         id: item.id,
@@ -150,6 +158,7 @@ export function useDeployPresaleSC() {
   },
     [address, createContributePresale, walletClient],
   )
+
   const getContribution = useCallback(async ({ data, item }: TActivatePresale) => {
     if (typeof window === 'undefined') return
     if (!walletClient || !address) throw new Error('Wallet not connected')
@@ -159,7 +168,6 @@ export function useDeployPresaleSC() {
     try {
       const contract = new ethers.Contract(data.presaleAddress!, PresaleAbi.abi, signer)
       const tx = await contract.getContribution(item.presaleSCID, address)
-      console.log(tx)
       return tx
     } catch (error: any) {
       console.log(error)
@@ -170,6 +178,7 @@ export function useDeployPresaleSC() {
   },
     [address, walletClient],
   )
+  
   const claimPresale = useCallback(async ({ data, item }: TActivatePresale) => {
     if (!walletClient || !address) throw new Error("Wallet not connected")
     const provider = new BrowserProvider(walletClient as any)
@@ -180,7 +189,6 @@ export function useDeployPresaleSC() {
       const presaleFactory = new ethers.Contract(presaleAddress, PresaleAbi.abi, signer)
       const userAddress = await signer.getAddress()
       const tx = await presaleFactory.claim(item.presaleSCID!, userAddress)
-      console.log({ tx })
       await tx.wait()
       createClaimed({
         amount: '1',

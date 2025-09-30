@@ -20,6 +20,7 @@ import { useForm } from "react-hook-form"
 
 export default function FormAddAddressWhitelist({ data }: { data: TProject }) {
   const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
   const { addToWhitelist } = useDeployPresaleSC()
   const form = useForm<FormProjectAddressWhitelist>({
     resolver: zodResolver(formProjectAddressWhitelistSchema),
@@ -31,6 +32,7 @@ export default function FormAddAddressWhitelist({ data }: { data: TProject }) {
   })
 
   async function onSubmit(values: FormProjectAddressWhitelist) {
+    setLoading(true)
     const arrayAddress: string[] = values.walletAddress.split(',')
       .map((addr: string) => addr.trim())
       .filter((addr: string) => addr !== '');
@@ -40,7 +42,10 @@ export default function FormAddAddressWhitelist({ data }: { data: TProject }) {
         walletAddress: addr
       }
     })
-    addToWhitelist(newData,data.whitelistsAddress!)
+    addToWhitelist(newData, data.whitelistsAddress!).finally(() => {
+      setOpen(false)
+      setLoading(false)
+    })
   }
   function onOpenChange(state: boolean) {
     setOpen(state)
@@ -70,7 +75,7 @@ export default function FormAddAddressWhitelist({ data }: { data: TProject }) {
             />
             <div className="flex justify-end gap-2">
               <Button type='button' onClick={() => setOpen(false)} variant="outline">Cancel</Button>
-              <Button type='submit'>
+              <Button type='submit' disabled={loading}>
                 Save
               </Button>
             </div>

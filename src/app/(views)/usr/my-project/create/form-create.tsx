@@ -66,7 +66,6 @@ export default function FormCreate() {
 
   useEffect(() => {
     try {
-      console.log("formNewbie", formNewbie);
       if (!formNewbie || Object.keys(formNewbie || {}).length === 0) {
         setIsFormReady(true);
         return;
@@ -180,10 +179,28 @@ export default function FormCreate() {
     name: "presales",
   });
   const allocations = form.watch("allocations");
+  const socialsValues = form.watch("socials");
   const totalPercent = allocations.reduce(
     (sum: number, a: TFormProjectAllocation) => sum + Number(a.supply || 0),
     0
   );
+
+  // Function to get available social platforms for a specific field index
+  const getAvailableSocialPlatforms = (currentIndex: number) => {
+    if (!socials) return [];
+
+    // Get all selected social IDs except the current field
+    const selectedSocialIds = socialsValues
+      .map((social: { socialId: string; url: string }, index: number) =>
+        index !== currentIndex ? social.socialId : null
+      )
+      .filter(Boolean);
+
+    // Filter out already selected platforms
+    return socials.filter(
+      (social) => !selectedSocialIds.includes(social.value)
+    );
+  };
 
   async function uploadLogo() {
     const urlRequest = await fetch("/api/upload");
@@ -196,6 +213,7 @@ export default function FormCreate() {
     const url = converToIpfs(upload.cid);
     return url;
   }
+
   async function uploadBanner() {
     const urlRequest = await fetch("/api/upload");
     const urlResponse = await urlRequest.json();
@@ -254,10 +272,10 @@ export default function FormCreate() {
       const presales = values.presales.map((item: TFormProjectPresale) => {
         return {
           ...item,
-          duration: Number(item.duration),
-          hardcap: String(item.hardcap),
-          price: String(item.price),
-          maxContribution: String(item.maxContribution),
+          duration: Number(item.duration) || 10,
+          hardcap: String(item.hardcap) || "1",
+          price: String(item.price) || "0.01",
+          maxContribution: String(item.maxContribution) || "0.1",
           whitelistDuration: item.whitelistDuration || 0,
           sweepDuration: item.sweepDuration || 0,
           chainId: chainIds,
@@ -282,9 +300,17 @@ export default function FormCreate() {
         banner: bannerUrl,
         chainIds: [chainIds],
         chainId: undefined,
-        presales: presales[0],
+        presales: {
+          ...presales[0],
+          startDate: new Date(),
+          hardcap: "1",
+          price: "0.01",
+          maxContribution: "0.1",
+        },
         allocations,
       };
+      // console.log({ newValues, presales })
+      // return
       createProject(newValues, {
         onSuccess: () => {
           // if (arrayAddress && arrayAddress.length > 0) {
@@ -451,14 +477,14 @@ export default function FormCreate() {
                       groups={[
                         {
                           label: "Social",
-                          options: socials
-                            ? socials.map((i) => {
-                                return {
-                                  ...i,
-                                  iconName: i.icon,
-                                };
-                              })
-                            : [],
+                          options: getAvailableSocialPlatforms(index).map(
+                            (i) => {
+                              return {
+                                ...i,
+                                iconName: i.icon,
+                              };
+                            }
+                          ),
                         },
                       ]}
                       placeholder="Select platform"
