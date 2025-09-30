@@ -6,7 +6,7 @@ import {
   getTimeClaim
 } from "@/lib/validationActionSc"
 import { useDeployPresaleSC } from "@/modules/presales/presale.deploy"
-import { TPresaleSC } from "@/types/presale"
+import { TContributionInfo, TPresaleSC } from "@/types/presale"
 import { TPresale, TProject } from '@/types/project'
 import { useState } from "react"
 import dayjs from "@/lib/dayjs"
@@ -14,13 +14,15 @@ type MyContributionInfoProps = {
   data: TProject,
   presale: TPresale,
   presaleSc?: TPresaleSC | null,
-  contributionInfo: { claimable: string; contribution: string } | null
+  contributionInfo: TContributionInfo,
+  onSuccess?: () => void,
 }
 export default function MyContributionInfo({
   data,
   presale,
   presaleSc,
-  contributionInfo
+  contributionInfo,
+  onSuccess
 }: MyContributionInfoProps) {
   const { claimPresale, withdrawContributionIfFailed } = useDeployPresaleSC()
   const [isClaiming, setIsClaiming] = useState(false)
@@ -29,6 +31,8 @@ export default function MyContributionInfo({
     claimPresale({
       data,
       item: presale
+    }).then(() => {
+      onSuccess?.();
     }).finally(() => setIsClaiming(false))
   }
 
@@ -37,11 +41,14 @@ export default function MyContributionInfo({
     withdrawContributionIfFailed({
       data,
       item: presale
+    }).then(() => {
+      onSuccess?.();
     }).finally(() => setIsClaiming(false))
   }
 
   const isClaimAvailable = checkIsClaimPresaleAvail(presaleSc)
   const isRefundAvailable = checkIsRefundPresaleAvail(presaleSc)
+  const isClaimedToken = Number(contributionInfo?.claimable) === 0
 
   return (
     <div>
@@ -56,9 +63,16 @@ export default function MyContributionInfo({
             </div>
           </div>
           <div>
-            <p className='text-sm text-neutral-500'>Reward</p>
+            <p className='text-sm text-neutral-500'>Allocation</p>
             <div className='flex gap-2 items-center'>
               <h2 className='font-bold'>{contributionInfo?.claimable}</h2>
+              <p className='text-xs font-medium'>{data.ticker}</p>
+            </div>
+          </div>
+          <div>
+            <p className='text-sm text-neutral-500'>Claimed Token</p>
+            <div className='flex gap-2 items-center'>
+              <h2 className='font-bold'>{contributionInfo?.claimedToken}</h2>
               <p className='text-xs font-medium'>{data.ticker}</p>
             </div>
           </div>
@@ -67,7 +81,8 @@ export default function MyContributionInfo({
           {
             isClaimAvailable ? (
               <Button
-                disabled={isClaiming || isClaimAvailable} onClick={onClaimPresale}
+                disabled={isClaiming || !isClaimAvailable || isClaimedToken}
+                onClick={onClaimPresale}
                 size={'lg'}
               >Claim Token</Button>
             ) : (
