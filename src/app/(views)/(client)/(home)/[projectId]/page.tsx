@@ -1,7 +1,5 @@
-import DetailProjectContent from './content'
+import DetailProjectContent from "./content";
 
 export default function DetailProductPage() {
-  return (
-    <DetailProjectContent />
-  )
+  return <DetailProjectContent />;
 }
