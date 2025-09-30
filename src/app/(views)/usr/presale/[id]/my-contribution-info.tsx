@@ -1,10 +1,15 @@
+import TimeCountDown from "@/components/time-count-down"
 import { Button } from "@/components/ui/button"
+import {
+  checkIsClaimPresaleAvail,
+  checkIsRefundPresaleAvail,
+  getTimeClaim
+} from "@/lib/validationActionSc"
 import { useDeployPresaleSC } from "@/modules/presales/presale.deploy"
 import { TPresaleSC } from "@/types/presale"
 import { TPresale, TProject } from '@/types/project'
 import { useState } from "react"
-import { toast } from "sonner"
-
+import dayjs from "@/lib/dayjs"
 type MyContributionInfoProps = {
   data: TProject,
   presale: TPresale,
@@ -17,7 +22,7 @@ export default function MyContributionInfo({
   presaleSc,
   contributionInfo
 }: MyContributionInfoProps) {
-  const { claimPresale } = useDeployPresaleSC()
+  const { claimPresale, withdrawContributionIfFailed } = useDeployPresaleSC()
   const [isClaiming, setIsClaiming] = useState(false)
   async function onClaimPresale() {
     setIsClaiming(true)
@@ -28,16 +33,16 @@ export default function MyContributionInfo({
   }
 
   function onRefund() {
-    toast.info('Under Develop')
+    setIsClaiming(true)
+    withdrawContributionIfFailed({
+      data,
+      item: presale
+    }).finally(() => setIsClaiming(false))
   }
-  const endTime = presaleSc?.endTime ? presaleSc.endTime * 1000 : null;
-  const now = Date.now();
-  const isClaimAvailable = presaleSc?.hardCap === presaleSc?.totalRaised
-  const isRefundAvailable =
-    !!presaleSc &&
-    !presaleSc.finalized &&
-    endTime !== null &&
-    endTime <= now;
+
+  const isClaimAvailable = checkIsClaimPresaleAvail(presaleSc)
+  const isRefundAvailable = checkIsRefundPresaleAvail(presaleSc)
+
   return (
     <div>
       <div className="py-4">
@@ -60,11 +65,22 @@ export default function MyContributionInfo({
         </div>
         <div className="mt-4">
           {
-            isClaimAvailable && (
+            isClaimAvailable ? (
               <Button
-                disabled={isClaiming} onClick={onClaimPresale}
+                disabled={isClaiming || isClaimAvailable} onClick={onClaimPresale}
                 size={'lg'}
               >Claim Token</Button>
+            ) : (
+              <div>
+                {
+                  getTimeClaim(presaleSc) && (
+                    <div>
+                      <div className="text-sm mb-1">Claim Available {dayjs(getTimeClaim(presaleSc)).fromNow()}</div>
+                      <TimeCountDown date={dayjs(getTimeClaim(presaleSc)).toISOString()} />
+                    </div>
+                  )
+                }
+              </div>
             )
           }
           {
@@ -75,7 +91,6 @@ export default function MyContributionInfo({
               >Refund</Button>
             )
           }
-          
         </div>
       </div>
     </div>
