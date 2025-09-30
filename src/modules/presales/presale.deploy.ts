@@ -42,7 +42,7 @@ export function useDeployPresaleSC() {
       const duration = endTime - startTime;
       if (duration <= 0) {
         toast.error('Error', {
-          description:'End Date must be greater than Start Date'
+          description: 'End Date must be greater than Start Date'
         })
         throw new Error("End Date must be greater than Start Date");
       }
@@ -58,7 +58,7 @@ export function useDeployPresaleSC() {
         data.whitelistsAddress,
         ethers.parseUnits(item.hardcap, data.decimals),
         ethers.parseUnits(item.price, data.decimals),
-        ethers.parseUnits(item.maxContribution,data.decimals),
+        ethers.parseUnits(item.maxContribution, data.decimals),
         startTime,
         duration,
         Number(item.whitelistDuration) * 60 * 60,
@@ -178,7 +178,7 @@ export function useDeployPresaleSC() {
   },
     [address, walletClient],
   )
-  
+
   const claimPresale = useCallback(async ({ data, item }: TActivatePresale) => {
     if (!walletClient || !address) throw new Error("Wallet not connected")
     const provider = new BrowserProvider(walletClient as any)
@@ -199,16 +199,59 @@ export function useDeployPresaleSC() {
         description: `Transaction hash: ${tx.hash}`
       })
     } catch (error: any) {
-      console.log(error)
       toast.error('Error', {
-        description: 'Claim Failed: Presale is on going!'
+        description: error.shortMessage
       })
     }
   },
     [address, createClaimed, walletClient],
   )
 
-
+  const sweepUnclaimedTokens = useCallback(async ({ data, item }: TActivatePresale) => {
+    if (!walletClient || !address) throw new Error("Wallet not connected")
+    const provider = new BrowserProvider(walletClient as any)
+    const signer = await provider.getSigner(address)
+    const presaleAddress = data.presaleAddress
+    if (!presaleAddress || !item.presaleSCID) throw new Error("Presale address is not set")
+    try {
+      const presaleFactory = new ethers.Contract(presaleAddress, PresaleAbi.abi, signer)
+      const userAddress = await signer.getAddress()
+      const tx = await presaleFactory.sweepUnclaimedTokens(item.presaleSCID!, userAddress)
+      await tx.wait()
+      toast.success("Withdraw successful", {
+        description: `Transaction hash: ${tx.hash}`
+      })
+    } catch (error: any) {
+      toast.error('Error', {
+        description: error.shortMessage
+      })
+    }
+  },
+    [address, walletClient],
+  )
+  const withdrawContributionIfFailed = useCallback(async ({ data, item }: TActivatePresale) => {
+    if (!walletClient || !address) throw new Error("Wallet not connected")
+    const provider = new BrowserProvider(walletClient as any)
+    const signer = await provider.getSigner(address)
+    const presaleAddress = data.presaleAddress
+    if (!presaleAddress || !item.presaleSCID) throw new Error("Presale address is not set")
+    try {
+      const presaleFactory = new ethers.Contract(presaleAddress, PresaleAbi.abi, signer)
+      const userAddress = await signer.getAddress()
+      const tx = await presaleFactory.withdrawContributionIfFailed(item.presaleSCID!, userAddress)
+      await tx.wait()
+      toast.success("Refund successful", {
+        description: `Transaction hash: ${tx.hash}`
+      })
+    } catch (error: any) {
+      console.log(error)
+      toast.error('Error', {
+        description: error.shortMessage
+      })
+    }
+  },
+    [address, walletClient],
+  )
 
   return {
     activatePresale,
@@ -216,6 +259,8 @@ export function useDeployPresaleSC() {
     removeFromWhitelist,
     contributePresale,
     getContribution,
-    claimPresale
+    claimPresale,
+    sweepUnclaimedTokens,
+    withdrawContributionIfFailed
   }
 }

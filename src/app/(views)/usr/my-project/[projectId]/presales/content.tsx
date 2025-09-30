@@ -4,16 +4,17 @@ import { NumberComma } from '@/lib/utils'
 import { useProjectDetail } from '@/modules/project/project.query'
 import dayjs from "dayjs"
 import { useParams } from 'next/navigation'
-import PresaleHeader from './presale-header'
+import { useEffect } from "react"
+import { useSwitchChain } from "wagmi"
+import FormActivatePresale from "./form-activate-presale"
 import FormCreatePresale from "./form-create-presale"
-import FormEditPresale from "./form-edit-presale"
 import FormDeletePresale from "./form-delete-presale"
 import FormDetailPresale from "./form-detail-presale"
-import FormActivatePresale from "./form-activate-presale"
+import FormEditPresale from "./form-edit-presale"
+import FormWithdrawToken from "./form-withdraw-token"
+import PresaleHeader from './presale-header'
 import FormAddAddressWhitelist from "./whitelists/form-add-address-whitelist"
 import { WhitelistAddressList } from "./whitelists/whitelist-address-list"
-import { useSwitchChain } from "wagmi"
-import { useEffect } from "react"
 export default function PresaleContent() {
   const { projectId } = useParams()
   const { data, isLoading } = useProjectDetail(projectId.toString())
@@ -92,6 +93,7 @@ export default function PresaleContent() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2 justify-end items-center">
+                            <FormWithdrawToken data={data} item={item} />
                             <FormActivatePresale data={data} item={item} />
                             <FormDetailPresale data={data} item={item} />
                             <FormEditPresale data={data} item={item} />
