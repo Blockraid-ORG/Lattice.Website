@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAccount, useWalletClient } from 'wagmi'
 import FormContribute from './form-contribute'
 import MyContributionInfo from './my-contribution-info'
+import { isAvailableContribute } from '@/lib/validationActionSc'
 export default function PresaleInfoItem({ data, presale }: { data: TProject, presale: TPresale }) {
   const { data: walletClient } = useWalletClient()
   const [contributionInfo, setContributionInfo] = useState<{
@@ -70,7 +71,7 @@ export default function PresaleInfoItem({ data, presale }: { data: TProject, pre
     ? (Number(presaleSc.totalRaised) / Number(presaleSc.hardCap)) * 100
     : 0
 
-  console.log({ contributionInfo })
+  const isCanContribute = isAvailableContribute(presaleSc)
   return (
     <div className='bg-white shadow shadow-neutral-100/5 border p-6 pb-0 dark:bg-neutral-950 rounded-xl my-6'>
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 w-full'>
@@ -106,7 +107,7 @@ export default function PresaleInfoItem({ data, presale }: { data: TProject, pre
       </div>
   
       {
-        !presaleSc?.finalized && (
+        isCanContribute && (
           <div className='flex gap-2 justify-end pt-4 border-t mt-4'>
             <FormContribute
               data={data}

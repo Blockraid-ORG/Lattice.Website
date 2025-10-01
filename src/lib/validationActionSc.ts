@@ -25,5 +25,15 @@ export const getTimeClaim = (presaleSc?: TPresaleSC | null) => {
     const claimTime = (presaleSc.endTime + presaleSc.claimDelay) * 1000
     return claimTime;
   }
-  
+}
+
+export const isAvailableContribute = (presaleSc?: TPresaleSC | null) => {
+  if (presaleSc) {
+    const now = dayjs().unix()
+    if (presaleSc.finalized) return false
+    if (now < presaleSc.startTime) return false
+    if (now > presaleSc.endTime) return false
+    if (presaleSc.totalRaised >= presaleSc.hardCap) return false
+    return true
+  }
 }

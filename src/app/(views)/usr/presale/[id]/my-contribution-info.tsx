@@ -49,7 +49,6 @@ export default function MyContributionInfo({
   const isClaimAvailable = checkIsClaimPresaleAvail(presaleSc)
   const isRefundAvailable = checkIsRefundPresaleAvail(presaleSc)
   const isClaimedToken = Number(contributionInfo?.claimable) === 0
-
   return (
     <div>
       <div className="py-4">
@@ -90,7 +89,9 @@ export default function MyContributionInfo({
                 {
                   getTimeClaim(presaleSc) && (
                     <div>
-                      <div className="text-sm mb-1">Claim Available {dayjs(getTimeClaim(presaleSc)).fromNow()}</div>
+                      {!isClaimAvailable && !isRefundAvailable && (
+                        <div className="text-sm mb-1">Claim Available {dayjs(getTimeClaim(presaleSc)).fromNow()}</div>
+                      )}
                       <TimeCountDown date={dayjs(getTimeClaim(presaleSc)).toISOString()} />
                     </div>
                   )
