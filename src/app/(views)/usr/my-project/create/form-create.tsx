@@ -31,6 +31,7 @@ import { defaultValues } from "./default-value";
 import { useEffect } from "react";
 import { useProjectTypeList } from "@/modules/project-types/project-types.query";
 import { useFormCreateProject } from "@/store/useFormCreateProject";
+import { useStableCoinGroupList } from "@/modules/stable-coin/stable-coin.query";
 
 type TTokenUnit = {
   value: string;
@@ -57,6 +58,7 @@ export default function FormCreate() {
   const { data: categories } = useCategoryList();
   const { data: socials } = useSocialList();
   const { data: projectTypes } = useProjectTypeList();
+  const { data: stableCoinGroup } = useStableCoinGroupList();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const form = useForm<TFormProject>({
@@ -89,7 +91,7 @@ export default function FormCreate() {
             : defaultValues.totalSupply,
         // arrays
         allocations: (formNewbie.allocations &&
-        formNewbie.allocations.length > 0
+          formNewbie.allocations.length > 0
           ? formNewbie.allocations
           : defaultValues.allocations
         ).map((a: any) => ({
@@ -104,9 +106,9 @@ export default function FormCreate() {
         ).map((p: any, idx: number) =>
           idx === 0
             ? {
-                ...p,
-                whitelistDuration: safeNumber(p?.whitelistDuration, 0),
-              }
+              ...p,
+              whitelistDuration: safeNumber(p?.whitelistDuration, 0),
+            }
             : p
         ),
         socials:
@@ -150,7 +152,7 @@ export default function FormCreate() {
         form.reset(parsed);
         localStorage.removeItem("createProjectDraft");
       }
-    } catch {}
+    } catch { }
   }, [form]);
 
   // Set form ready when API data is available
@@ -228,22 +230,16 @@ export default function FormCreate() {
 
   function onChangeValue(chainId: string) {
     const c = chains?.find((i) => i.value === chainId);
-    setTokenUnits([
-      {
-        label: `${c?.ticker}`,
-        value: `${c?.ticker}`,
-      },
-      {
-        label: `USDC`,
-        value: `USDC`,
-        disabled: true,
-      },
-      {
-        label: `USDT`,
-        value: `USDT`,
-        disabled: true,
-      },
-    ]);
+    const cc = stableCoinGroup?.map(i => {
+      return {
+        label: i.name,
+        value: i.name,
+      }
+    })
+    if (c && cc) {
+      cc.push(c)
+      setTokenUnits(cc)
+    }
   }
 
   function onCheckedChange(state: boolean) {
@@ -309,17 +305,8 @@ export default function FormCreate() {
         },
         allocations,
       };
-      // console.log({ newValues, presales })
-      // return
       createProject(newValues, {
         onSuccess: () => {
-          // if (arrayAddress && arrayAddress.length > 0) {
-          //   updatePresaleWhitelist({
-          //     presaleId: res.presales[0].id,
-          //     walletAddress: arrayAddress,
-          //   });
-          // }
-          // clear local draft store after successful submission
           resetFormCreateProject();
 
           router.push("/usr/my-project");
@@ -590,9 +577,8 @@ export default function FormCreate() {
                 </div>
                 <div className="flex justify-between">
                   <p
-                    className={`text-xs font-semibold ${
-                      totalPercent !== 100 ? "text-red-500" : "text-green-600"
-                    }`}
+                    className={`text-xs font-semibold ${totalPercent !== 100 ? "text-red-500" : "text-green-600"
+                      }`}
                   >
                     Total Allocation: {totalPercent}%
                   </p>
@@ -637,11 +623,11 @@ export default function FormCreate() {
                             groups={
                               tokenUnits
                                 ? [
-                                    {
-                                      label: "Unit",
-                                      options: tokenUnits ?? [],
-                                    },
-                                  ]
+                                  {
+                                    label: "Unit",
+                                    options: tokenUnits ?? [],
+                                  },
+                                ]
                                 : []
                             }
                           />
