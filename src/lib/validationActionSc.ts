@@ -21,10 +21,10 @@ export const checkIsRefundPresaleAvail = (presaleSc?: TPresaleSC | null) => {
     const endTime = presaleSc.endTime
     // const claimTime = presaleSc.claimTime
     
-    const claimTimeAvailable = endTime >= now && !presaleSc.finalized
+    const claimTimeAvailable = now >= endTime && !presaleSc.finalized
     // button claim available if
-    const isAvailableRefund = claimTimeAvailable && presaleSc.finalized
-    return isAvailableRefund
+    // const isAvailableRefund = claimTimeAvailable && presaleSc.finalized
+    return claimTimeAvailable
   }
 }
 
