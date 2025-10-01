@@ -6,8 +6,6 @@ export const checkIsClaimPresaleAvail = (presaleSc?: TPresaleSC | null) => {
     const now = dayjs().unix()
     const claimTime = presaleSc.claimTime
     const claimTimeAvailable = now >= claimTime
-
-
     const isAvailableClaim = claimTimeAvailable && presaleSc.finalized
     return isAvailableClaim
   }
@@ -15,16 +13,10 @@ export const checkIsClaimPresaleAvail = (presaleSc?: TPresaleSC | null) => {
 
 export const checkIsRefundPresaleAvail = (presaleSc?: TPresaleSC | null) => {
   if (presaleSc) {
-    // current time
     const now = dayjs().unix()
-    // endtime presale
     const endTime = presaleSc.endTime
-    // const claimTime = presaleSc.claimTime
-    
-    const claimTimeAvailable = now >= endTime && !presaleSc.finalized
-    // button claim available if
-    // const isAvailableRefund = claimTimeAvailable && presaleSc.finalized
-    return claimTimeAvailable
+    const isAvailableRefund = now >= endTime && !presaleSc.finalized
+    return isAvailableRefund
   }
 }
 
