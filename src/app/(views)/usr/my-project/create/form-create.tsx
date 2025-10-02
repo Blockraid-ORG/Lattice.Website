@@ -91,7 +91,7 @@ export default function FormCreate() {
             : defaultValues.totalSupply,
         // arrays
         allocations: (formNewbie.allocations &&
-          formNewbie.allocations.length > 0
+        formNewbie.allocations.length > 0
           ? formNewbie.allocations
           : defaultValues.allocations
         ).map((a: any) => ({
@@ -106,9 +106,9 @@ export default function FormCreate() {
         ).map((p: any, idx: number) =>
           idx === 0
             ? {
-              ...p,
-              whitelistDuration: safeNumber(p?.whitelistDuration, 0),
-            }
+                ...p,
+                whitelistDuration: safeNumber(p?.whitelistDuration, 0),
+              }
             : p
         ),
         socials:
@@ -152,7 +152,7 @@ export default function FormCreate() {
         form.reset(parsed);
         localStorage.removeItem("createProjectDraft");
       }
-    } catch { }
+    } catch {}
   }, [form]);
 
   // Set form ready when API data is available
@@ -230,22 +230,22 @@ export default function FormCreate() {
 
   function onChangeValue(chainId: string) {
     const c = chains?.find((i) => i.value === chainId);
-    const stabels = stableCoinGroup?.map(i => {
+    const stabels = stableCoinGroup?.map((i) => {
       return {
         label: i.name,
         value: i.name,
-      }
-    })
+      };
+    });
 
     if (c && stabels) {
       const native = {
         label: c.ticker!,
-        value: c.ticker!
-      }
-      stabels.push(native)
-      setTokenUnits(stabels)
+        value: c.ticker!,
+      };
+      stabels.push(native);
+      setTokenUnits(stabels);
     }
-    console.log({c})
+    console.log({ c });
   }
 
   function onCheckedChange(state: boolean) {
@@ -583,8 +583,9 @@ export default function FormCreate() {
                 </div>
                 <div className="flex justify-between">
                   <p
-                    className={`text-xs font-semibold ${totalPercent !== 100 ? "text-red-500" : "text-green-600"
-                      }`}
+                    className={`text-xs font-semibold ${
+                      totalPercent !== 100 ? "text-red-500" : "text-green-600"
+                    }`}
                   >
                     Total Allocation: {totalPercent}%
                   </p>
@@ -629,11 +630,10 @@ export default function FormCreate() {
                             groups={
                               tokenUnits
                                 ? [
-                                  {
-                                    label: "Unit",
-                                    options: tokenUnits ?? [],
-                                  },
-                                ]
+                                    {
+                                      options: tokenUnits ?? [],
+                                    },
+                                  ]
                                 : []
                             }
                           />

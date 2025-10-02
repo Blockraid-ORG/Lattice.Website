@@ -35,6 +35,8 @@ import { SocialMediaForm } from "./components/SocialSteps";
 import { AllocationForm } from "./components/AllocationSteps";
 import { PresaleUnit, PresaleWhitelist } from "./components/PresaleSteps";
 import { useFormCreateProject } from "@/store/useFormCreateProject";
+import { useStableCoinGroupList } from "@/modules/stable-coin/stable-coin.query";
+import { TCommonOption } from "@/types/stable-coin";
 
 export default function FormCreateNewbie() {
   const [currentStep, setCurrentStep] = useState<StepId>("intro");
@@ -45,6 +47,7 @@ export default function FormCreateNewbie() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [bannerPreviewUrl, setBannerPreviewUrl] = useState<string | null>(null);
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
+  const { data: stableCoinGroup } = useStableCoinGroupList();
 
   const form = useForm<TFormProject>({
     resolver: zodResolver(formCreateProjectSchema),
@@ -70,16 +73,25 @@ export default function FormCreateNewbie() {
     () => chains?.find((c: any) => c.value === selectedChainId),
     [chains, selectedChainId]
   );
-  const tokenUnits = useMemo(
-    () => [
-      {
-        label: `${selectedChain?.ticker ?? ""}`,
-        value: `${selectedChain?.ticker ?? ""}`,
-      },
-      { label: "USDC", value: "USDC", disabled: true },
-    ],
-    [selectedChain]
-  );
+  const tokenUnits = useMemo<TCommonOption[]>(() => {
+    const stabels = stableCoinGroup?.map((i: { name: string }) => {
+      return {
+        label: i.name,
+        value: i.name,
+      };
+    });
+    if (selectedChain) {
+      const tokenUnitsTmp = [
+        {
+          label: `${selectedChain?.ticker ?? ""}`,
+          value: `${selectedChain?.ticker ?? ""}`,
+        },
+        ...(stabels ?? []),
+      ];
+      return tokenUnitsTmp as TCommonOption[];
+    }
+    return stabels as TCommonOption[];
+  }, [selectedChain, stableCoinGroup]);
 
   const currentIndex = useMemo(
     () => steps.findIndex((s) => s.id === currentStep),
