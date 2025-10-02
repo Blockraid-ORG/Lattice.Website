@@ -32,13 +32,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { SocialMediaForm } from "./components/SocialSteps";
-import {
-  AllocationIntro,
-  AllocationSupply,
-  AllocationName,
-  AllocationVesting,
-  AllocationStartDate,
-} from "./components/AllocationSteps";
+import { AllocationForm } from "./components/AllocationSteps";
 import { PresaleUnit, PresaleWhitelist } from "./components/PresaleSteps";
 import { useFormCreateProject } from "@/store/useFormCreateProject";
 
@@ -46,7 +40,6 @@ export default function FormCreateNewbie() {
   const [currentStep, setCurrentStep] = useState<StepId>("intro");
   const [banner, setBanner] = useState<File | null>(null);
   const [logo, setLogo] = useState<File | null>(null);
-  const [allocationIndex, setAllocationIndex] = useState(0);
   const [presaleIndex] = useState(0);
   const [showWhitelist, setShowWhitelist] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -67,26 +60,11 @@ export default function FormCreateNewbie() {
     control: form.control,
     name: "socials",
   });
-  const { fields: allocationFields, append: appendAllocation } = useFieldArray({
-    control: form.control,
-    name: "allocations",
-  });
   const { fields: presalesFields } = useFieldArray({
     control: form.control,
     name: "presales",
   });
-  const allocations = form.watch("allocations");
   const socialsValues = form.watch("socials");
-  const totalAllocationPercent = (allocations || []).reduce(
-    (sum: number, a: any) => sum + Number(a?.supply || 0),
-    0
-  );
-  const isSimpleAllocation = useMemo(() => {
-    const name = String(allocations?.[allocationIndex]?.name || "")
-      .trim()
-      .toLowerCase();
-    return name === "deployer" || name === "presale";
-  }, [allocations, allocationIndex]);
   const selectedChainId = form.watch("chainId");
   const selectedChain = useMemo(
     () => chains?.find((c: any) => c.value === selectedChainId),
@@ -120,75 +98,11 @@ export default function FormCreateNewbie() {
 
   async function validateAndNext() {
     const step = steps[currentIndex];
-    if (currentStep === "allocSupply") {
-      const ok = await form.trigger([
-        `allocations.${allocationIndex}.supply`,
-      ] as any);
-      if (!ok) return;
-      if (isSimpleAllocation) {
-        const currentName = String(allocations?.[allocationIndex]?.name || "")
-          .trim()
-          .toLowerCase();
-        if (currentName === "deployer") {
-          const presaleIdx = (allocations || []).findIndex(
-            (a: any) =>
-              String(a?.name || "")
-                .trim()
-                .toLowerCase() === "presale"
-          );
-          if (presaleIdx !== -1) {
-            setAllocationIndex(presaleIdx);
-            setCurrentStep("allocName");
-            return;
-          }
-        }
-        setCurrentStep("allocAddMore");
-      } else {
-        goNext();
-      }
-      return;
-    }
-    if (currentStep === "allocName") {
-      const ok = await form.trigger([
-        `allocations.${allocationIndex}.name`,
-      ] as any);
-      if (!ok) return;
-      goNext();
-      return;
-    }
-    if (currentStep === "allocVesting") {
-      const ok = await form.trigger([
-        `allocations.${allocationIndex}.vesting`,
-      ] as any);
-      if (!ok) return;
-      goNext();
-      return;
-    }
-    if (currentStep === "allocStartDate") {
-      const ok = await form.trigger([
-        `allocations.${allocationIndex}.startDate`,
-      ] as any);
-      if (!ok) return;
-      goNext();
-      return;
-    }
     if (step.validateFields && step.validateFields.length > 0) {
       const ok = await form.trigger(step.validateFields as any);
       if (!ok) return;
     }
     goNext();
-  }
-
-  function appendEmptyAllocationAndStart() {
-    const nextName = getNextDefaultAllocationName();
-    appendAllocation({
-      name: nextName,
-      supply: 0,
-      vesting: 0,
-      startDate: new Date().toISOString(),
-    } as any);
-    setAllocationIndex(allocationFields.length);
-    setCurrentStep("allocSupply");
   }
 
   // Next Form Advanced
@@ -198,26 +112,19 @@ export default function FormCreateNewbie() {
     const draft = form.getValues();
     setForm(draft);
     setFormType("advanced");
-    // pass previews to global store so advanced form can show them
+
+    // Create new URLs for global store to avoid memory leaks
+    const logoPreview = logo ? URL.createObjectURL(logo) : null;
+    const bannerPreview = banner ? URL.createObjectURL(banner) : null;
+
     setMedia({
       logoFile: logo,
       bannerFile: banner,
-      logoPreview: logo ? URL.createObjectURL(logo) : null,
-      bannerPreview: banner ? URL.createObjectURL(banner) : null,
+      logoPreview,
+      bannerPreview,
     });
   }
   // END Next Form Advanced
-
-  function getNextDefaultAllocationName(): string {
-    const existingNames = (form.getValues("allocations") || []).map((a: any) =>
-      String(a?.name || "")
-        .trim()
-        .toLowerCase()
-    );
-    if (!existingNames.includes("deployer")) return "Deployer";
-    if (!existingNames.includes("presale")) return "Presale";
-    return "";
-  }
 
   function handleChangeBanner(file: File | null) {
     setBanner(file);
@@ -248,20 +155,6 @@ export default function FormCreateNewbie() {
   useEffect(() => {
     if (socialFields.length === 0) {
       appendSocial({ socialId: "", url: "" } as any);
-    }
-    if (allocationFields.length === 0) {
-      appendAllocation({
-        name: "Deployer",
-        supply: 0,
-        vesting: 0,
-        startDate: new Date().toISOString(),
-      } as any);
-      appendAllocation({
-        name: "Presale",
-        supply: 0,
-        vesting: 0,
-        startDate: new Date().toISOString(),
-      } as any);
     }
     if ((presalesFields?.length ?? 0) === 0) {
       // ensure one presale row exists
@@ -828,171 +721,12 @@ export default function FormCreateNewbie() {
           )}
 
           {currentStep === "allocIntro" && (
-            <AllocationIntro
+            <AllocationForm
+              control={form.control}
               onBack={goBack}
-              onNext={() => setCurrentStep("allocName")}
+              onNext={goNext}
+              onSkip={handoffToNativeForm}
             />
-          )}
-
-          {currentStep === "allocName" && (
-            <AllocationName
-              control={form.control}
-              index={allocationIndex}
-              onBack={() => setCurrentStep("allocIntro")}
-              onNext={validateAndNext}
-            />
-          )}
-
-          {currentStep === "allocSupply" && (
-            <AllocationSupply
-              control={form.control}
-              index={allocationIndex}
-              currentTotal={totalAllocationPercent}
-              onBack={() => setCurrentStep("allocName")}
-              onNext={validateAndNext}
-            />
-          )}
-
-          {currentStep === "allocVesting" && (
-            <AllocationVesting
-              control={form.control}
-              index={allocationIndex}
-              onBack={() => setCurrentStep("allocSupply")}
-              onNext={validateAndNext}
-            />
-          )}
-
-          {currentStep === "allocStartDate" && (
-            <AllocationStartDate
-              control={form.control}
-              index={allocationIndex}
-              onBack={() => setCurrentStep("allocVesting")}
-              onNext={validateAndNext}
-            />
-          )}
-
-          {currentStep === "allocAddMore" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">
-                  Add another allocation?
-                </h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  Add more allocations (Team, Presale, Community, Investors)
-                  until your plan is complete.
-                </p>
-                <div className="text-sm mt-2">
-                  <p
-                    className={`font-semibold ${
-                      totalAllocationPercent === 100
-                        ? "text-green-600"
-                        : "text-red-500"
-                    }`}
-                  >
-                    Total Allocation: {totalAllocationPercent}%
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-0">
-                    Check that all rows together equal <strong>100%</strong>{" "}
-                    before you proceed.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() =>
-                    setCurrentStep(
-                      isSimpleAllocation ? "allocSupply" : "allocStartDate"
-                    )
-                  }
-                >
-                  Back
-                </Button>
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="link"
-                    onClick={handoffToNativeForm}
-                  >
-                    Skip
-                  </Button>
-                  <Button
-                    type="button"
-                    disabled={totalAllocationPercent === 100}
-                    variant="secondary"
-                    onClick={() => {
-                      const nextName = getNextDefaultAllocationName();
-                      appendAllocation({
-                        name: nextName,
-                        supply: 0,
-                        vesting: 0,
-                        startDate: new Date().toISOString(),
-                      } as any);
-                      setAllocationIndex(allocationFields.length);
-                      setCurrentStep("allocName");
-                    }}
-                  >
-                    Yes, add another
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => setCurrentStep("presaleUnit")}
-                    disabled={totalAllocationPercent !== 100}
-                  >
-                    No, continue
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {currentStep === "allocTotal" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">Total Allocation</h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  To continue, make sure total allocation equals exactly 100%.
-                </p>
-                <div className="text-sm mt-2">
-                  <p
-                    className={`font-semibold ${
-                      totalAllocationPercent === 100
-                        ? "text-green-600"
-                        : "text-red-500"
-                    }`}
-                  >
-                    Total Allocation: {totalAllocationPercent}%
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep("allocAddMore")}
-                >
-                  Back
-                </Button>
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    disabled={totalAllocationPercent === 100}
-                    variant="secondary"
-                    onClick={appendEmptyAllocationAndStart}
-                  >
-                    + Allocation
-                  </Button>
-                  <Button
-                    type="button"
-                    disabled={totalAllocationPercent !== 100}
-                    onClick={goNext}
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
-            </div>
           )}
 
           {currentStep === "presaleUnit" && (
@@ -1000,7 +734,7 @@ export default function FormCreateNewbie() {
               control={form.control}
               index={presaleIndex}
               units={tokenUnits}
-              onBack={() => setCurrentStep("allocTotal")}
+              onBack={goBack}
               onNext={async () => {
                 const ok = await form.trigger([
                   `presales.${presaleIndex}.unit`,
@@ -1008,6 +742,7 @@ export default function FormCreateNewbie() {
                 if (!ok) return;
                 goNext();
               }}
+              onSkip={handoffToNativeForm}
             />
           )}
 
@@ -1018,7 +753,7 @@ export default function FormCreateNewbie() {
                 index={presaleIndex}
                 show={showWhitelist}
                 onToggle={setShowWhitelist}
-                onBack={() => setCurrentStep("presaleUnit")}
+                onBack={goBack}
                 onNext={() => setShowConfirm(true)}
               />
             </>

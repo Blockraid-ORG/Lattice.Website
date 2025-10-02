@@ -76,40 +76,7 @@ export const steps: Step[] = [
     id: "allocIntro",
     title: "Allocations",
     description:
-      "Split your token supply into slices like Team, Community, Investors, Presale.",
-  },
-  {
-    id: "allocName",
-    title: "Allocation",
-    description:
-      "How will you split supply across team, investors, community, and others?",
-  },
-  {
-    id: "allocSupply",
-    title: "Supply (%)",
-    description: "What percentage of total supply does this row deserve?",
-  },
-  {
-    id: "allocVesting",
-    title: "Vesting (mo)",
-    description:
-      "Over how many months should this portion unlock—use 0 for no lock?",
-  },
-  {
-    id: "allocStartDate",
-    title: "Start Date",
-    description: "When should unlocking begin for this row?",
-  },
-  {
-    id: "allocAddMore",
-    title: "Add another allocation?",
-    description:
-      "Need another slice for Team, Presale, Community, or Investors?",
-  },
-  {
-    id: "allocTotal",
-    title: "Total Allocation",
-    description: "Do all your slices add up to a clean 100 percent?",
+      "Split your token supply into slices like Team, Community, Investors, Presale. You can add multiple allocations and manage them all in one place.",
   },
   {
     id: "presaleUnit",

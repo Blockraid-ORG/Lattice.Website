@@ -12,6 +12,7 @@ type BaseProps = {
   index: number;
   onBack: () => void;
   onNext: () => void;
+  onSkip?: () => void;
 };
 
 export function PresaleUnit({
@@ -19,6 +20,7 @@ export function PresaleUnit({
   index,
   onBack,
   onNext,
+  onSkip,
   units,
 }: BaseProps & { units: any[] }) {
   return (
@@ -42,9 +44,16 @@ export function PresaleUnit({
         <Button type="button" variant="outline" onClick={onBack}>
           Back
         </Button>
-        <Button type="button" onClick={onNext}>
-          Next
-        </Button>
+        <div className="flex items-center gap-2">
+          {onSkip && (
+            <Button type="button" variant="link" onClick={onSkip}>
+              Skip
+            </Button>
+          )}
+          <Button type="button" onClick={onNext}>
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );

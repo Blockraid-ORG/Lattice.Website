@@ -183,6 +183,17 @@ export function SocialMediaForm({
     append({ socialId: "", url: "" });
   };
 
+  // Check if all social platforms are already selected
+  const isAllPlatformsSelected = () => {
+    if (!socialsOptions || socialsOptions.length === 0) return true;
+
+    const selectedPlatforms = watchedSocialsValues
+      .map((social: { socialId: string; url: string }) => social.socialId)
+      .filter(Boolean);
+
+    return selectedPlatforms.length >= socialsOptions.length;
+  };
+
   const removeSocial = (index: number) => {
     if (fields.length > 1) {
       remove(index);
@@ -244,6 +255,7 @@ export function SocialMediaForm({
           type="button"
           variant="outline"
           onClick={addSocial}
+          disabled={isAllPlatformsSelected()}
           className="flex items-center gap-2"
         >
           <Plus className="h-4 w-4" />
