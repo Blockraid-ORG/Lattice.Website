@@ -7,7 +7,7 @@ import ChartAllocations from './chart-allocations'
 export default function TokenInfo({ data }: { data: TProject }) {
   return (
     <div className='relative z-20 px-3 md:px-0'>
-      <div className="container bg-white shadow shadow-neutral-100/5 border p-6 dark:bg-neutral-950 rounded-xl -mt-12 mb-6">
+      <div className="container bg-white shadow shadow-neutral-100/5 border p-6 dark:bg-neutral-950 rounded-xl mb-6">
         <h2 className='text-lg md:text-xl font-semibold'>Token Info</h2>
         <div className='flex flex-col md:flex-row mt-4'>
           <div className='flex-1'>

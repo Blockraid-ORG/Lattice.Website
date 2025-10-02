@@ -16,6 +16,7 @@ type TFormCreateProjectStore = {
     logoPreview?: string | null;
     bannerPreview?: string | null;
   }) => void;
+  reset: () => void;
 };
 
 export const useFormCreateProject = create<TFormCreateProjectStore>()(
@@ -42,6 +43,15 @@ export const useFormCreateProject = create<TFormCreateProjectStore>()(
           media.bannerPreview !== undefined
             ? media.bannerPreview
             : state.bannerPreview,
+      })),
+    reset: () =>
+      set(() => ({
+        form: {} as TFormProject,
+        formType: "advanced",
+        logoFile: null,
+        bannerFile: null,
+        logoPreview: null,
+        bannerPreview: null,
       })),
   })
 );

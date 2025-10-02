@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table"
-import { NumberComma } from "@/lib/utils"
+import { cutString, NumberComma } from "@/lib/utils"
 import { useContribute } from "@/modules/contribute/contribute.hook"
 import { useMyContribution } from '@/modules/transaction-presale/transaction-presale.query'
 import { TProject } from '@/types/project'
@@ -62,14 +62,6 @@ export default function TableMyContribution({ data }: { data: TProject }) {
           </div>
         </div>
         <div className="mt-4">
-          {/* {
-            !dayjs(data.presales[0].startDate).add(+data.presales[0].duration, "day").isAfter(dayjs()) && (
-              <Button
-                disabled={isClaiming} onClick={onClaimPresale}
-                size={'lg'}
-              >Claim Token</Button>
-            )
-          } */}
           <Button
             disabled={isClaiming} onClick={onClaimPresale}
             size={'lg'}
@@ -84,7 +76,7 @@ export default function TableMyContribution({ data }: { data: TProject }) {
               <TableHead className="w-[100px]">#</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Token</TableHead>
-              <TableHead></TableHead>
+              <TableHead>Tx Hash</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -100,7 +92,7 @@ export default function TableMyContribution({ data }: { data: TProject }) {
                     className="text-sm font-semibold underline text-blue-500 block break-all"
                     target="_blank" rel="noopener noreferrer"
                     href={`${data.chains[0].chain.urlScanner}/tx/${item.transactionHash}`}>
-                    {item.transactionHash}
+                    {cutString(item.transactionHash,5)}
                   </Link>
                 </TableCell>
               </TableRow>

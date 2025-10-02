@@ -70,96 +70,52 @@ export const steps: Step[] = [
     id: "socialPlatform",
     title: "Website / Social Media",
     description:
-      "Add your site and social links so investors can check quickly. Which platform do you want to spotlight first?",
-  },
-  {
-    id: "socialUrl",
-    title: "URL",
-    description: "What’s the live URL to your site or social page?",
-  },
-  {
-    id: "socialAddMore",
-    title: "Add another social?",
-    description:
-      "Would you like to add another social link so investors can check quickly?",
+      "Add your site and social links so investors can check quickly. You can add multiple platforms and URLs.",
   },
   {
     id: "allocIntro",
     title: "Allocations",
     description:
-      "Split your token supply into slices like Team, Community, Investors, Presale.",
-  },
-  {
-    id: "allocName",
-    title: "Allocation",
-    description:
-      "How will you split supply across team, investors, community, and others?",
-  },
-  {
-    id: "allocSupply",
-    title: "Supply (%)",
-    description: "What percentage of total supply does this row deserve?",
-  },
-  {
-    id: "allocVesting",
-    title: "Vesting (mo)",
-    description:
-      "Over how many months should this portion unlock—use 0 for no lock?",
-  },
-  {
-    id: "allocStartDate",
-    title: "Start Date",
-    description: "When should unlocking begin for this row?",
-  },
-  {
-    id: "allocAddMore",
-    title: "Add another allocation?",
-    description:
-      "Need another slice for Team, Presale, Community, or Investors?",
-  },
-  {
-    id: "allocTotal",
-    title: "Total Allocation",
-    description: "Do all your slices add up to a clean 100 percent?",
+      "Split your token supply into slices like Team, Community, Investors, Presale. You can add multiple allocations and manage them all in one place.",
   },
   {
     id: "presaleUnit",
     title: "Presales Info",
     description: "Unit — What will buyers pay with—USDT or another token?",
   },
-  {
-    id: "presaleHardcap",
-    title: "Presales Info",
-    description:
-      "Hard Cap — What’s the maximum you plan to raise this round—say 100000?",
-  },
-  {
-    id: "presalePrice",
-    title: "Presales Info",
-    description: "Price Per Token — What’s the price for one token—like 0.01?",
-  },
-  {
-    id: "presaleMaxContribution",
-    title: "Presales Info",
-    description:
-      "Max Contribution — What’s the per-wallet cap to keep things fair—maybe 500?",
-  },
-  {
-    id: "presaleStartDate",
-    title: "Presales Info",
-    description: "Start Date — When will the sale open?",
-  },
-  {
-    id: "presaleDuration",
-    title: "Presales Info",
-    description:
-      "Duration — How long will the sale window stay open—like 14 days?",
-  },
-  {
-    id: "presaleClaimAfter",
-    title: "Presales Info",
-    description: "Claim Available After — When can buyers claim their tokens?",
-  },
+  // {
+  //   id: "presaleHardcap",
+  //   title: "Presales Info",
+  //   description:
+  //     "Hard Cap — What’s the maximum you plan to raise this round—say 100000?",
+  // },
+  // {
+  //   id: "presalePrice",
+  //   title: "Presales Info",
+  //   description: "Price Per Token — What’s the price for one token—like 0.01?",
+  // },
+  // {
+  //   id: "presaleMaxContribution",
+  //   title: "Presales Info",
+  //   description:
+  //     "Max Contribution — What’s the per-wallet cap to keep things fair—maybe 500?",
+  // },
+  // {
+  //   id: "presaleStartDate",
+  //   title: "Presales Info",
+  //   description: "Start Date — When will the sale open?",
+  // },
+  // {
+  //   id: "presaleDuration",
+  //   title: "Presales Info",
+  //   description:
+  //     "Duration — How long will the sale window stay open—like 14 days?",
+  // },
+  // {
+  //   id: "presaleClaimAfter",
+  //   title: "Presales Info",
+  //   description: "Claim Available After — When can buyers claim their tokens?",
+  // },
   {
     id: "presaleWhitelist",
     title: "Presales Info",

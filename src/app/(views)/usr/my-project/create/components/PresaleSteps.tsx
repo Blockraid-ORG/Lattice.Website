@@ -12,6 +12,7 @@ type BaseProps = {
   index: number;
   onBack: () => void;
   onNext: () => void;
+  onSkip?: () => void;
 };
 
 export function PresaleUnit({
@@ -19,6 +20,7 @@ export function PresaleUnit({
   index,
   onBack,
   onNext,
+  onSkip,
   units,
 }: BaseProps & { units: any[] }) {
   return (
@@ -26,7 +28,8 @@ export function PresaleUnit({
       <div>
         <h3 className="text-xl font-semibold">Presales Info</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          Unit — What will buyers pay with—USDT or another token?
+          Payment asset buyers will use (e.g., <strong>USDC</strong> or{" "}
+          <strong>BNB</strong>); pick what fits your chosen chain.
         </p>
         <FormSelect
           className="mt-2"
@@ -34,208 +37,23 @@ export function PresaleUnit({
           name={`presales.${index}.unit`}
           label=""
           placeholder="Select unit"
-          groups={[{ label: "Unit", options: units }]}
+          groups={[{ options: units }]}
         />
       </div>
       <div className="flex items-center justify-between pt-2">
         <Button type="button" variant="outline" onClick={onBack}>
           Back
         </Button>
-        <Button type="button" onClick={onNext}>
-          Next
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-export function PresaleHardcap({ control, index, onBack, onNext }: BaseProps) {
-  return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-xl font-semibold">Presales Info</h3>
-        <p className="text-sm text-muted-foreground mt-0">
-          Hard Cap — What’s the maximum you plan to raise this round—say 100000?
-        </p>
-        <FormInput
-          control={control}
-          name={`presales.${index}.hardcap`}
-          label=""
-          type="number"
-          placeholder="e.g. 100000"
-        />
-      </div>
-      <div className="flex items-center justify-between pt-2">
-        <Button type="button" variant="outline" onClick={onBack}>
-          Back
-        </Button>
-        <Button type="button" onClick={onNext}>
-          Next
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-export function PresalePrice({ control, index, onBack, onNext }: BaseProps) {
-  return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-xl font-semibold">Presales Info</h3>
-        <p className="text-sm text-muted-foreground mt-0">
-          Price Per Token — What’s the price for one token—like 0.01?
-        </p>
-        <FormInput
-          control={control}
-          name={`presales.${index}.price`}
-          label=""
-          type="number"
-          placeholder="e.g. 0.01"
-        />
-      </div>
-      <div className="flex items-center justify-between pt-2">
-        <Button type="button" variant="outline" onClick={onBack}>
-          Back
-        </Button>
-        <Button type="button" onClick={onNext}>
-          Next
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-export function PresaleMaxContribution({
-  control,
-  index,
-  onBack,
-  onNext,
-}: BaseProps) {
-  return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-xl font-semibold">Presales Info</h3>
-        <p className="text-sm text-muted-foreground mt-0">
-          Max Contribution — What’s the per-wallet cap to keep things fair—maybe
-          500?
-        </p>
-        <FormInput
-          control={control}
-          name={`presales.${index}.maxContribution`}
-          label=""
-          type="number"
-          placeholder="e.g. 500"
-        />
-      </div>
-      <div className="flex items-center justify-between pt-2">
-        <Button type="button" variant="outline" onClick={onBack}>
-          Back
-        </Button>
-        <Button type="button" onClick={onNext}>
-          Next
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-export function PresaleStartDate({
-  control,
-  index,
-  onBack,
-  onNext,
-}: BaseProps) {
-  return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-xl font-semibold">Presales Info</h3>
-        <p className="text-sm text-muted-foreground mt-0">
-          Start Date — When will the sale open?
-        </p>
-        <FormInput
-          control={control}
-          name={`presales.${index}.startDate`}
-          label=""
-          type="datetime-local"
-        />
-      </div>
-      <div className="flex items-center justify-between pt-2">
-        <Button type="button" variant="outline" onClick={onBack}>
-          Back
-        </Button>
-        <Button type="button" onClick={onNext}>
-          Next
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-export function PresaleDuration({
-  control,
-  index,
-  onBack,
-  onNext,
-  durations,
-}: BaseProps & { durations: any[] }) {
-  return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-xl font-semibold">Presales Info</h3>
-        <p className="text-sm text-muted-foreground mt-0">
-          Duration — How long will the sale window stay open—like 14 days?
-        </p>
-        <FormSelect
-          className="mt-2"
-          control={control}
-          name={`presales.${index}.duration`}
-          label=""
-          placeholder="Select duration"
-          groups={[{ label: "Duration", options: durations }]}
-        />
-      </div>
-      <div className="flex items-center justify-between pt-2">
-        <Button type="button" variant="outline" onClick={onBack}>
-          Back
-        </Button>
-        <Button type="button" onClick={onNext}>
-          Next
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-export function PresaleClaimAfter({
-  control,
-  index,
-  onBack,
-  onNext,
-  durations,
-}: BaseProps & { durations: any[] }) {
-  return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-xl font-semibold">Presales Info</h3>
-        <p className="text-sm text-muted-foreground mt-0">
-          Claim Available After — When can buyers claim their tokens?
-        </p>
-        <FormSelect
-          className="mt-2"
-          control={control}
-          name={`presales.${index}.claimTime`}
-          label=""
-          placeholder="Select time"
-          groups={[{ label: "Duration", options: durations }]}
-        />
-      </div>
-      <div className="flex items-center justify-between pt-2">
-        <Button type="button" variant="outline" onClick={onBack}>
-          Back
-        </Button>
-        <Button type="button" onClick={onNext}>
-          Next
-        </Button>
+        <div className="flex items-center gap-2">
+          {onSkip && (
+            <Button type="button" variant="link" onClick={onSkip}>
+              Skip
+            </Button>
+          )}
+          <Button type="button" onClick={onNext}>
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -267,10 +85,16 @@ export function PresaleWhitelist({
         </div>
         {show && (
           <div className="mt-4">
+            <label htmlFor="enable-whitelist">Whitelist Duration (hours)</label>
+            <p className="text-sm text-muted-foreground mt-0">
+              How long the allowlist stays open (e.g., <strong>10 hours</strong>{" "}
+              or <strong>0</strong> for none); only approved wallets can join
+              during this window.
+            </p>
             <FormInput
               control={control}
               name={`presales.${index}.whitelistDuration`}
-              label="Whitelist Duration (hours)"
+              label=""
               type="number"
               placeholder="e.g. 24"
             />

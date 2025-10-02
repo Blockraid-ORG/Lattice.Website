@@ -35,6 +35,7 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
       maxContribution: '',
       duration: '',
       startDate: '',
+      endDate:'',
       claimTime: '',
       whitelistDuration: '',
       sweepDuration: '',
@@ -59,8 +60,6 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
       }
     })
   }
-
-
   function onOpenChange(state: boolean) {
     setOpen(state)
     if (state) {
@@ -71,7 +70,7 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogTrigger asChild>
-        <Button size={'lg'}>Create Presale</Button>
+        <Button>Create Presale</Button>
       </DialogTrigger>
       <DialogContent>
         <Form {...form}>
@@ -83,7 +82,7 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
               </DialogDescription>
             </DialogHeader>
             <div className='space-y-3'>
-              <div className="flex items-end">
+              <div className="flex items-start">
                 <div className="flex-1">
                   <FormInput
                     control={form.control}
@@ -91,10 +90,13 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
                     label="Hard Cap"
                     placeholder="e.g. 100000"
                   />
+                  <p className='text-[11px]'>
+                    Maximum funds you plan to raise (e.g., 100,000 USDC); sale stops when this limit is reached.
+                  </p>
                 </div>
-                <div className='text-sm mb-2 ml-2'>{unit}</div>
+                <div className='text-sm mt-10 ml-2'>{unit}</div>
               </div>
-              <div className="flex items-end">
+              <div className="flex items-start">
                 <div className="flex-1">
                   <FormInput
                     control={form.control}
@@ -102,10 +104,11 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
                     label="Price Per Token"
                     placeholder="e.g. 0.01"
                   />
+                  <p className="text-[11px]">This sets how much buyers pay per share (e.g., 0.01 USDC/share).</p>
                 </div>
-                <div className='text-sm mb-2 ml-2'>{unit}</div>
+                <div className='text-sm mt-10 ml-2'>{unit}</div>
               </div>
-              <div className="flex items-end">
+              <div className="flex items-start">
                 <div className="flex-1">
                   <FormInput
                     control={form.control}
@@ -114,34 +117,52 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
                     type="number"
                     placeholder="e.g. 500"
                   />
+                  <p className="text-[11px]">buy limit per wallet (e.g., 500 USDC)</p>
                 </div>
-                <div className='text-sm mb-2 ml-2'>{unit}</div>
+                <div className='text-sm mt-10 ml-2'>{unit}</div>
               </div>
-              <FormInput
-                control={form.control}
-                name={`startDate`}
-                label="Start Date" type="datetime-local"
-              />
-              <FormSelect
-                control={form.control}
-                name={`duration`}
-                label="Duration"
-                placeholder="select duration"
-                groups={presalesDurations ? [{
-                  label: 'Duration',
-                  options: presalesDurations ?? []
-                }] : []}
-              />
-              <FormSelect
-                control={form.control}
-                name={`claimTime`}
-                label="Claim Available After"
-                placeholder="select duration"
-                groups={presalesDurations ? [{
-                  label: 'Duration',
-                  options: presalesDurations ?? []
-                }] : []}
-              />
+              <div>
+                <FormInput
+                  control={form.control}
+                  name={`startDate`}
+                  label="Start Date (sale)" type="datetime-local"
+                />
+                <p className='text-[11px]'>When your presale begins, it automatically detects your timezone.</p>
+              </div>
+              <div>
+                <FormInput
+                  control={form.control}
+                  name={`endDate`}
+                  label="End Date (sale)" type="datetime-local"
+                />
+                <p className='text-[11px]'>When your presale ending, it automatically detects your timezone.</p>
+              </div>
+              {/* <div>
+                <FormSelect
+                  control={form.control}
+                  name={`duration`}
+                  label="Duration"
+                  placeholder="select duration"
+                  groups={presalesDurations ? [{
+                    label: 'Duration',
+                    options: presalesDurations ?? []
+                  }] : []}
+                />
+                <p className='text-[11px]'>How long the sale runs (e.g., 14 days)</p>
+              </div> */}
+              <div>
+                <FormSelect
+                  control={form.control}
+                  name={`claimTime`}
+                  label="Claim Available After"
+                  placeholder="select duration"
+                  groups={presalesDurations ? [{
+                    label: 'Duration',
+                    options: presalesDurations ?? []
+                  }] : []}
+                />
+                <p className='text-[11px]'>When buyers can claim their shares after sale ends.</p>
+              </div>
             </div>
             <DialogFooter>
               <DialogClose asChild>

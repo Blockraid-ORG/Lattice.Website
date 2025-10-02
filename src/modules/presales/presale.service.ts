@@ -2,7 +2,13 @@ import axiosInstance from "@/lib/axios"
 import { BaseService } from "@/services/base.service"
 import { TFormUpdateWhitelist } from "@/types/deploy"
 import { TPagination } from "@/types/pagination"
-import { TFormProjectPresale, TPresale, TProject } from "@/types/project"
+import {
+  FormProjectAddressWhitelist,
+  TFormProjectPresale,
+  TPresale,
+  TProject,
+  TFormContributePresale
+} from "@/types/project"
 import { TQueryParam } from "@/types/query"
 
 class PresaleService extends BaseService<TPresale, TFormUpdateWhitelist> {
@@ -46,6 +52,54 @@ class PresaleService extends BaseService<TPresale, TFormUpdateWhitelist> {
       method: 'PATCH',
       url: `${this.endpoint}s/${id}`,
       data
+    })
+    return response.data.data
+  }
+  async ADD_PROJECT_WHITELIST_ADDRESS(data: FormProjectAddressWhitelist[]) {
+    const response = await axiosInstance({
+      method: 'POST',
+      url: `${this.endpoint}s/add-project-presale-whitelist-address`,
+      data,
+    })
+    return response.data.data
+  }
+  async REMOVE_PROJECT_WHITELIST_ADDRESS(data: string[]) {
+    const response = await axiosInstance({
+      method: 'POST',
+      url: `${this.endpoint}s/remove-project-presale-whitelist-address`,
+      data,
+    })
+    return response.data.data
+  }
+  // Extra For Client
+  async GetPresaleActive(params?: TQueryParam): Promise<TPagination<TProject>> {
+    const response = await axiosInstance({
+      method: 'GET',
+      url: `${this.endpoint}/active`,
+      params
+    })
+    return response.data.data
+  }
+  async GetPresaleById(id:string): Promise<TProject> {
+    const response = await axiosInstance({
+      method: 'GET',
+      url: `${this.endpoint}/${id}`,
+    })
+    return response.data.data
+  }
+  async CreateContributePresale(data: TFormContributePresale) {
+    const response = await axiosInstance({
+      method: 'POST',
+      url: `${this.endpoint}/create-contribute-presale`,
+      data
+    })
+    return response.data.data
+  }
+  async GetMyContribution(params?: TQueryParam) {
+    const response = await axiosInstance({
+      method: 'GET',
+      url: `${this.endpoint}/my-contribution`,
+      params,
     })
     return response.data.data
   }

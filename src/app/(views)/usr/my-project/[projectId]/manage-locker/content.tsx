@@ -69,7 +69,7 @@ export default function ContentManageLocker() {
                         <TableCell>
                           <div className="font-semibold flex justify-between">
                             {allocation._count.addresses}
-                            <LockerAddressList data={allocation} />
+                            <LockerAddressList project={data} data={allocation} />
                           </div>
                         </TableCell>
                         <TableCell className="flex justify-end gap-2">

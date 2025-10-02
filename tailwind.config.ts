@@ -2,12 +2,12 @@ import type { Config } from "tailwindcss";
 import tailwindcssAnimate from "tailwindcss-animate";
 
 const config: Config = {
-    darkMode: ["class"],
-    content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
+	darkMode: ["class"],
+	content: [
+		"./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+		"./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+		"./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+	],
 	theme: {
     	container: {
     		center: true,
@@ -75,6 +75,42 @@ const config: Config = {
     			lg: 'var(--radius)',
     			md: 'calc(var(--radius) - 2px)',
     			sm: 'calc(var(--radius) - 4px)'
+    		},
+    		animation: {
+    			'meteor-effect': 'meteor 5s linear infinite',
+    			'accordion-down': 'accordion-down 0.2s ease-out',
+    			'accordion-up': 'accordion-up 0.2s ease-out'
+    		},
+    		keyframes: {
+    			meteor: {
+    				'0%': {
+    					transform: 'rotate(215deg) translateX(0)',
+    					opacity: '1'
+    				},
+    				'70%': {
+    					opacity: '1'
+    				},
+    				'100%': {
+    					transform: 'rotate(215deg) translateX(-500px)',
+    					opacity: '0'
+    				}
+    			},
+    			'accordion-down': {
+    				from: {
+    					height: '0'
+    				},
+    				to: {
+    					height: 'var(--radix-accordion-content-height)'
+    				}
+    			},
+    			'accordion-up': {
+    				from: {
+    					height: 'var(--radix-accordion-content-height)'
+    				},
+    				to: {
+    					height: '0'
+    				}
+    			}
     		}
     	}
     },

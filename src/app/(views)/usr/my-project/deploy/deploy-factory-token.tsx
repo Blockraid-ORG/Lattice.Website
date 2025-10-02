@@ -1,5 +1,6 @@
 'use client'
 import { Icon } from "@/components/icon";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -99,7 +100,7 @@ export function DeployFactoryToken({ data }: { data: TProject }) {
                   {data.allocations.map(item => (
                     <div key={item.id} className="flex items-center justify-between py-2 border-b border-dashed text-sm">
                       <div className="flex-1">
-                        <div>Contract {item.name} {`(${item.supply}%)`}</div>
+                        <div>{item.name !== 'Deployer' ? 'Contract': ''} {item.name} {`(${item.supply}%)`}</div>
                       </div>
                       <div>
                         {
@@ -129,9 +130,30 @@ export function DeployFactoryToken({ data }: { data: TProject }) {
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
-          <Button disabled={isSubmitting} onClick={handleDeployContract}>
-            {isSubmitting ? 'Processing...' : 'Deploy'}
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button disabled={isSubmitting}>
+                {isSubmitting ? 'Processing...' : 'Deploy'}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="max-w-sm">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-center">Confirm Deployment</AlertDialogTitle>
+                <AlertDialogDescription>
+                  <div className="text-center">
+                    <Icon className="text-4xl mx-auto" name="typcn:info" />
+                    <p>Proceed with deployment? This cannot be undone.</p>
+                  </div>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeployContract}>
+                  {isSubmitting ? 'Processing...' : 'Yes, Deploy'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </DialogFooter>
       </DialogContent>
     </Dialog>

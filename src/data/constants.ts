@@ -30,7 +30,7 @@ export const vestingCounts = [
 ];
 
 export const presaleDurationCount = (count: number) => {
-  const x = Array.from({ length: count || 10 }, (_, i) => i + 1);
+  const x = Array.from({ length: count || 10 }, (_, i) => i + 0);
   return x.map((i) => {
     return {
       value: `${i}`,

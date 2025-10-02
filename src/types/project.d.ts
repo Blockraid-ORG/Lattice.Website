@@ -11,6 +11,7 @@ import { TCategory } from "./category";
 import { TSocial } from "./social";
 import { TChain } from "./chain";
 import { TProjectType } from "./project-type";
+import { formProjectAddressWhitelistSchema } from "@/modules/deploy/deploy.schema";
 
 export type TFormProject = z.infer<typeof formCreateProjectSchema>;
 export type TFormProjectAllocation = z.infer<typeof allocationSchema>;
@@ -111,6 +112,13 @@ export type TAdditionalReward = {
     userAdditionalReward: number
   }
 }
+
+export type TProjectPresaleWhitelistAddressItem = {
+  id: string
+  walletAddress: string
+  projectId: string
+  isChecked?: boolean
+}
 export type TProject = {
   id: string
   name: string
@@ -130,7 +138,6 @@ export type TProject = {
   rewardContractAddress: string | null
   presaleAddress?: string
   whitelistsAddress?: string
-  presaleSCID?: string
   paused: boolean
   socials: {
     url: string;
@@ -147,6 +154,8 @@ export type TProject = {
   reviewLogs: TReviewLog[];
   isHashAirdrop?: boolean
   additionalReward?: TAdditionalReward[] | []
+  addressPoolPaymentLog: any[] | []
+  ProjectPresaleWhitelistAddress: TProjectPresaleWhitelistAddressItem[] | []
 };
 
 export type TProjectCounter = {
@@ -202,5 +211,13 @@ export type TAddressAmount = {
   amount: string
   address: string
 }
+export type TFormContributePresale = {
+  projectId: string;
+  presaleId: string;
+  price: string;
+  count: number;
+  transactionHash: string;
+}
 export type FormProjectAllocationAddress = z.infer<typeof formProjectAllocationSchema>
 export type FormBaseProjectAllocationAddress = z.infer<typeof formBaseProjectAllocationSchema>
+export type FormProjectAddressWhitelist = z.infer<typeof formProjectAddressWhitelistSchema>

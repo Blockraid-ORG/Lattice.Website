@@ -19,11 +19,11 @@ import {
 } from "@/components/ui/table"
 import { NumberComma } from "@/lib/utils"
 import { useDeleteIdsProjectAllocationAddress } from "@/modules/project/project.query"
-import { TAllocation, TProjectAllocationAddress } from "@/types/project"
+import { TAllocation, TProject, TProjectAllocationAddress } from "@/types/project"
 import { Eye } from "lucide-react"
 import { useEffect, useState } from "react"
-export function LockerAddressList({ data }: { data: TAllocation }) {
-    const { mutate: deleteByIdsProjectAllocationAddress } = useDeleteIdsProjectAllocationAddress()
+export function LockerAddressList({ data, project }: { data: TAllocation, project: TProject }) {
+  const { mutate: deleteByIdsProjectAllocationAddress } = useDeleteIdsProjectAllocationAddress()
   const [open, setOpen] = useState(false)
   const [checkAllState, setcheckAllState] = useState<any>()
   const [items, setItems] = useState<TProjectAllocationAddress[]>([])
@@ -83,7 +83,7 @@ export function LockerAddressList({ data }: { data: TAllocation }) {
           <div className="mt-4">
             <div className="mb-4">
               {items.filter(i => i.isChecked).length > 0 && (
-                <Button onClick={handleDeleteByIds} variant={'destructive'} className="flex gap-2">
+                <Button disabled={project.status === 'DEPLOYED'} onClick={handleDeleteByIds} variant={'destructive'} className="flex gap-2">
                   Delete {items.filter(i => i.isChecked).length} Selected
                 </Button>
               )}
