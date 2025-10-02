@@ -498,7 +498,6 @@ export default function FormCreateNewbie() {
                   </Button>
                   <Button type="button" onClick={validateAndNext}>
                     Next
-                    <Icon name="tabler:arrow-right" className="w-4 h-4 ml-2" />
                   </Button>
                 </div>
               </div>

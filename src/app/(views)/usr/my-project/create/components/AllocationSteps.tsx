@@ -244,12 +244,18 @@ export function AllocationForm({
   };
 
   const handleNext = async () => {
-    // Validate all allocation fields
-    const isValid = await control._form.trigger("allocations");
-    if (!isValid) return;
-
     // Check if total is 100%
     if (totalPercent !== 100) {
+      return;
+    }
+
+    // Check if all required fields are filled
+    const hasEmptyFields = allocations.some(
+      (allocation: any) =>
+        !allocation.name || !allocation.supply || allocation.supply <= 0
+    );
+
+    if (hasEmptyFields) {
       return;
     }
 
