@@ -230,16 +230,22 @@ export default function FormCreate() {
 
   function onChangeValue(chainId: string) {
     const c = chains?.find((i) => i.value === chainId);
-    const cc = stableCoinGroup?.map(i => {
+    const stabels = stableCoinGroup?.map(i => {
       return {
         label: i.name,
         value: i.name,
       }
     })
-    if (c && cc) {
-      cc.push(c)
-      setTokenUnits(cc)
+
+    if (c && stabels) {
+      const native = {
+        label: c.ticker!,
+        value: c.ticker!
+      }
+      stabels.push(native)
+      setTokenUnits(stabels)
     }
+    console.log({c})
   }
 
   function onCheckedChange(state: boolean) {
