@@ -1,12 +1,12 @@
-'use client'
+"use client";
 import {
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Control, FieldPath, FieldValues } from 'react-hook-form'
+} from "@/components/ui/form";
+import { Control, FieldPath, FieldValues } from "react-hook-form";
 
 import {
   Select,
@@ -16,45 +16,45 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from "@/components/ui/select";
 
-import { Icon } from '@/components/icon'
-import { cn } from '@/lib/utils'
-import Image from 'next/image'
+import { Icon } from "@/components/icon";
+import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 type Option = {
-  label: string
-  value: string
-  iconUrl?: string
-  iconName?: string
-  disabled?: boolean
-}
+  label: string;
+  value: string;
+  iconUrl?: string;
+  iconName?: string;
+  disabled?: boolean;
+};
 
 type Group = {
-  label: string
-  options: Option[]
-}
+  label?: string;
+  options: Option[];
+};
 
 type SelectInputProps<T extends FieldValues> = {
-  name: FieldPath<T>
-  label?: string
-  placeholder?: string
-  groups: Group[]
-  className?: string,
-  control: Control<T>,
-  onChangeValue?: (value: string) => void,
-  disabled?: boolean
-}
+  name: FieldPath<T>;
+  label?: string;
+  placeholder?: string;
+  groups: Group[];
+  className?: string;
+  control: Control<T>;
+  onChangeValue?: (value: string) => void;
+  disabled?: boolean;
+};
 
 export function FormSelect<T extends FieldValues>({
   name,
   label,
-  placeholder = 'Select an option',
+  placeholder = "Select an option",
   groups,
   className,
   control,
   onChangeValue,
-  disabled
+  disabled,
 }: SelectInputProps<T>) {
   // const { control } = useFormContext()
   return (
@@ -69,16 +69,20 @@ export function FormSelect<T extends FieldValues>({
               disabled={disabled}
               value={field.value}
               onValueChange={(val) => {
-                field.onChange(val)
-                onChangeValue?.(val)
+                field.onChange(val);
+                onChangeValue?.(val);
               }}
             >
-              <SelectTrigger className={cn(
-                'w-full',
-                'focus-visible:ring-blue-200/50 focus-visible:border-blue-200/50',
-                fieldState.error ? 'bg-red-200/10 ring-1 ring-red-300' : 'bg-blue-100/30 dark:bg-primary-foreground',
-                className
-              )}>
+              <SelectTrigger
+                className={cn(
+                  "w-full",
+                  "focus-visible:ring-blue-200/50 focus-visible:border-blue-200/50",
+                  fieldState.error
+                    ? "bg-red-200/10 ring-1 ring-red-300"
+                    : "bg-blue-100/30 dark:bg-primary-foreground",
+                  className
+                )}
+              >
                 <SelectValue placeholder={placeholder} />
               </SelectTrigger>
               <SelectContent className="max-h-64 overflow-y-auto">
@@ -116,5 +120,5 @@ export function FormSelect<T extends FieldValues>({
         </FormItem>
       )}
     />
-  )
+  );
 }

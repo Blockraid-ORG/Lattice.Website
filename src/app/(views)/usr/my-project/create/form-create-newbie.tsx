@@ -781,8 +781,8 @@ export default function FormCreateNewbie() {
                   {/* Enter total <strong>shares</strong> representing 100% of your
                   project (e.g.,
                   <strong>100,000,000</strong>); this defines all future splits. */}
-                  Enter total <b>shares</b> for the project. Refers to ONDO
-                  Project, it has total supply of 10,000,000,000.
+                  Enter total <b>shares</b> for the project. RWA projects
+                  benchmark have common total supply of 10,000,000,000
                 </p>
                 <FormInput
                   control={form.control}

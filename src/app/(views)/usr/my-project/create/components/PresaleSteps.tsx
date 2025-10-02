@@ -35,7 +35,7 @@ export function PresaleUnit({
           name={`presales.${index}.unit`}
           label=""
           placeholder="Select unit"
-          groups={[{ label: "Unit", options: units }]}
+          groups={[{ options: units }]}
         />
       </div>
       <div className="flex items-center justify-between pt-2">

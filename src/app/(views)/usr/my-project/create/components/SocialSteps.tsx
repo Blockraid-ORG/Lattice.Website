@@ -27,7 +27,7 @@ export function SocialPlatform({
       <div>
         <h3 className="text-xl font-semibold">Platform</h3>
         <p className="text-sm text-muted-foreground mt-0">
-          Choose the website or social platform you&apos;ll share (site,
+          Choose the website or social platform you&apos;ll share (Site,
           X/Twitter, Discord, etc.).
         </p>
         <FormSelect
