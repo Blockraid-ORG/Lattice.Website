@@ -70,18 +70,7 @@ export const steps: Step[] = [
     id: "socialPlatform",
     title: "Website / Social Media",
     description:
-      "Add your site and social links so investors can check quickly. Which platform do you want to spotlight first?",
-  },
-  {
-    id: "socialUrl",
-    title: "URL",
-    description: "What’s the live URL to your site or social page?",
-  },
-  {
-    id: "socialAddMore",
-    title: "Add another social?",
-    description:
-      "Would you like to add another social link so investors can check quickly?",
+      "Add your site and social links so investors can check quickly. You can add multiple platforms and URLs.",
   },
   {
     id: "allocIntro",

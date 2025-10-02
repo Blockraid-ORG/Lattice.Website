@@ -31,11 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  SocialPlatform,
-  SocialUrl,
-  SocialAddMore,
-} from "./components/SocialSteps";
+import { SocialMediaForm } from "./components/SocialSteps";
 import {
   AllocationIntro,
   AllocationSupply,
@@ -50,7 +46,6 @@ export default function FormCreateNewbie() {
   const [currentStep, setCurrentStep] = useState<StepId>("intro");
   const [banner, setBanner] = useState<File | null>(null);
   const [logo, setLogo] = useState<File | null>(null);
-  const [socialIndex, setSocialIndex] = useState(0);
   const [allocationIndex, setAllocationIndex] = useState(0);
   const [presaleIndex] = useState(0);
   const [showWhitelist, setShowWhitelist] = useState(false);
@@ -108,22 +103,6 @@ export default function FormCreateNewbie() {
     [selectedChain]
   );
 
-  // Function to get available social platforms for a specific field index
-  const getAvailableSocialPlatforms = (currentIndex: number) => {
-    if (!socials) return [];
-
-    // Get all selected social IDs except the current field
-    const selectedSocialIds = socialsValues
-      .map((social: { socialId: string; url: string }, index: number) =>
-        index !== currentIndex ? social.socialId : null
-      )
-      .filter(Boolean);
-
-    // Filter out already selected platforms
-    return socials.filter(
-      (social) => !selectedSocialIds.includes(social.value)
-    );
-  };
   const currentIndex = useMemo(
     () => steps.findIndex((s) => s.id === currentStep),
     [currentStep]
@@ -141,18 +120,6 @@ export default function FormCreateNewbie() {
 
   async function validateAndNext() {
     const step = steps[currentIndex];
-    if (currentStep === "socialPlatform") {
-      const ok = await form.trigger([`socials.${socialIndex}.socialId`] as any);
-      if (!ok) return;
-      goNext();
-      return;
-    }
-    if (currentStep === "socialUrl") {
-      const ok = await form.trigger([`socials.${socialIndex}.url`] as any);
-      if (!ok) return;
-      goNext();
-      return;
-    }
     if (currentStep === "allocSupply") {
       const ok = await form.trigger([
         `allocations.${allocationIndex}.supply`,
@@ -240,11 +207,6 @@ export default function FormCreateNewbie() {
     });
   }
   // END Next Form Advanced
-  function addAnotherSocial() {
-    appendSocial({ socialId: "", url: "" } as any);
-    setSocialIndex(socialFields.length); // new index
-    setCurrentStep("socialPlatform");
-  }
 
   function getNextDefaultAllocationName(): string {
     const existingNames = (form.getValues("allocations") || []).map((a: any) =>
@@ -848,36 +810,20 @@ export default function FormCreateNewbie() {
           )}
 
           {currentStep === "socialPlatform" && (
-            <SocialPlatform
-              socialsOptions={getAvailableSocialPlatforms(socialIndex).map(
-                (i: any) => ({
-                  ...i,
-                  iconName: i.icon,
-                })
-              )}
+            <SocialMediaForm
+              socialsOptions={
+                socials
+                  ? socials.map((i: any) => ({
+                      ...i,
+                      iconName: i.icon,
+                    }))
+                  : []
+              }
               control={form.control}
-              socialIndex={socialIndex}
               onBack={goBack}
-              onNext={validateAndNext}
-              onSkip={handoffToNativeForm}
-            />
-          )}
-
-          {currentStep === "socialUrl" && (
-            <SocialUrl
-              control={form.control}
-              socialIndex={socialIndex}
-              onBack={() => setCurrentStep("socialPlatform")}
-              onNext={validateAndNext}
-            />
-          )}
-
-          {currentStep === "socialAddMore" && (
-            <SocialAddMore
-              onBack={() => setCurrentStep("socialUrl")}
-              onAddAnother={addAnotherSocial}
               onNext={goNext}
               onSkip={handoffToNativeForm}
+              socialsValues={socialsValues}
             />
           )}
 
