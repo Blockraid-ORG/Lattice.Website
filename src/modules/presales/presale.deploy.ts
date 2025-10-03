@@ -2,7 +2,7 @@ import PresaleAbi from '@/lib/abis/presale.abi.json';
 import WhitelistAbi from '@/lib/abis/whitelist.abi.json';
 import TokenAbi from '@/lib/abis/erc20.abi.json';
 import { FormProjectAddressWhitelist, TPresale, TProject } from "@/types/project";
-import { BrowserProvider, ethers, parseUnits } from "ethers";
+import { BrowserProvider, ethers, getAddress, parseUnits } from "ethers";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { useAccount, useWalletClient } from "wagmi";
@@ -17,6 +17,7 @@ import { useCreateClaimedPresale, useSetWithdrawPresale } from '../transaction-p
 import { isUnitPresaleStable } from '@/lib/validationActionSc';
 type TActivatePresale = { data: TProject, item: TPresale }
 export function useDeployPresaleSC() {
+  
   const { data: walletClient } = useWalletClient()
   const { address } = useAccount()
   const { mutate: updatePresale } = useUpdateNewPresale()
@@ -26,6 +27,7 @@ export function useDeployPresaleSC() {
   const { mutate: createClaimed } = useCreateClaimedPresale()
   const { mutate: setWdPresale } = useSetWithdrawPresale()
   const activatePresale = useCallback(async ({ data, item }: TActivatePresale) => {
+    
     const isUseStableCoin = isUnitPresaleStable(item.unit)
     if (typeof window === 'undefined') return
     if (!walletClient || !address) throw new Error('Wallet not connected')
@@ -56,11 +58,12 @@ export function useDeployPresaleSC() {
           chainId: data.chains[0].chain.id,
           name: item.unit
         })
+        const tokenAddress = getAddress(data.contractAddress!)
         const contractERC20 = new ethers.Contract(data.contractAddress!, TokenAbi.abi, signer);
-        const txApprove = await contractERC20.approve(data.presaleAddress, ethers.parseUnits(amountToApprove.toString(), data.decimals));
+        const txApprove = await contractERC20.approve(data.contractAddress!, ethers.parseUnits(amountToApprove.toString(), data.decimals));
         await txApprove.wait();
         const presaleAction = await presale.activatePresaleStable(
-          data.contractAddress,
+          tokenAddress,
           data.whitelistsAddress,
           stableCoinData.address,
           ethers.parseUnits(item.hardcap, stableCoinData.decimal),
@@ -169,8 +172,8 @@ export function useDeployPresaleSC() {
           name: presale.unit
         })
         const amountParsed = ethers.parseUnits(amount.toString(), stableCoinData.decimal);
-
-        const stableContract = new ethers.Contract(stableCoinData.address, TokenAbi.abi, signer);
+        const stableAddress = getAddress(stableCoinData.address);
+        const stableContract = new ethers.Contract(stableAddress, TokenAbi.abi, signer);
         const contract = new ethers.Contract(data.presaleAddress!, PresaleAbi.abi, signer)
         const txApprove = await stableContract.approve(data.presaleAddress, ethers.parseUnits(amount.toString(), stableCoinData.decimal));
         await txApprove.wait();
