@@ -46,6 +46,14 @@ class TansactionPresaleService extends BaseService<TPresale, TFormContribuePresa
     })
     return response.data.data
   }
+  async SET_WD_PRESALE(id: string): Promise<any> {
+    const response = await axiosInstance({
+      method: 'POST',
+      url: `${this.endpoint}/setWdPresale`,
+      data: { id }
+    })
+    return response.data.data
+  }
 }
 
 const tansactionpresaleService = new TansactionPresaleService()

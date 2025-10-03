@@ -9,7 +9,7 @@ import Link from "next/link";
 import React from "react";
 
 export default function PresaleManagement({ data }: { data: TProject }) {
-  const unit = data && data.chains[0].chain.ticker;
+  // const unit = data && data.chains[0].chain.ticker;
   const now = dayjs();
   return (
     <div>
@@ -70,12 +70,12 @@ export default function PresaleManagement({ data }: { data: TProject }) {
                 />
                 <PresaleItem
                   label="Hardcap"
-                  value={`${item.hardcap} ${unit}`}
+                  value={`${item.hardcap} ${item.unit}`}
                 />
-                <PresaleItem label="Price" value={`${item.price} ${unit}`} />
+                <PresaleItem label="Price" value={`${item.price} ${item.unit}`} />
                 <PresaleItem
                   label="Max Contribution"
-                  value={`${item.maxContribution} ${unit}`}
+                  value={`${item.maxContribution} ${item.unit}`}
                 />
               </div>
               <div className="py-2 space-y-1">

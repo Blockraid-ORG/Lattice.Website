@@ -63,6 +63,7 @@ export type TPresale = {
   sweepDuration?: number
   isActive?: boolean
   presaleSCID?: number | string
+  isWithdrawn?: boolean
 }
 type TProjectOwner = {
   id: string;

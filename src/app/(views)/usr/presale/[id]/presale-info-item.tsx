@@ -10,7 +10,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAccount, useWalletClient } from 'wagmi'
 import FormContribute from './form-contribute'
 import MyContributionInfo from './my-contribution-info'
-import { isAvailableContribute } from '@/lib/validationActionSc'
+import { isAvailableContribute, isUnitPresaleStable } from '@/lib/validationActionSc'
+import presaleService from '@/modules/presales/presale.service'
 export default function PresaleInfoItem({ data, presale }: { data: TProject, presale: TPresale }) {
   const { data: walletClient } = useWalletClient()
   const [contributionInfo, setContributionInfo] = useState<{
@@ -53,13 +54,26 @@ export default function PresaleInfoItem({ data, presale }: { data: TProject, pre
       contract.getContribution(presale.presaleSCID!, address),
       contract.getClaimedTokens(presale.presaleSCID!, address),
     ]);
+    const isUseStableCoin = isUnitPresaleStable(presale.unit)
+    const stableCoinData = await presaleService.GetStableUsed({
+      chainId: data.chains[0].chain.id,
+      name: presale.unit
+    })
+    if (isUseStableCoin) {
+      return {
+        claimable: ethers.formatUnits(claimable, data.decimals),
+        contribution: ethers.formatUnits(contribution, stableCoinData.decimal),
+        claimedToken: ethers.formatUnits(claimedToken, data.decimals),
+      };
+    } else {
+      return {
+        claimable: ethers.formatUnits(claimable, data.decimals),
+        contribution: ethers.formatUnits(contribution, data.decimals),
+        claimedToken: ethers.formatUnits(claimedToken, data.decimals),
+      };
 
-    return {
-      claimable: ethers.formatUnits(claimable, data.decimals),
-      contribution: ethers.formatUnits(contribution, data.decimals),
-      claimedToken: ethers.formatUnits(claimedToken, data.decimals),
-    };
-  },[address, data, presale.presaleSCID, walletClient])
+    }
+  }, [address, data,, presale, walletClient])
 
 
   useEffect(() => {
@@ -84,11 +98,11 @@ export default function PresaleInfoItem({ data, presale }: { data: TProject, pre
         </div>
         <div>
           <p className='text-sm text-neutral-500'>Hardcap</p>
-          <h2 className='font-bold'>{NumberComma(Number(presale.hardcap))} {data.chains[0].chain.ticker}</h2>
+          <h2 className='font-bold'>{NumberComma(Number(presale.hardcap))} {presale.unit}</h2>
         </div>
         <div>
           <p className='text-sm text-neutral-500'>Max Contribution</p>
-          <h2 className='font-bold'>{NumberComma(Number(presale.maxContribution))} {data.chains[0].chain.ticker}</h2>
+          <h2 className='font-bold'>{NumberComma(Number(presale.maxContribution))} {presale.unit}</h2>
         </div>
         <div>
           <p className='text-sm text-neutral-500'>Start Date</p>
@@ -105,13 +119,14 @@ export default function PresaleInfoItem({ data, presale }: { data: TProject, pre
           }
         </div>
       </div>
-  
+
       {
-        isCanContribute && (
+        isCanContribute && contributionInfo && (
           <div className='flex gap-2 justify-end pt-4 border-t mt-4'>
             <FormContribute
               data={data}
               presale={presale}
+              currentContibution={Number(contributionInfo.contribution)}
               onSuccess={async () => {
                 await fetchPresale();
                 const res = await getPresaleData();
