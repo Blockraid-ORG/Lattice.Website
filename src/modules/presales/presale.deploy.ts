@@ -60,7 +60,8 @@ export function useDeployPresaleSC() {
         })
         const tokenAddress = getAddress(data.contractAddress!)
         const contractERC20 = new ethers.Contract(data.contractAddress!, TokenAbi.abi, signer);
-        const txApprove = await contractERC20.approve(data.contractAddress!, ethers.parseUnits(amountToApprove.toString(), data.decimals));
+        // const txApprove = await contractERC20.approve(data.contractAddress!, ethers.parseUnits(amountToApprove.toString(), data.decimals));
+        const txApprove = await contractERC20.approve(data.presaleAddress!, ethers.parseUnits(amountToApprove.toString(), data.decimals));
         await txApprove.wait();
         const presaleAction = await presale.activatePresaleStable(
           tokenAddress,
