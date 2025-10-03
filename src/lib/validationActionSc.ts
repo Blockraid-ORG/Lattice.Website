@@ -33,7 +33,11 @@ export const isAvailableContribute = (presaleSc?: TPresaleSC | null) => {
     if (presaleSc.finalized) return false
     if (now < presaleSc.startTime) return false
     if (now > presaleSc.endTime) return false
-    if (presaleSc.totalRaised >= presaleSc.hardCap) return false
+    if (presaleSc.totalRaised === presaleSc.hardCap) return false
     return true
   }
+}
+
+export const isUnitPresaleStable = (unit:string) => {
+  return unit === 'USDT' || unit === 'USDC';
 }

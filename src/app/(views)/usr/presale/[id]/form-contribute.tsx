@@ -17,19 +17,21 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 export default function FormContribute({
-  data, presale, onSuccess }: {
+  data, presale, onSuccess, currentContibution }: {
     data: TProject,
     presale: TPresale,
+    currentContibution: number,
     onSuccess?: () => void,
   }) {
   const [open, setOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const { contributePresale } = useDeployPresaleSC()
   const form = useForm<TFormBuyPresale>({
-    resolver: zodResolver(formBuyPresale(Number(presale.maxContribution))),
+    resolver: zodResolver(formBuyPresale(Number(presale.maxContribution) - currentContibution)),
     defaultValues: {
-      amount: 0.001
-    }
+      amount: Number(presale.maxContribution) - currentContibution
+    },
+    mode:"onChange"
   })
   async function onSubmit(values: TFormBuyPresale) {
     setSubmitting(true)
@@ -40,6 +42,7 @@ export default function FormContribute({
       setSubmitting(false)
     })
   }
+
   return (
     <Dialog open={open} onOpenChange={() => setOpen(!open)}>
       <DialogTrigger asChild>
@@ -51,7 +54,8 @@ export default function FormContribute({
         <DialogHeader>
           <DialogTitle>Form Contribute</DialogTitle>
           <DialogDescription>
-            Maximum Contribution: {presale.maxContribution}
+            <div>Maximum Contribution: <b>{presale.maxContribution}</b> {presale.unit}</div>
+            <div>Current Contribution: <b>{currentContibution}</b> {presale.unit}</div>
           </DialogDescription>
         </DialogHeader>
         <div>
@@ -66,7 +70,7 @@ export default function FormContribute({
               <div className="mt-5 flex justify-end">
                 <Button className="flex gap-2" type="submit">
                   {submitting && <Icon name="icon-park-outline:loading" className="animate-spin" />}
-                  Submit
+                  Contribute Now
                 </Button>
               </div>
             </form>

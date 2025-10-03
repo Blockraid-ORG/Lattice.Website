@@ -103,6 +103,14 @@ class PresaleService extends BaseService<TPresale, TFormUpdateWhitelist> {
     })
     return response.data.data
   }
+  async GetStableUsed(params: { chainId: string, name: string }) {
+    const response = await axiosInstance({
+      method: 'GET',
+      url: `stable-coin/used`,
+      params,
+    })
+    return response.data.data
+  }
 }
 
 const presaleService = new PresaleService()

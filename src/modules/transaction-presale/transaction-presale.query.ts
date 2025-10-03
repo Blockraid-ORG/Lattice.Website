@@ -108,3 +108,21 @@ export const useMyClaimedPresale = (filters?: { status?: string }) => {
     enabled: true,
   });
 };
+
+export const useSetWithdrawPresale = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      tansactionpresaleService.SET_WD_PRESALE(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get_project_by_id"],
+      });
+    },
+    onError: () => {
+      toast.error("Error", {
+        description: "Fail to submit data!",
+      });
+    },
+  });
+}

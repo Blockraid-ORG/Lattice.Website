@@ -1,5 +1,12 @@
 'use client'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table"
 import { NumberComma } from '@/lib/utils'
 import { useProjectDetail } from '@/modules/project/project.query'
 import dayjs from "dayjs"
@@ -18,15 +25,14 @@ import { WhitelistAddressList } from "./whitelists/whitelist-address-list"
 export default function PresaleContent() {
   const { projectId } = useParams()
   const { data, isLoading } = useProjectDetail(projectId.toString())
-  const unit = data?.chains[0].chain.ticker;
-    const { switchChain } = useSwitchChain();
-    useEffect(() => {
-      if (data && data.chains.length > 0) {
-        switchChain({
-          chainId: data?.chains[0].chain.chainid,
-        });
-      }
-    }, [data, switchChain]);
+  const { switchChain } = useSwitchChain();
+  useEffect(() => {
+    if (data && data.chains.length > 0) {
+      switchChain({
+        chainId: data?.chains[0].chain.chainid,
+      });
+    }
+  }, [data, switchChain]);
   return (
     <div>
       {
@@ -56,7 +62,8 @@ export default function PresaleContent() {
                         <TableCell>{item.presaleSCID ?? '-'}</TableCell>
                         <TableCell>
                           <div className="text-sm break-all">
-                            {NumberComma(Number(item.price))} {data.chains[0].chain.ticker}
+                            {NumberComma(Number(item.price))} {item.unit}
+                            {/* {data.chains[0].chain.ticker} */}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -80,14 +87,14 @@ export default function PresaleContent() {
                             <div className="w-32">Max Contr.</div>
                             <div className="w-1">:</div>
                             <div className="text-sm break-all">
-                              {NumberComma(Number(item.maxContribution))} {unit}
+                              {NumberComma(Number(item.maxContribution))} {item.unit}
                             </div>
                           </div>
                           <div className="flex gap-1">
                             <div className="w-32">Hardcap</div>
                             <div className="w-1">:</div>
                             <div className="text-sm break-all">
-                              {NumberComma(Number(item.hardcap))} {unit}
+                              {NumberComma(Number(item.hardcap))} {item.unit}
                             </div>
                           </div>
                         </TableCell>
