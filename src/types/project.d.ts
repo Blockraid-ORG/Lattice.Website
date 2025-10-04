@@ -25,46 +25,46 @@ type TAddressWhitelist = {
 };
 
 export type TProjectAllocationAddress = {
-  id: string
-  amount: string
-  address: string
-  isClaimed: boolean
-  isChecked?: boolean
-}
+  id: string;
+  amount: string;
+  address: string;
+  isClaimed: boolean;
+  isChecked?: boolean;
+};
 type TAllocation = {
-  id: string
-  name: string
-  supply: number,
-  vesting: number
-  startDate: string
-  isPresale: boolean,
-  contractAddress?: string
-  isDeploying?: boolean
-  addresses: TProjectAllocationAddress[] | [],
-  isFinalized?: boolean
+  id: string;
+  name: string;
+  supply: number;
+  vesting: number;
+  startDate: string;
+  isPresale: boolean;
+  contractAddress?: string;
+  isDeploying?: boolean;
+  addresses: TProjectAllocationAddress[] | [];
+  isFinalized?: boolean;
   _count: {
-    addresses: number
-  }
-}
+    addresses: number;
+  };
+};
 export type TPresale = {
-  id: string
-  hardcap: string
-  price: string
-  maxContribution: string
-  duration: string
-  unit: string
-  claimTime: number,
-  startDate: string,
-  endDate?: string,
-  contractAddress?: string | null,
-  whitelistContract: string | null,
-  whitelists: TAddressWhitelist[] | []
-  whitelistDuration?: number
-  sweepDuration?: number
-  isActive?: boolean
-  presaleSCID?: number | string
-  isWithdrawn?: boolean
-}
+  id: string;
+  hardcap: string;
+  price: string;
+  maxContribution: string;
+  duration: string;
+  unit: string;
+  claimTime: number;
+  startDate: string;
+  endDate?: string;
+  contractAddress?: string | null;
+  whitelistContract: string | null;
+  whitelists: TAddressWhitelist[] | [];
+  whitelistDuration?: number;
+  sweepDuration?: number;
+  isActive?: boolean;
+  presaleSCID?: number | string;
+  isWithdrawn?: boolean;
+};
 type TProjectOwner = {
   id: string;
   fullname: string;
@@ -80,66 +80,65 @@ export type TProjectReviewLog = {
   createdBy: string;
 };
 export type TUserAdditionalReward = {
-  id: string
-  address: string
-  amount: string
-  isClaimed: false,
+  id: string;
+  address: string;
+  amount: string;
+  isClaimed: false;
   user?: {
-    fullname: string
-  }
-}
+    fullname: string;
+  };
+};
 export type TAdditionalReward = {
-  id: string
-  address: string
-  amount: string
+  id: string;
+  address: string;
+  amount: string;
   type: {
-    id: string
-    name: string
-  },
-  project: TProject,
+    id: string;
+    name: string;
+  };
+  project: TProject;
   user: {
-    id: string
-    walletAddress: string
-  },
-  startDateClaim: string
-  endDateClaim: string
-  isClaimed: boolean
-  contactAddress: string
+    id: string;
+    walletAddress: string;
+  };
+  startDateClaim: string;
+  endDateClaim: string;
+  isClaimed: boolean;
+  contactAddress: string;
 
-
-  scheduleId: string | null
-  userAdditionalReward: TUserAdditionalReward[] | []
+  scheduleId: string | null;
+  userAdditionalReward: TUserAdditionalReward[] | [];
   _count: {
-    userAdditionalReward: number
-  }
-}
+    userAdditionalReward: number;
+  };
+};
 
 export type TProjectPresaleWhitelistAddressItem = {
-  id: string
-  walletAddress: string
-  projectId: string
-  isChecked?: boolean
-}
+  id: string;
+  walletAddress: string;
+  projectId: string;
+  isChecked?: boolean;
+};
 export type TProject = {
-  id: string
-  name: string
-  slug: string
-  logo: string
-  banner: string
-  ticker: string
-  decimals: number
-  totalSupply: string
-  detail: string
-  status: "PENDING" | "APPROVED" | "REJECTED" | "DEPLOYED",
-  allocations: TAllocation[]
-  contractAddress?: string
-  factoryAddress?: string
-  lockerDistributed?: boolean,
-  lockerDistributeHash?: string,
-  rewardContractAddress: string | null
-  presaleAddress?: string
-  whitelistsAddress?: string
-  paused: boolean
+  id: string;
+  name: string;
+  slug: string;
+  logo: string;
+  banner: string;
+  ticker: string;
+  decimals: number;
+  totalSupply: string;
+  detail: string;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "DEPLOYED";
+  allocations: TAllocation[];
+  contractAddress?: string;
+  factoryAddress?: string;
+  lockerDistributed?: boolean;
+  lockerDistributeHash?: string;
+  rewardContractAddress: string | null;
+  presaleAddress?: string;
+  whitelistsAddress?: string;
+  paused: boolean;
   socials: {
     url: string;
     social: TSocial;
@@ -153,10 +152,11 @@ export type TProject = {
   Presales: TPresale[];
   user: TProjectOwner;
   reviewLogs: TReviewLog[];
-  isHashAirdrop?: boolean
-  additionalReward?: TAdditionalReward[] | []
-  addressPoolPaymentLog: any[] | []
-  ProjectPresaleWhitelistAddress: TProjectPresaleWhitelistAddressItem[] | []
+  isHashAirdrop?: boolean;
+  additionalReward?: TAdditionalReward[] | [];
+  addressPoolPaymentLog: any[] | [];
+  ProjectPresaleWhitelistAddress: TProjectPresaleWhitelistAddressItem[] | [];
+  trustScore?: number;
 };
 
 export type TProjectCounter = {
@@ -165,60 +165,66 @@ export type TProjectCounter = {
 };
 
 export type TFormContribuePresale = {
-  projectId: string
-  presaleId: string
-  price: string
-  count: number
-  transactionHash: string
-}
+  projectId: string;
+  presaleId: string;
+  price: string;
+  count: number;
+  transactionHash: string;
+};
 
 export type TFormClaimPresale = {
-  presaleId: string
-  amount: string
-  transactionHash: string
-}
+  presaleId: string;
+  amount: string;
+  transactionHash: string;
+};
 
 export type TResponsePresale = TPresale & {
-  project: TProject
-}
+  project: TProject;
+};
 
 // Eligible Airdrop List
 export type TEligibleAirdrop = {
-  id: string
-  name: string
-  ticker: string
-  contractAddress: string
-  rewardContractAddress: string | null
-  decimals: number
-  banner: string
-  logo: string
+  id: string;
+  name: string;
+  ticker: string;
+  contractAddress: string;
+  rewardContractAddress: string | null;
+  decimals: number;
+  banner: string;
+  logo: string;
   chains: {
     chain: TChain;
   }[];
-  airdrop: TAirdropItem[]
-  totalEligible: number
-  isClaimedAll: boolean
-}
+  airdrop: TAirdropItem[];
+  totalEligible: number;
+  isClaimedAll: boolean;
+};
 
 export type TAirdropItem = {
-  id: string
-  address?: string
-  amount?: number
-  isClaimed: boolean
-  schedileId?: string
-}
+  id: string;
+  address?: string;
+  amount?: number;
+  isClaimed: boolean;
+  schedileId?: string;
+};
 
 export type TAddressAmount = {
-  amount: string
-  address: string
-}
+  amount: string;
+  address: string;
+};
 export type TFormContributePresale = {
   projectId: string;
   presaleId: string;
   price: string;
   count: number;
   transactionHash: string;
-}
-export type FormProjectAllocationAddress = z.infer<typeof formProjectAllocationSchema>
-export type FormBaseProjectAllocationAddress = z.infer<typeof formBaseProjectAllocationSchema>
-export type FormProjectAddressWhitelist = z.infer<typeof formProjectAddressWhitelistSchema>
+};
+export type FormProjectAllocationAddress = z.infer<
+  typeof formProjectAllocationSchema
+>;
+export type FormBaseProjectAllocationAddress = z.infer<
+  typeof formBaseProjectAllocationSchema
+>;
+export type FormProjectAddressWhitelist = z.infer<
+  typeof formProjectAddressWhitelistSchema
+>;
