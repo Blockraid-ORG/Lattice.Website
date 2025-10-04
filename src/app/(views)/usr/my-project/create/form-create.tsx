@@ -64,6 +64,7 @@ export default function FormCreate() {
   const form = useForm<TFormProject>({
     resolver: zodResolver(formCreateProjectSchema),
     defaultValues: defaultValues,
+    mode:"onBlur"
   });
 
   useEffect(() => {
@@ -626,7 +627,7 @@ export default function FormCreate() {
                             control={form.control}
                             name={`presales.${index}.unit`}
                             label="Unit"
-                            placeholder="e.g.USDT"
+                            placeholder="Select Unit"
                             groups={
                               tokenUnits
                                 ? [
