@@ -12,6 +12,7 @@ type BaseProps = {
   index: number;
   onBack: () => void;
   onNext: () => void;
+  onSkip?: () => void;
 };
 
 export function PresaleUnit({
@@ -19,6 +20,7 @@ export function PresaleUnit({
   index,
   onBack,
   onNext,
+  onSkip,
   units,
 }: BaseProps & { units: any[] }) {
   return (
@@ -35,16 +37,23 @@ export function PresaleUnit({
           name={`presales.${index}.unit`}
           label=""
           placeholder="Select unit"
-          groups={[{ label: "Unit", options: units }]}
+          groups={[{ options: units }]}
         />
       </div>
       <div className="flex items-center justify-between pt-2">
         <Button type="button" variant="outline" onClick={onBack}>
           Back
         </Button>
-        <Button type="button" onClick={onNext}>
-          Next
-        </Button>
+        <div className="flex items-center gap-2">
+          {onSkip && (
+            <Button type="button" variant="link" onClick={onSkip}>
+              Skip
+            </Button>
+          )}
+          <Button type="button" onClick={onNext}>
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );

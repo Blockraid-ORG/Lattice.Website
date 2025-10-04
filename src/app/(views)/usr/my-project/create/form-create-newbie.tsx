@@ -31,32 +31,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  SocialPlatform,
-  SocialUrl,
-  SocialAddMore,
-} from "./components/SocialSteps";
-import {
-  AllocationIntro,
-  AllocationSupply,
-  AllocationName,
-  AllocationVesting,
-  AllocationStartDate,
-} from "./components/AllocationSteps";
+import { SocialMediaForm } from "./components/SocialSteps";
+import { AllocationForm } from "./components/AllocationSteps";
 import { PresaleUnit, PresaleWhitelist } from "./components/PresaleSteps";
 import { useFormCreateProject } from "@/store/useFormCreateProject";
+import { useStableCoinGroupList } from "@/modules/stable-coin/stable-coin.query";
+import { TCommonOption } from "@/types/stable-coin";
 
 export default function FormCreateNewbie() {
   const [currentStep, setCurrentStep] = useState<StepId>("intro");
   const [banner, setBanner] = useState<File | null>(null);
   const [logo, setLogo] = useState<File | null>(null);
-  const [socialIndex, setSocialIndex] = useState(0);
-  const [allocationIndex, setAllocationIndex] = useState(0);
   const [presaleIndex] = useState(0);
   const [showWhitelist, setShowWhitelist] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [bannerPreviewUrl, setBannerPreviewUrl] = useState<string | null>(null);
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
+  const { data: stableCoinGroup } = useStableCoinGroupList();
 
   const form = useForm<TFormProject>({
     resolver: zodResolver(formCreateProjectSchema),
@@ -72,58 +63,36 @@ export default function FormCreateNewbie() {
     control: form.control,
     name: "socials",
   });
-  const { fields: allocationFields, append: appendAllocation } = useFieldArray({
-    control: form.control,
-    name: "allocations",
-  });
   const { fields: presalesFields } = useFieldArray({
     control: form.control,
     name: "presales",
   });
-  const allocations = form.watch("allocations");
   const socialsValues = form.watch("socials");
-  const totalAllocationPercent = (allocations || []).reduce(
-    (sum: number, a: any) => sum + Number(a?.supply || 0),
-    0
-  );
-  const isSimpleAllocation = useMemo(() => {
-    const name = String(allocations?.[allocationIndex]?.name || "")
-      .trim()
-      .toLowerCase();
-    return name === "deployer" || name === "presale";
-  }, [allocations, allocationIndex]);
   const selectedChainId = form.watch("chainId");
   const selectedChain = useMemo(
     () => chains?.find((c: any) => c.value === selectedChainId),
     [chains, selectedChainId]
   );
-  const tokenUnits = useMemo(
-    () => [
-      {
-        label: `${selectedChain?.ticker ?? ""}`,
-        value: `${selectedChain?.ticker ?? ""}`,
-      },
-      { label: "USDC", value: "USDC", disabled: true },
-    ],
-    [selectedChain]
-  );
+  const tokenUnits = useMemo<TCommonOption[]>(() => {
+    const stabels = stableCoinGroup?.map((i: { name: string }) => {
+      return {
+        label: i.name,
+        value: i.name,
+      };
+    });
+    if (selectedChain) {
+      const tokenUnitsTmp = [
+        {
+          label: `${selectedChain?.ticker ?? ""}`,
+          value: `${selectedChain?.ticker ?? ""}`,
+        },
+        ...(stabels ?? []),
+      ];
+      return tokenUnitsTmp as TCommonOption[];
+    }
+    return stabels as TCommonOption[];
+  }, [selectedChain, stableCoinGroup]);
 
-  // Function to get available social platforms for a specific field index
-  const getAvailableSocialPlatforms = (currentIndex: number) => {
-    if (!socials) return [];
-
-    // Get all selected social IDs except the current field
-    const selectedSocialIds = socialsValues
-      .map((social: { socialId: string; url: string }, index: number) =>
-        index !== currentIndex ? social.socialId : null
-      )
-      .filter(Boolean);
-
-    // Filter out already selected platforms
-    return socials.filter(
-      (social) => !selectedSocialIds.includes(social.value)
-    );
-  };
   const currentIndex = useMemo(
     () => steps.findIndex((s) => s.id === currentStep),
     [currentStep]
@@ -141,87 +110,11 @@ export default function FormCreateNewbie() {
 
   async function validateAndNext() {
     const step = steps[currentIndex];
-    if (currentStep === "socialPlatform") {
-      const ok = await form.trigger([`socials.${socialIndex}.socialId`] as any);
-      if (!ok) return;
-      goNext();
-      return;
-    }
-    if (currentStep === "socialUrl") {
-      const ok = await form.trigger([`socials.${socialIndex}.url`] as any);
-      if (!ok) return;
-      goNext();
-      return;
-    }
-    if (currentStep === "allocSupply") {
-      const ok = await form.trigger([
-        `allocations.${allocationIndex}.supply`,
-      ] as any);
-      if (!ok) return;
-      if (isSimpleAllocation) {
-        const currentName = String(allocations?.[allocationIndex]?.name || "")
-          .trim()
-          .toLowerCase();
-        if (currentName === "deployer") {
-          const presaleIdx = (allocations || []).findIndex(
-            (a: any) =>
-              String(a?.name || "")
-                .trim()
-                .toLowerCase() === "presale"
-          );
-          if (presaleIdx !== -1) {
-            setAllocationIndex(presaleIdx);
-            setCurrentStep("allocName");
-            return;
-          }
-        }
-        setCurrentStep("allocAddMore");
-      } else {
-        goNext();
-      }
-      return;
-    }
-    if (currentStep === "allocName") {
-      const ok = await form.trigger([
-        `allocations.${allocationIndex}.name`,
-      ] as any);
-      if (!ok) return;
-      goNext();
-      return;
-    }
-    if (currentStep === "allocVesting") {
-      const ok = await form.trigger([
-        `allocations.${allocationIndex}.vesting`,
-      ] as any);
-      if (!ok) return;
-      goNext();
-      return;
-    }
-    if (currentStep === "allocStartDate") {
-      const ok = await form.trigger([
-        `allocations.${allocationIndex}.startDate`,
-      ] as any);
-      if (!ok) return;
-      goNext();
-      return;
-    }
     if (step.validateFields && step.validateFields.length > 0) {
       const ok = await form.trigger(step.validateFields as any);
       if (!ok) return;
     }
     goNext();
-  }
-
-  function appendEmptyAllocationAndStart() {
-    const nextName = getNextDefaultAllocationName();
-    appendAllocation({
-      name: nextName,
-      supply: 0,
-      vesting: 0,
-      startDate: new Date().toISOString(),
-    } as any);
-    setAllocationIndex(allocationFields.length);
-    setCurrentStep("allocSupply");
   }
 
   // Next Form Advanced
@@ -231,31 +124,19 @@ export default function FormCreateNewbie() {
     const draft = form.getValues();
     setForm(draft);
     setFormType("advanced");
-    // pass previews to global store so advanced form can show them
+
+    // Create new URLs for global store to avoid memory leaks
+    const logoPreview = logo ? URL.createObjectURL(logo) : null;
+    const bannerPreview = banner ? URL.createObjectURL(banner) : null;
+
     setMedia({
       logoFile: logo,
       bannerFile: banner,
-      logoPreview: logo ? URL.createObjectURL(logo) : null,
-      bannerPreview: banner ? URL.createObjectURL(banner) : null,
+      logoPreview,
+      bannerPreview,
     });
   }
   // END Next Form Advanced
-  function addAnotherSocial() {
-    appendSocial({ socialId: "", url: "" } as any);
-    setSocialIndex(socialFields.length); // new index
-    setCurrentStep("socialPlatform");
-  }
-
-  function getNextDefaultAllocationName(): string {
-    const existingNames = (form.getValues("allocations") || []).map((a: any) =>
-      String(a?.name || "")
-        .trim()
-        .toLowerCase()
-    );
-    if (!existingNames.includes("deployer")) return "Deployer";
-    if (!existingNames.includes("presale")) return "Presale";
-    return "";
-  }
 
   function handleChangeBanner(file: File | null) {
     setBanner(file);
@@ -286,20 +167,6 @@ export default function FormCreateNewbie() {
   useEffect(() => {
     if (socialFields.length === 0) {
       appendSocial({ socialId: "", url: "" } as any);
-    }
-    if (allocationFields.length === 0) {
-      appendAllocation({
-        name: "Deployer",
-        supply: 0,
-        vesting: 0,
-        startDate: new Date().toISOString(),
-      } as any);
-      appendAllocation({
-        name: "Presale",
-        supply: 0,
-        vesting: 0,
-        startDate: new Date().toISOString(),
-      } as any);
     }
     if ((presalesFields?.length ?? 0) === 0) {
       // ensure one presale row exists
@@ -643,7 +510,6 @@ export default function FormCreateNewbie() {
                   </Button>
                   <Button type="button" onClick={validateAndNext}>
                     Next
-                    <Icon name="tabler:arrow-right" className="w-4 h-4 ml-2" />
                   </Button>
                 </div>
               </div>
@@ -781,8 +647,8 @@ export default function FormCreateNewbie() {
                   {/* Enter total <strong>shares</strong> representing 100% of your
                   project (e.g.,
                   <strong>100,000,000</strong>); this defines all future splits. */}
-                  Enter total <b>shares</b> for the project. Refers to ONDO
-                  Project, it has total supply of 10,000,000,000.
+                  Enter total <b>shares</b> for the project. RWA projects
+                  benchmark have common total supply of 10,000,000,000
                 </p>
                 <FormInput
                   control={form.control}
@@ -848,205 +714,30 @@ export default function FormCreateNewbie() {
           )}
 
           {currentStep === "socialPlatform" && (
-            <SocialPlatform
-              socialsOptions={getAvailableSocialPlatforms(socialIndex).map(
-                (i: any) => ({
-                  ...i,
-                  iconName: i.icon,
-                })
-              )}
+            <SocialMediaForm
+              socialsOptions={
+                socials
+                  ? socials.map((i: any) => ({
+                      ...i,
+                      iconName: i.icon,
+                    }))
+                  : []
+              }
               control={form.control}
-              socialIndex={socialIndex}
               onBack={goBack}
-              onNext={validateAndNext}
-              onSkip={handoffToNativeForm}
-            />
-          )}
-
-          {currentStep === "socialUrl" && (
-            <SocialUrl
-              control={form.control}
-              socialIndex={socialIndex}
-              onBack={() => setCurrentStep("socialPlatform")}
-              onNext={validateAndNext}
-            />
-          )}
-
-          {currentStep === "socialAddMore" && (
-            <SocialAddMore
-              onBack={() => setCurrentStep("socialUrl")}
-              onAddAnother={addAnotherSocial}
               onNext={goNext}
               onSkip={handoffToNativeForm}
+              socialsValues={socialsValues}
             />
           )}
 
           {currentStep === "allocIntro" && (
-            <AllocationIntro
+            <AllocationForm
+              control={form.control}
               onBack={goBack}
-              onNext={() => setCurrentStep("allocName")}
+              onNext={goNext}
+              onSkip={handoffToNativeForm}
             />
-          )}
-
-          {currentStep === "allocName" && (
-            <AllocationName
-              control={form.control}
-              index={allocationIndex}
-              onBack={() => setCurrentStep("allocIntro")}
-              onNext={validateAndNext}
-            />
-          )}
-
-          {currentStep === "allocSupply" && (
-            <AllocationSupply
-              control={form.control}
-              index={allocationIndex}
-              currentTotal={totalAllocationPercent}
-              onBack={() => setCurrentStep("allocName")}
-              onNext={validateAndNext}
-            />
-          )}
-
-          {currentStep === "allocVesting" && (
-            <AllocationVesting
-              control={form.control}
-              index={allocationIndex}
-              onBack={() => setCurrentStep("allocSupply")}
-              onNext={validateAndNext}
-            />
-          )}
-
-          {currentStep === "allocStartDate" && (
-            <AllocationStartDate
-              control={form.control}
-              index={allocationIndex}
-              onBack={() => setCurrentStep("allocVesting")}
-              onNext={validateAndNext}
-            />
-          )}
-
-          {currentStep === "allocAddMore" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">
-                  Add another allocation?
-                </h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  Add more allocations (Team, Presale, Community, Investors)
-                  until your plan is complete.
-                </p>
-                <div className="text-sm mt-2">
-                  <p
-                    className={`font-semibold ${
-                      totalAllocationPercent === 100
-                        ? "text-green-600"
-                        : "text-red-500"
-                    }`}
-                  >
-                    Total Allocation: {totalAllocationPercent}%
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-0">
-                    Check that all rows together equal <strong>100%</strong>{" "}
-                    before you proceed.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() =>
-                    setCurrentStep(
-                      isSimpleAllocation ? "allocSupply" : "allocStartDate"
-                    )
-                  }
-                >
-                  Back
-                </Button>
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="link"
-                    onClick={handoffToNativeForm}
-                  >
-                    Skip
-                  </Button>
-                  <Button
-                    type="button"
-                    disabled={totalAllocationPercent === 100}
-                    variant="secondary"
-                    onClick={() => {
-                      const nextName = getNextDefaultAllocationName();
-                      appendAllocation({
-                        name: nextName,
-                        supply: 0,
-                        vesting: 0,
-                        startDate: new Date().toISOString(),
-                      } as any);
-                      setAllocationIndex(allocationFields.length);
-                      setCurrentStep("allocName");
-                    }}
-                  >
-                    Yes, add another
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => setCurrentStep("presaleUnit")}
-                    disabled={totalAllocationPercent !== 100}
-                  >
-                    No, continue
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {currentStep === "allocTotal" && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold">Total Allocation</h3>
-                <p className="text-sm text-muted-foreground mt-0">
-                  To continue, make sure total allocation equals exactly 100%.
-                </p>
-                <div className="text-sm mt-2">
-                  <p
-                    className={`font-semibold ${
-                      totalAllocationPercent === 100
-                        ? "text-green-600"
-                        : "text-red-500"
-                    }`}
-                  >
-                    Total Allocation: {totalAllocationPercent}%
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep("allocAddMore")}
-                >
-                  Back
-                </Button>
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    disabled={totalAllocationPercent === 100}
-                    variant="secondary"
-                    onClick={appendEmptyAllocationAndStart}
-                  >
-                    + Allocation
-                  </Button>
-                  <Button
-                    type="button"
-                    disabled={totalAllocationPercent !== 100}
-                    onClick={goNext}
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
-            </div>
           )}
 
           {currentStep === "presaleUnit" && (
@@ -1054,7 +745,7 @@ export default function FormCreateNewbie() {
               control={form.control}
               index={presaleIndex}
               units={tokenUnits}
-              onBack={() => setCurrentStep("allocTotal")}
+              onBack={goBack}
               onNext={async () => {
                 const ok = await form.trigger([
                   `presales.${presaleIndex}.unit`,
@@ -1062,6 +753,7 @@ export default function FormCreateNewbie() {
                 if (!ok) return;
                 goNext();
               }}
+              onSkip={handoffToNativeForm}
             />
           )}
 
@@ -1072,7 +764,7 @@ export default function FormCreateNewbie() {
                 index={presaleIndex}
                 show={showWhitelist}
                 onToggle={setShowWhitelist}
-                onBack={() => setCurrentStep("presaleUnit")}
+                onBack={goBack}
                 onNext={() => setShowConfirm(true)}
               />
             </>

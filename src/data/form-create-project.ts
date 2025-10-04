@@ -70,57 +70,13 @@ export const steps: Step[] = [
     id: "socialPlatform",
     title: "Website / Social Media",
     description:
-      "Add your site and social links so investors can check quickly. Which platform do you want to spotlight first?",
-  },
-  {
-    id: "socialUrl",
-    title: "URL",
-    description: "What’s the live URL to your site or social page?",
-  },
-  {
-    id: "socialAddMore",
-    title: "Add another social?",
-    description:
-      "Would you like to add another social link so investors can check quickly?",
+      "Add your site and social links so investors can check quickly. You can add multiple platforms and URLs.",
   },
   {
     id: "allocIntro",
     title: "Allocations",
     description:
-      "Split your token supply into slices like Team, Community, Investors, Presale.",
-  },
-  {
-    id: "allocName",
-    title: "Allocation",
-    description:
-      "How will you split supply across team, investors, community, and others?",
-  },
-  {
-    id: "allocSupply",
-    title: "Supply (%)",
-    description: "What percentage of total supply does this row deserve?",
-  },
-  {
-    id: "allocVesting",
-    title: "Vesting (mo)",
-    description:
-      "Over how many months should this portion unlock—use 0 for no lock?",
-  },
-  {
-    id: "allocStartDate",
-    title: "Start Date",
-    description: "When should unlocking begin for this row?",
-  },
-  {
-    id: "allocAddMore",
-    title: "Add another allocation?",
-    description:
-      "Need another slice for Team, Presale, Community, or Investors?",
-  },
-  {
-    id: "allocTotal",
-    title: "Total Allocation",
-    description: "Do all your slices add up to a clean 100 percent?",
+      "Split your token supply into slices like Team, Community, Investors, Presale. You can add multiple allocations and manage them all in one place.",
   },
   {
     id: "presaleUnit",

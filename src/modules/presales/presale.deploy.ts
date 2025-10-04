@@ -2,7 +2,7 @@ import PresaleAbi from '@/lib/abis/presale.abi.json';
 import WhitelistAbi from '@/lib/abis/whitelist.abi.json';
 import TokenAbi from '@/lib/abis/erc20.abi.json';
 import { FormProjectAddressWhitelist, TPresale, TProject } from "@/types/project";
-import { BrowserProvider, ethers, parseUnits } from "ethers";
+import { BrowserProvider, ethers, getAddress, parseUnits } from "ethers";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { useAccount, useWalletClient } from "wagmi";
@@ -12,9 +12,12 @@ import {
   useRemoveProjectWhitelistAddress,
   useUpdateNewPresale
 } from "./presale.query";
-import { useCreateClaimedPresale } from '../transaction-presale/transaction-presale.query';
+import presaleService from './presale.service'
+import { useCreateClaimedPresale, useSetWithdrawPresale } from '../transaction-presale/transaction-presale.query';
+import { isUnitPresaleStable } from '@/lib/validationActionSc';
 type TActivatePresale = { data: TProject, item: TPresale }
 export function useDeployPresaleSC() {
+  
   const { data: walletClient } = useWalletClient()
   const { address } = useAccount()
   const { mutate: updatePresale } = useUpdateNewPresale()
@@ -22,8 +25,10 @@ export function useDeployPresaleSC() {
   const { mutate: removeProjectWhitelistAddress } = useRemoveProjectWhitelistAddress()
   const { mutate: createContributePresale } = useCreateContributePresale()
   const { mutate: createClaimed } = useCreateClaimedPresale()
-
+  const { mutate: setWdPresale } = useSetWithdrawPresale()
   const activatePresale = useCallback(async ({ data, item }: TActivatePresale) => {
+    
+    const isUseStableCoin = isUnitPresaleStable(item.unit)
     if (typeof window === 'undefined') return
     if (!walletClient || !address) throw new Error('Wallet not connected')
     const provider = new BrowserProvider(walletClient as any)
@@ -42,31 +47,56 @@ export function useDeployPresaleSC() {
       const duration = endTime - startTime;
       if (duration <= 0) {
         toast.error('Error', {
-          description:'End Date must be greater than Start Date'
+          description: 'End Date must be greater than Start Date'
         })
         throw new Error("End Date must be greater than Start Date");
       }
-
-
-      const contractERC20 = new ethers.Contract(data.contractAddress!, TokenAbi.abi, signer);
       const amountToApprove = Number(item.hardcap) / Number(item.price)
-      const txApprove = await contractERC20.approve(data.presaleAddress, ethers.parseUnits(amountToApprove.toString(), data.decimals));
-      await txApprove.wait();
+      // check unit
+      if (isUseStableCoin) {
+        const stableCoinData = await presaleService.GetStableUsed({
+          chainId: data.chains[0].chain.id,
+          name: item.unit
+        })
+        const tokenAddress = getAddress(data.contractAddress!)
+        const contractERC20 = new ethers.Contract(data.contractAddress!, TokenAbi.abi, signer);
+        // const txApprove = await contractERC20.approve(data.contractAddress!, ethers.parseUnits(amountToApprove.toString(), data.decimals));
+        const txApprove = await contractERC20.approve(data.presaleAddress!, ethers.parseUnits(amountToApprove.toString(), data.decimals));
+        await txApprove.wait();
+        const presaleAction = await presale.activatePresaleStable(
+          tokenAddress,
+          data.whitelistsAddress,
+          stableCoinData.address,
+          ethers.parseUnits(item.hardcap, stableCoinData.decimal),
+          ethers.parseUnits(item.price, stableCoinData.decimal),
+          ethers.parseUnits(item.maxContribution, stableCoinData.decimal),
+          startTime,
+          duration,
+          Number(item.whitelistDuration) * 60 * 60,
+          Number(item.claimTime) * second,
+          Number(item.sweepDuration) * second
+        );
+        await presaleAction.wait()
+      } else {
+        const contractERC20 = new ethers.Contract(data.contractAddress!, TokenAbi.abi, signer);
+        const txApprove = await contractERC20.approve(data.presaleAddress, ethers.parseUnits(amountToApprove.toString(), data.decimals));
+        await txApprove.wait();
+        const presaleAction = await presale.activatePresale(
+          data.contractAddress,
+          data.whitelistsAddress,
+          ethers.parseUnits(item.hardcap, data.decimals),
+          ethers.parseUnits(item.price, data.decimals),
+          ethers.parseUnits(item.maxContribution, data.decimals),
+          startTime,
+          duration,
+          Number(item.whitelistDuration) * 60 * 60,
+          Number(item.claimTime) * second,
+          Number(item.sweepDuration) * second
+        );
+        await presaleAction.wait()
+      }
+      // return;
 
-      const presaleAction = await presale.activatePresale(
-        data.contractAddress,
-        data.whitelistsAddress,
-        ethers.parseUnits(item.hardcap, data.decimals),
-        ethers.parseUnits(item.price, data.decimals),
-        ethers.parseUnits(item.maxContribution,data.decimals),
-        startTime,
-        duration,
-        Number(item.whitelistDuration) * 60 * 60,
-        Number(item.claimTime) * second,
-        Number(item.sweepDuration) * second
-      );
-
-      await presaleAction.wait()
       const presaleId = (await presale.presaleCount()).toString();
       updatePresale({
         id: item.id,
@@ -130,25 +160,52 @@ export function useDeployPresaleSC() {
     }
   ) => {
     try {
+      const isUseStableCoin = isUnitPresaleStable(presale.unit)
       if (typeof window === 'undefined') return
       if (!walletClient || !address) throw new Error('Wallet not connected')
       const provider = new BrowserProvider(walletClient as any)
       const signer = await provider.getSigner(address)
 
-      const contract = new ethers.Contract(data.presaleAddress!, PresaleAbi.abi, signer)
+      // check unit
+      if (isUseStableCoin) {
+        const stableCoinData = await presaleService.GetStableUsed({
+          chainId: data.chains[0].chain.id,
+          name: presale.unit
+        })
+        const amountParsed = ethers.parseUnits(amount.toString(), stableCoinData.decimal);
+        const stableAddress = getAddress(stableCoinData.address);
+        const stableContract = new ethers.Contract(stableAddress, TokenAbi.abi, signer);
+        const contract = new ethers.Contract(data.presaleAddress!, PresaleAbi.abi, signer)
+        const txApprove = await stableContract.approve(data.presaleAddress, ethers.parseUnits(amount.toString(), stableCoinData.decimal));
+        await txApprove.wait();
 
-      const tx = await contract.contribute(presale.presaleSCID, address, {
-        value: parseUnits(amount.toString(), data.decimals)
-      })
-      await tx.wait()
-      createContributePresale({
-        projectId: data.id,
-        presaleId: presale.id,
-        price: presale.price,
-        count: Number(amount),
-        transactionHash: tx.hash as string
-      })
+        const tx = await contract.contributeStable(presale.presaleSCID, address, amountParsed)
+        const receipt = await tx.wait();
+        console.log("Contribute confirmed:", receipt);
+        createContributePresale({
+          projectId: data.id,
+          presaleId: presale.id,
+          price: presale.price,
+          count: Number(amount),
+          transactionHash: tx.hash as string
+        })
+      } else {
+        const contract = new ethers.Contract(data.presaleAddress!, PresaleAbi.abi, signer)
 
+        const tx = await contract.contribute(presale.presaleSCID, address, {
+          value: parseUnits(amount.toString(), data.decimals)
+        })
+        await tx.wait()
+        createContributePresale({
+          projectId: data.id,
+          presaleId: presale.id,
+          price: presale.price,
+          count: Number(amount),
+          transactionHash: tx.hash as string
+        })
+
+      }
+      return
     } catch (error: any) {
       console.log(error)
       toast.error('Error', {
@@ -178,7 +235,7 @@ export function useDeployPresaleSC() {
   },
     [address, walletClient],
   )
-  
+
   const claimPresale = useCallback(async ({ data, item }: TActivatePresale) => {
     if (!walletClient || !address) throw new Error("Wallet not connected")
     const provider = new BrowserProvider(walletClient as any)
@@ -199,16 +256,66 @@ export function useDeployPresaleSC() {
         description: `Transaction hash: ${tx.hash}`
       })
     } catch (error: any) {
-      console.log(error)
       toast.error('Error', {
-        description: 'Claim Failed: Presale is on going!'
+        description: error.shortMessage
       })
     }
   },
     [address, createClaimed, walletClient],
   )
 
-
+  const sweepUnclaimedTokens = useCallback(async ({ data, item }: TActivatePresale) => {
+    if (!walletClient || !address) throw new Error("Wallet not connected")
+    const provider = new BrowserProvider(walletClient as any)
+    const signer = await provider.getSigner(address)
+    const presaleAddress = data.presaleAddress
+    if (!presaleAddress || !item.presaleSCID) throw new Error("Presale address is not set")
+    try {
+      const presaleFactory = new ethers.Contract(presaleAddress, PresaleAbi.abi, signer)
+      const userAddress = await signer.getAddress()
+      const tx = await presaleFactory.sweepUnclaimedTokens(item.presaleSCID!, userAddress)
+      await tx.wait()
+      toast.success("Withdraw successful", {
+        description: `Transaction hash: ${tx.hash}`
+      })
+    } catch (error: any) {
+      toast.error('Error', {
+        description: error.shortMessage
+      })
+    }
+  },
+    [address, walletClient],
+  )
+  const withdrawContributionIfFailed = useCallback(async ({ data, item }: TActivatePresale) => {
+    const isUseStableCoin = isUnitPresaleStable(item.unit)
+    if (!walletClient || !address) throw new Error("Wallet not connected")
+    const provider = new BrowserProvider(walletClient as any)
+    const signer = await provider.getSigner(address)
+    const presaleAddress = data.presaleAddress
+    if (!presaleAddress || !item.presaleSCID) throw new Error("Presale address is not set")
+    try {
+      const presaleFactory = new ethers.Contract(presaleAddress, PresaleAbi.abi, signer)
+      const userAddress = await signer.getAddress()
+      let tx;
+      if (isUseStableCoin) {
+        tx = await presaleFactory.withdrawStableContributionIfFailed(item.presaleSCID!, userAddress)
+      } else {
+        tx = await presaleFactory.withdrawContributionIfFailed(item.presaleSCID!, userAddress)
+      }
+      await tx.wait()
+      setWdPresale(item.id)
+      toast.success("Refund successful", {
+        description: `Transaction hash: ${tx.hash}`
+      })
+    } catch (error: any) {
+      console.log(error)
+      toast.error('Error', {
+        description: error.shortMessage
+      })
+    }
+  },
+    [address, setWdPresale, walletClient],
+  )
 
   return {
     activatePresale,
@@ -216,6 +323,8 @@ export function useDeployPresaleSC() {
     removeFromWhitelist,
     contributePresale,
     getContribution,
-    claimPresale
+    claimPresale,
+    sweepUnclaimedTokens,
+    withdrawContributionIfFailed
   }
 }

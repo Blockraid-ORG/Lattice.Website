@@ -9,3 +9,9 @@ export type TPresaleSC = {
   totalRaised: string
   tokensNeeded: string
 }
+
+export type TContributionInfo = {
+  claimable: string
+  contribution: string
+  claimedToken: string
+} | null
