@@ -1,6 +1,5 @@
 'use client'
 import { Icon } from "@/components/icon";
-// import ImagePopover from "@/components/image-popover";
 import { Button } from "@/components/ui/button";
 import { toUrlAsset } from "@/lib/utils";
 import { TProject } from "@/types/project";
@@ -17,6 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import BadgeProjectPayment from "@/components/badges/badge-project-payment";
 
 export const columns: ColumnDef<TProject>[] = [
   {
@@ -51,25 +51,6 @@ export const columns: ColumnDef<TProject>[] = [
       )
     }
   },
-
-  // {
-  //   accessorKey: 'logo',
-  //   header: 'Logo',
-  //   cell: ({ row }) => {
-  //     return (
-  //       <ImagePopover className="border h-8 w-8" src={toUrlAsset(row.original.logo)} />
-  //     )
-  //   }
-  // },
-  // {
-  //   accessorKey: 'banner',
-  //   header: 'Banner',
-  //   cell: ({ row }) => {
-  //     return (
-  //       <ImagePopover className="border h-8 w-auto" src={toUrlAsset(row.original.banner)} />
-  //     )
-  //   }
-  // },
   {
     accessorKey: 'name',
     header: 'Name',
@@ -82,6 +63,26 @@ export const columns: ColumnDef<TProject>[] = [
     accessorKey: 'status',
     header: 'Status',
     cell: ({ row }) => <BadgeProjectStatus status={row.original.status} />
+  },
+  {
+    accessorKey: 'addressPoolPaymentLog',
+    header: 'Payment Status',
+    cell: ({ row }) => (
+      <div>
+        {
+          row.original.PaymentHistory.length >= 1 ? (
+            <BadgeProjectPayment status="PAID" />
+          ) : (
+            <div className="flex gap-1 items-center">
+              <BadgeProjectPayment status="UNPAID" />
+              <Button size={'sm'} asChild>
+                <Link href={`/usr/my-project/${row.original.id}/pay`}>Pay Now</Link>
+              </Button>
+            </div>
+          )
+        }
+      </div>
+    )
   },
   {
     id: "actions",

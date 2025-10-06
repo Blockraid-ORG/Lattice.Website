@@ -26,7 +26,7 @@ const web3AuthContextConfig: Web3AuthContextConfig = {
     ssr: true,
     uiConfig: {
       mode: "auto",
-      loginMethodsOrder: ["external_wallet", "email_passwordless"],
+      loginMethodsOrder: ["wallet"],
     },
   },
 };

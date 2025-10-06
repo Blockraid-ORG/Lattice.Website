@@ -2,7 +2,7 @@ import TimeCountDown from '@/components/time-count-down'
 import { Progress } from '@/components/ui/progress'
 import PresaleAbi from '@/lib/abis/presale.abi.json'
 import { NumberComma } from '@/lib/utils'
-import { TPresaleSC } from '@/types/presale'
+import { TContributionInfo, TPresaleSC } from '@/types/presale'
 import { TPresale, TProject } from '@/types/project'
 import dayjs from 'dayjs'
 import { BrowserProvider, Contract, ethers } from 'ethers'
@@ -14,11 +14,7 @@ import { isAvailableContribute, isUnitPresaleStable } from '@/lib/validationActi
 import presaleService from '@/modules/presales/presale.service'
 export default function PresaleInfoItem({ data, presale }: { data: TProject, presale: TPresale }) {
   const { data: walletClient } = useWalletClient()
-  const [contributionInfo, setContributionInfo] = useState<{
-    claimable: string;
-    contribution: string;
-    claimedToken: string;
-  } | null>(null);
+  const [contributionInfo, setContributionInfo] = useState<TContributionInfo>(null);
   const [presaleSc, setPresaleSc] = useState<TPresaleSC | null>(null)
   const { address } = useAccount()
 
@@ -49,10 +45,11 @@ export default function PresaleInfoItem({ data, presale }: { data: TProject, pre
   const getPresaleData = useCallback(async () => {
     const provider = new BrowserProvider(walletClient as any)
     const contract = new Contract(data.presaleAddress!, PresaleAbi.abi, provider)
-    const [claimable, contribution, claimedToken] = await Promise.all([
+    const [claimable, contribution, claimedToken, isRefunded] = await Promise.all([
       contract.getClaimableTokens(presale.presaleSCID!, address),
       contract.getContribution(presale.presaleSCID!, address),
       contract.getClaimedTokens(presale.presaleSCID!, address),
+      contract.hasUserBeenRefunded(presale.presaleSCID!, address),
     ]);
     const isUseStableCoin = isUnitPresaleStable(presale.unit)
     const stableCoinData = await presaleService.GetStableUsed({
@@ -64,12 +61,14 @@ export default function PresaleInfoItem({ data, presale }: { data: TProject, pre
         claimable: ethers.formatUnits(claimable, data.decimals),
         contribution: ethers.formatUnits(contribution, stableCoinData.decimal),
         claimedToken: ethers.formatUnits(claimedToken, data.decimals),
+        isRefunded
       };
     } else {
       return {
         claimable: ethers.formatUnits(claimable, data.decimals),
         contribution: ethers.formatUnits(contribution, data.decimals),
         claimedToken: ethers.formatUnits(claimedToken, data.decimals),
+        isRefunded
       };
 
     }

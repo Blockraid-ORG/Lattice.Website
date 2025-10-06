@@ -14,4 +14,5 @@ export type TContributionInfo = {
   claimable: string
   contribution: string
   claimedToken: string
+  isRefunded: boolean
 } | null

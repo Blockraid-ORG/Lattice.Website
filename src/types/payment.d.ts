@@ -1,9 +1,26 @@
-export type TMasterPayment = {
+export type TStableGroup = {
   id: string
   name: string
-  address: string
-  balance: string
-  ticker: string
+}
+
+export type TMasterPayment = {
+  id: string
+  paymentSc: string
+  listingFee: string
+  presaleFee: number
   decimal: number
-  amountFee: string,
+  status: boolean
+  stableCoin: {
+    id: string
+    address: string
+    chain: {
+      id: string
+      name: string
+      ticker: string
+    }
+    stableCoin: {
+      id: string
+      name: string
+    }
+  }
 }

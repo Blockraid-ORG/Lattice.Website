@@ -15,11 +15,10 @@ import RowItem from "../../row-item";
 import TokenSats from "../../token-stats/token-information/content";
 import PresaleManagement from "../presales";
 import SetPauseAsset from "./set-pause-asset";
-import SetPaymentProject from "./set-payment-project";
-import { TMasterPayment } from "@/types/payment";
-import { TPagination } from "@/types/pagination";
+import BadgeProjectPayment from "@/components/badges/badge-project-payment";
+import { Button } from "@/components/ui/button";
 
-export default function TokenInformation({ data, addressPool }: { data: TProject, addressPool?: TPagination<TMasterPayment> }) {
+export default function TokenInformation({ data }: { data: TProject }) {
   const search = useSearchParams()
   const tabActive = search.get('tab')
   return (
@@ -192,7 +191,16 @@ export default function TokenInformation({ data, addressPool }: { data: TProject
                     <div className="flex py-2 border-t items-center">
                       <div className="w-1/3">Payment Status</div>
                       <div className="w-3 shrink-0">:</div>
-                      <SetPaymentProject data={data} addressPool={addressPool} />
+                      <div className="flex flex-1 justify-between items-center">
+                        <BadgeProjectPayment status={data.PaymentHistory.length >= 1 ? 'PAID' : 'UNPAID'} />
+                        {
+                          data.PaymentHistory.length < 1 && (
+                            <Button size={'sm'} asChild>
+                              <Link href={`/usr/my-project/${data.id}/pay`}>Pay Now</Link>
+                            </Button>
+                          )
+                        }
+                      </div>
                     </div>
                   </div>
                 </div>
