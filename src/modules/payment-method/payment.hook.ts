@@ -6,32 +6,28 @@ import { TProject } from '@/types/project';
 import { useAccount, useWalletClient } from 'wagmi';
 import { BrowserProvider, Contract, ethers } from 'ethers';
 import { TMasterPayment } from '@/types/payment';
-import { TPagination } from '@/types/pagination';
 import { toast } from 'sonner';
 import { useCreatePaymentFeeProject } from '../project/project.query';
 export function usePaymentSC() {
+  const { mutate: createPaymentFeeProject } = useCreatePaymentFeeProject()
   const { data: walletClient } = useWalletClient()
   const { address } = useAccount()
-  const { mutate: createPaymentFeeProject } = useCreatePaymentFeeProject()
-  const pay = useCallback(async (project: TProject, addressPool?: TPagination<TMasterPayment>) => {
-    const paymentInfo = addressPool?.data && addressPool?.data[0]
-    if (!paymentInfo) {
+  const payListingFee = useCallback(async (project: TProject, addressPool?: TMasterPayment) => {
+    if (!addressPool) {
       toast.warning('Warning', {
         description: 'Payment method is disabled'
       })
       return
     }
-    const paymentContract = `0x779aa5C7ff04B6Ba48464bcEA0a60134Df9E6AFf`;
-    const usdcContract = paymentInfo.address;
-    const amount = ethers.parseUnits(paymentInfo.amountFee, paymentInfo.decimal)
-
+    const paymentContract = addressPool.paymentSc;
+    const usdcContract = addressPool.stableCoin.address;
+    const amount = ethers.parseUnits(addressPool.listingFee, addressPool.decimal)
     if (typeof window === 'undefined') return
     if (!walletClient || !address) throw new Error('Wallet not connected')
 
     const provider = new BrowserProvider(walletClient as any)
     const signer = await provider.getSigner(address)
     try {
-
       const stableContract = new Contract(
         usdcContract,
         TokenAbi.abi,
@@ -53,21 +49,27 @@ export function usePaymentSC() {
       await payTx.wait();
       createPaymentFeeProject({
         projectId: project.id,
-        addressPoolPaymentId: paymentInfo.id,
+        type: "PROJECT_LISTING_FEE",
+        address: addressPool.stableCoin.address,
+        amount: amount.toString(),
+        unit: addressPool.stableCoin.stableCoin.name,
         transactionHash: payTx.hash
       }, {
         onSuccess: () => {
           toast.success('Success', {
-            description:'Payment Success, please wait terravest admin review to deploy!'
+            description: 'Payment Success, please wait terravest admin review to deploy!'
           })
         }
       })
     } catch (error: any) {
       console.log(error)
+      toast.error('Error', {
+        description:`Payment failed!`
+      })
     }
   }, [address, createPaymentFeeProject, walletClient])
 
   return {
-    pay
+    payListingFee
   }
 }

@@ -17,6 +17,7 @@ import {
   useUpdateAllocation
 } from '../project/project.query';
 import { useDeployProject } from './deploy.query';
+import { TMasterPayment } from '@/types/payment';
 
 export function useDeployToken() {
   const { data: walletClient } = useWalletClient()
@@ -72,7 +73,14 @@ export function useDeployToken() {
 
   }, [address, setDistributedLocker, vestings, walletClient])
 
-  const deployFactoryBasic = useCallback(async (project: TProject) => {
+  const deployFactoryBasic = useCallback(async (project: TProject, addressPool: TMasterPayment) => {
+    if (!addressPool) {
+      toast.error('Error', {
+        description:'Payment address not found!'
+      })
+    }
+    const _platformFeeBps = addressPool.presaleFee * 100;
+    const _platform = addressPool.paymentSc
     try {
       if (typeof window === 'undefined') return
       if (!walletClient || !address) throw new Error('Wallet not connected')
@@ -178,7 +186,8 @@ export function useDeployToken() {
             console.log('Error')
           }
         }
-        const presale = await presaleFactory.deploy(address);
+        // constructor(address _owner, address _platform = Payment address, uint256 _platformFeeBps=presale fee (10%)
+        const presale = await presaleFactory.deploy(address, _platform, _platformFeeBps);
         await presale.waitForDeployment();
         deployProject({
           projectId: project.id,
