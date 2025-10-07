@@ -369,6 +369,7 @@ export default function FormEdit() {
                     name="totalSupply"
                     label="Total Supply"
                     placeholder="Enter Supply"
+                    formatNumber={true}
                   />
                 </div>
                 <FormInput
