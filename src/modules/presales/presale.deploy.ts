@@ -74,7 +74,7 @@ export function useDeployPresaleSC() {
           duration,
           Number(item.whitelistDuration) * 60 * 60,
           Number(item.claimTime) * second,
-          Number(item.sweepDuration) * second
+          Number(item.sweepDuration) * 60
         );
         await presaleAction.wait()
       } else {
