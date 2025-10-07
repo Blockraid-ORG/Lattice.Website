@@ -31,7 +31,7 @@ export default function DetailProjectContent() {
             {data && <PresaleInfo data={data} />}
             {data && <TokenInfo data={data} />}
             {data && (
-              <div className="container bg-white shadow shadow-neutral-100/5 border p-6 dark:bg-neutral-950 rounded-xl">
+              <div className="container bg-white shadow shadow-neutral-100/5 border p-6 dark:bg-neutral-950 rounded-xl mb-6">
                 <TokenSats data={data} />
               </div>
             )}

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { TProject } from "@/types/project";
-import MarketCapChart from "./market-cap-chart";
+import DexScreenerChart from "./dexscreener-chart";
 
 interface TabProjectTokenProps {
   data: TProject;
@@ -74,12 +74,19 @@ const TabProjectToken = ({ data }: TabProjectTokenProps) => {
         </div>
       </div>
 
-      {/* Market Capitalization Chart */}
+      {/* DexScreener Chart */}
       <div className="mt-8">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-          Market Capitalization
+          Price Chart
         </h3>
-        <MarketCapChart />
+        {/* <DexScreenerChart
+          tokenAddress={data.contractAddress}
+          chainId={data.chains?.[0]?.chain?.name?.toLowerCase() || "ethereum"}
+        /> */}
+        <DexScreenerChart
+          tokenAddress={"0xf0a949d3d93b833c183a27ee067165b6f2c9625e"}
+          chainId={"bsc"}
+        />
       </div>
     </div>
   );

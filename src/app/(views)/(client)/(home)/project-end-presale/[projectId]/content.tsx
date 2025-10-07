@@ -12,6 +12,9 @@ interface ProjectContentProps {
 }
 
 const ProjectContent = ({ data }: ProjectContentProps) => {
+  // const trustScore = data?.trustScore || 90;
+  const trustScore = 90;
+
   return (
     <main className="container mx-auto px-4 pt-24 pb-24">
       <div className="relative container bg-white shadow shadow-neutral-100/5 border p-6 dark:bg-neutral-950 rounded-xl my-6">
@@ -23,15 +26,15 @@ const ProjectContent = ({ data }: ProjectContentProps) => {
             </h4>
             <div className="flex gap-6 items-center">
               <div className="flex justify-center items-center">
-                <GaugeSmartContractAudit value={data?.trustScore || 0} />
+                <GaugeSmartContractAudit value={trustScore} />
               </div>
               <div className="flex-1">
                 <TrustScoreDisplay
-                  score={data?.trustScore || 0}
+                  score={trustScore}
                   riskLevel={
-                    data?.trustScore || 0 >= 80
+                    trustScore >= 80
                       ? "High"
-                      : data?.trustScore || 0 >= 50
+                      : trustScore >= 50
                       ? "Medium"
                       : "Low"
                   }
