@@ -64,7 +64,7 @@ export default function FormCreate() {
   const form = useForm<TFormProject>({
     resolver: zodResolver(formCreateProjectSchema),
     defaultValues: defaultValues,
-    mode:"onBlur"
+    mode: "onBlur",
   });
 
   useEffect(() => {
@@ -446,6 +446,7 @@ export default function FormCreate() {
                   label="Total Supply"
                   placeholder="Enter Supply"
                   type="number"
+                  formatNumber={true}
                 />
               </div>
               <FormInput
