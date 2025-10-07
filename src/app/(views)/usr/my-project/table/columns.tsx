@@ -70,7 +70,7 @@ export const columns: ColumnDef<TProject>[] = [
     cell: ({ row }) => (
       <div>
         {
-          row.original.PaymentHistory.length >= 1 ? (
+          row.original.PaymentHistory && row.original.PaymentHistory.length >= 1 ? (
             <BadgeProjectPayment status="PAID" />
           ) : (
             <div className="flex gap-1 items-center">
