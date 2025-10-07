@@ -102,9 +102,13 @@ export default function MyContributionInfo({
           {
             isRefundAvailable && (
               <Button
-                disabled={isClaiming} onClick={onRefund}
+                disabled={isClaiming || contributionInfo?.isRefunded} onClick={onRefund}
                 size={'lg'}
-              >Refund</Button>
+              >
+                {
+                  contributionInfo?.isRefunded ? 'Refunded' : 'Refund'
+                }
+              </Button>
             )
           }
         </div>

@@ -2,53 +2,57 @@
 import { Icon } from "@/components/icon";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { useDeployToken } from "@/modules/deploy/deploy.hook";
+import { usePaymentSC } from "@/modules/payment-method/payment.hook";
 import { useStateModal } from "@/store/useStateModal";
 
-import { useVestingStore } from "@/store/useVestingStore";
+import { TMasterPayment } from "@/types/payment";
 import { TProject } from "@/types/project";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function ConfirmDeploy({ data }: { data: TProject }) {
-  const { deployFactoryBasic } = useDeployToken()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const { setData: setDataVesting } = useVestingStore()
+export function ConfirmPay({ data, project }: { data: TMasterPayment, project: TProject }) {
+  const router = useRouter()
   const { open, setOpen } = useStateModal()
-
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { payListingFee } = usePaymentSC()
   function handleChangeOpen() {
     setOpen(!open)
-    setDataVesting(data.allocations)
+    setIsSubmitting(false)
   }
 
-  async function handleDeployContract() {
+  function handlePayment() {
     setIsSubmitting(true)
-    deployFactoryBasic(data).finally(() => setIsSubmitting(false))
-    setOpen(false)
+    payListingFee(project, data).then(() => {
+      router.replace(`/usr/my-project/${project.id}`)
+    }).finally(() => {
+      setIsSubmitting(false)
+      setOpen(false)
+    })
   }
 
   return (
     <AlertDialog onOpenChange={handleChangeOpen} open={open}>
       <AlertDialogTrigger asChild>
-        <Button size={'lg'}>
-          Deploy Now!
+        <Button className="w-full">
+          Process Payment
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-sm">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-center">Confirm Deployment</AlertDialogTitle>
+          <AlertDialogTitle className="text-center">Payment Confirmation</AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div>
               <div className="text-center">
                 <Icon className="text-4xl mx-auto" name="typcn:info" />
-                <p>Proceed with deployment? This cannot be undone.</p>
+                <p>Proceed payment now? This cannot be undone.</p>
               </div>
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="flex gap-2 justify-center mt-4 items-center">
           <Button className="flex-1" variant={'outline'} onClickCapture={() => setOpen(false)}>Cancel</Button>
-          <Button className="flex-1" disabled={isSubmitting} onClick={handleDeployContract}>
-            Deploy Now!
+          <Button className="flex-1" disabled={isSubmitting} onClick={handlePayment}>
+            Pay Now!
           </Button>
         </div>
       </AlertDialogContent>

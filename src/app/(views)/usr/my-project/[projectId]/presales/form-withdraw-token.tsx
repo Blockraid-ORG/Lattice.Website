@@ -25,7 +25,8 @@ export default function FormWithdrawToken({ data, item }: { data: TProject, item
   return (
     <AlertDialog onOpenChange={() => setOpen(!open)} open={open}>
       <AlertDialogTrigger asChild>
-        <Button size={'sm'} disabled={item.isWithdrawn || !item.presaleSCID}>
+        {/* disabled={item.isWithdrawn || !item.presaleSCID} */}
+        <Button size={'sm'} disabled={!item.presaleSCID}>
           <Icon className='text-base' name='hugeicons:reverse-withdrawal-01' /> Withdraw Token
         </Button>
       </AlertDialogTrigger>

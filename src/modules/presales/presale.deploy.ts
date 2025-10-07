@@ -1,20 +1,20 @@
+import TokenAbi from '@/lib/abis/erc20.abi.json';
 import PresaleAbi from '@/lib/abis/presale.abi.json';
 import WhitelistAbi from '@/lib/abis/whitelist.abi.json';
-import TokenAbi from '@/lib/abis/erc20.abi.json';
+import { isUnitPresaleStable } from '@/lib/validationActionSc';
 import { FormProjectAddressWhitelist, TPresale, TProject } from "@/types/project";
 import { BrowserProvider, ethers, getAddress, parseUnits } from "ethers";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { useAccount, useWalletClient } from "wagmi";
+import { useCreateClaimedPresale, useSetWithdrawPresale } from '../transaction-presale/transaction-presale.query';
 import {
   useAddProjectWhitelistAddress,
   useCreateContributePresale,
   useRemoveProjectWhitelistAddress,
   useUpdateNewPresale
 } from "./presale.query";
-import presaleService from './presale.service'
-import { useCreateClaimedPresale, useSetWithdrawPresale } from '../transaction-presale/transaction-presale.query';
-import { isUnitPresaleStable } from '@/lib/validationActionSc';
+import presaleService from './presale.service';
 type TActivatePresale = { data: TProject, item: TPresale }
 export function useDeployPresaleSC() {
   
@@ -74,7 +74,7 @@ export function useDeployPresaleSC() {
           duration,
           Number(item.whitelistDuration) * 60 * 60,
           Number(item.claimTime) * second,
-          Number(item.sweepDuration) * second
+          Number(item.sweepDuration) * 60
         );
         await presaleAction.wait()
       } else {
@@ -279,6 +279,8 @@ export function useDeployPresaleSC() {
         description: `Transaction hash: ${tx.hash}`
       })
     } catch (error: any) {
+      // console.error("❌", parseContractError(error));
+      console.log(error)
       toast.error('Error', {
         description: error.shortMessage
       })

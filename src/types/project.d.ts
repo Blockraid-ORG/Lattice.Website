@@ -154,7 +154,7 @@ export type TProject = {
   reviewLogs: TReviewLog[];
   isHashAirdrop?: boolean;
   additionalReward?: TAdditionalReward[] | [];
-  addressPoolPaymentLog: any[] | [];
+  PaymentHistory: any[] | [];
   ProjectPresaleWhitelistAddress: TProjectPresaleWhitelistAddressItem[] | [];
   trustScore?: number;
 };
