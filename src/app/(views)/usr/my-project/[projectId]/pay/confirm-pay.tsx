@@ -44,7 +44,7 @@ export function ConfirmPay({ data, project }: { data: TMasterPayment, project: T
             <div>
               <div className="text-center">
                 <Icon className="text-4xl mx-auto" name="typcn:info" />
-                <p>You will Proceed payment now?</p>
+                <p>Proceed payment now? This cannot be undone.</p>
               </div>
             </div>
           </AlertDialogDescription>
