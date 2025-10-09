@@ -62,6 +62,11 @@ export const sidemenus = [
         icon: 'streamline-plump:parachute-drop-solid',
         path: '/usr/airdrop'
       },
+      {
+        label: 'Faucet',
+        icon: 'fa-solid:faucet',
+        path: '/faucet'
+      },
     ]
   },
   {

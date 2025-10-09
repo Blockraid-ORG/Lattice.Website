@@ -7,7 +7,10 @@ import { BrowserProvider, ethers, getAddress, parseUnits } from "ethers";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { useAccount, useWalletClient } from "wagmi";
-import { useCreateClaimedPresale, useSetWithdrawPresale } from '../transaction-presale/transaction-presale.query';
+import {
+  useCreateClaimedPresale,
+  useSetWithdrawPresale
+} from '../transaction-presale/transaction-presale.query';
 import {
   useAddProjectWhitelistAddress,
   useCreateContributePresale,
@@ -17,7 +20,7 @@ import {
 import presaleService from './presale.service';
 type TActivatePresale = { data: TProject, item: TPresale }
 export function useDeployPresaleSC() {
-  
+
   const { data: walletClient } = useWalletClient()
   const { address } = useAccount()
   const { mutate: updatePresale } = useUpdateNewPresale()
@@ -27,7 +30,6 @@ export function useDeployPresaleSC() {
   const { mutate: createClaimed } = useCreateClaimedPresale()
   const { mutate: setWdPresale } = useSetWithdrawPresale()
   const activatePresale = useCallback(async ({ data, item }: TActivatePresale) => {
-    
     const isUseStableCoin = isUnitPresaleStable(item.unit)
     if (typeof window === 'undefined') return
     if (!walletClient || !address) throw new Error('Wallet not connected')
@@ -60,7 +62,6 @@ export function useDeployPresaleSC() {
         })
         const tokenAddress = getAddress(data.contractAddress!)
         const contractERC20 = new ethers.Contract(data.contractAddress!, TokenAbi.abi, signer);
-        // const txApprove = await contractERC20.approve(data.contractAddress!, ethers.parseUnits(amountToApprove.toString(), data.decimals));
         const txApprove = await contractERC20.approve(data.presaleAddress!, ethers.parseUnits(amountToApprove.toString(), data.decimals));
         await txApprove.wait();
         const presaleAction = await presale.activatePresaleStable(
@@ -272,14 +273,14 @@ export function useDeployPresaleSC() {
     if (!presaleAddress || !item.presaleSCID) throw new Error("Presale address is not set")
     try {
       const presaleFactory = new ethers.Contract(presaleAddress, PresaleAbi.abi, signer)
-      const userAddress = await signer.getAddress()
-      const tx = await presaleFactory.sweepUnclaimedTokens(item.presaleSCID!, userAddress)
+      // const userAddress = await signer.getAddress()
+      // const tx = await presaleFactory.sweepUnclaimedTokens(item.presaleSCID!, userAddress)
+      const tx = await presaleFactory.retrieveUnsoldTokensIfFailed(item.presaleSCID!)
       await tx.wait()
       toast.success("Withdraw successful", {
         description: `Transaction hash: ${tx.hash}`
       })
     } catch (error: any) {
-      // console.error("❌", parseContractError(error));
       console.log(error)
       toast.error('Error', {
         description: error.shortMessage
