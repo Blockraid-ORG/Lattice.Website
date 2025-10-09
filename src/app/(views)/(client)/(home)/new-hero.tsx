@@ -2,6 +2,9 @@
 import LaunchAppButton from '@/components/launch-app-button'
 import Image from 'next/image'
 import { ChainHero } from './chain-hero'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Icon } from '@/components/icon'
 export default function NewHero() {
   return (
     <div className='aspect-auto md:aspect-[1440/712] relative'>
@@ -24,8 +27,14 @@ export default function NewHero() {
                 <img className='h-full w-full object-contain' alt='star' src={'/ills/vector-1.png'} width={20} height={200} />
               </div>
             </div>
-            <div className="mt-6 md:mt-10 flex justify-center md:justify-start">
+            <div className="mt-6 md:mt-10 flex justify-center md:justify-start gap-4">
               <LaunchAppButton />
+              <Button asChild size={'lg'}>
+                <Link href={'/faucet'}>
+                  <Icon name='fa6-solid:faucet-drip' />
+                  Faucet
+                </Link>
+              </Button>
             </div>
           </div>
           <div className='order-0 md:order-1 relative mb-4 md:mb-12 md:mt-24'>
