@@ -52,11 +52,11 @@ export default function PresaleInfoItem({ data, presale }: { data: TProject, pre
       contract.hasUserBeenRefunded(presale.presaleSCID!, address),
     ]);
     const isUseStableCoin = isUnitPresaleStable(presale.unit)
-    const stableCoinData = await presaleService.GetStableUsed({
-      chainId: data.chains[0].chain.id,
-      name: presale.unit
-    })
     if (isUseStableCoin) {
+      const stableCoinData = await presaleService.GetStableUsed({
+        chainId: data.chains[0].chain.id,
+        name: presale.unit
+      })
       return {
         claimable: ethers.formatUnits(claimable, data.decimals),
         contribution: ethers.formatUnits(contribution, stableCoinData.decimal),
@@ -72,7 +72,7 @@ export default function PresaleInfoItem({ data, presale }: { data: TProject, pre
       };
 
     }
-  }, [address, data,, presale, walletClient])
+  }, [address, data, , presale, walletClient])
 
 
   useEffect(() => {

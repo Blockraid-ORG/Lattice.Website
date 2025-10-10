@@ -38,10 +38,10 @@ export function DeployFactoryToken({ data }: { data: TProject }) {
   const { setData: setDataVesting } = useVestingStore()
   const { open, setOpen } = useStateModal()
   const chainId = data.chains[0].chain.id
-  const unit = data.presales[0].unit;
+  // const unit = data.presales[0].unit;
   const { data: addressPool } = usePaymentStableChain({
     chainId: chainId,
-    group: unit
+    group: "unit"
   })
 
 
