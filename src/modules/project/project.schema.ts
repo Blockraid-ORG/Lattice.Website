@@ -42,6 +42,7 @@ export const formCreateProjectSchema = z.object({
   ticker: z.string().min(3).max(5),
   decimals: z.coerce.number().min(1),
   totalSupply: z.coerce.number().min(1),
+  whitelistDuration: z.coerce.number().optional(),
   status: z.enum(["PENDING", "APPROVED", "REJECTED", "DEPLOYED"]),
   detail: z.string().min(1),
   categoryId: z.string().uuid(),
@@ -57,7 +58,7 @@ export const formCreateProjectSchema = z.object({
       path: ["allocations"],
     }
   ),
-  presales: z.array(presalesSchema).optional(),
+  // presales: z.array(presalesSchema).optional(),
   socials: z.array(socialSchema),
 });
 
@@ -69,7 +70,7 @@ export const formBuyPresale = (max: number) =>
   z.object({
     amount: z.coerce
       .number()
-      .min(0.001, "Amount required")
+      .min(0.000000001, "Amount required")
       .max(max, `Max contribution ${max}`),
   });
 

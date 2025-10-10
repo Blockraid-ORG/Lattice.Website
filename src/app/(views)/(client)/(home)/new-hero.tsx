@@ -40,12 +40,6 @@ export default function NewHero() {
           <div className='order-0 md:order-1 relative mb-4 md:mb-12 md:mt-24'>
             <div className="flex justify-center md:justify-end md:pr-8"><ChainHero /></div>
             <div className='max-w-xl md:-mt-6 mx-auto aspect-[1000/611] will-change-transform relative z-0'>
-              {/* <Image
-                priority
-                className='object-contain h-full w-full rounded-3xl bg-white/20 dark:bg-black/10 backdrop-blur-[2px] border border-white/10 hover:scale-105 duration-300 hover:translate-y-4'
-                alt='rocket' src={'/ills/ill-hero-1-dark.png'}
-                width={1000} height={611} /> */}
-              
               <Image
                 priority
                 className='object-contain px-4 border border-black/10 dark:border-white/10 hidden dark:block h-full w-full rounded-3xl backdrop-blur hover:scale-105 duration-300 hover:translate-y-4'

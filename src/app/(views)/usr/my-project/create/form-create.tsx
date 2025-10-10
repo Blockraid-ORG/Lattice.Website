@@ -8,36 +8,27 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-// import { presalesDurations } from "@/data/constants";
 import { converToIpfs, pinata } from "@/lib/pinata";
 import { toUrlAsset } from "@/lib/utils";
 import { useCategoryList } from "@/modules/category/category.query";
 import { useChainList } from "@/modules/chain/chain.query";
-// import { useUpdatePresaleWhitelist } from "@/modules/presales/presale.query";
+import { useProjectTypeList } from "@/modules/project-types/project-types.query";
 import { useCreateProject } from "@/modules/project/project.query";
 import { formCreateProjectSchema } from "@/modules/project/project.schema";
 import { useSocialList } from "@/modules/social/chain.query";
+import { useStableCoinGroupList } from "@/modules/stable-coin/stable-coin.query";
+import { useFormCreateProject } from "@/store/useFormCreateProject";
 import {
   TFormProject,
   TFormProjectAllocation,
-  TFormProjectPresale,
 } from "@/types/project";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { Fragment, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { defaultValues } from "./default-value";
-import { useEffect } from "react";
-import { useProjectTypeList } from "@/modules/project-types/project-types.query";
-import { useFormCreateProject } from "@/store/useFormCreateProject";
-import { useStableCoinGroupList } from "@/modules/stable-coin/stable-coin.query";
 
-type TTokenUnit = {
-  value: string;
-  label: string;
-  disabled?: boolean;
-};
 export default function FormCreate() {
   const {
     form: formNewbie,
@@ -49,7 +40,6 @@ export default function FormCreate() {
   } = useFormCreateProject();
   const whitelistRef = useRef<HTMLDivElement>(null);
   const [showInputWL, setShowInputWL] = useState(false);
-  const [tokenUnits, setTokenUnits] = useState<TTokenUnit[]>([]);
   const { mutate: createProject } = useCreateProject();
   const [logo, setLogo] = useState<File | null>(logoFile ?? null);
   const [banner, setBanner] = useState<File | null>(bannerFile ?? null);
@@ -74,14 +64,12 @@ export default function FormCreate() {
         return;
       }
 
-      // const normalizeDate = (v: any) => (v instanceof Date ? v : new Date(v));
       const safeNumber = (v: any, def = 0) =>
         v === undefined || v === null || v === "" ? def : Number(v);
 
       const normalized = {
         ...defaultValues,
         ...formNewbie,
-        // scalars
         decimals:
           formNewbie.decimals !== undefined
             ? formNewbie.decimals
@@ -90,7 +78,6 @@ export default function FormCreate() {
           formNewbie.totalSupply !== undefined
             ? formNewbie.totalSupply
             : defaultValues.totalSupply,
-        // arrays
         allocations: (formNewbie.allocations &&
         formNewbie.allocations.length > 0
           ? formNewbie.allocations
@@ -101,17 +88,6 @@ export default function FormCreate() {
           vesting: safeNumber(a?.vesting, 0),
           startDate: a?.startDate || new Date().toISOString(),
         })),
-        presales: (formNewbie.presales && formNewbie.presales.length > 0
-          ? formNewbie.presales
-          : defaultValues.presales
-        ).map((p: any, idx: number) =>
-          idx === 0
-            ? {
-                ...p,
-                whitelistDuration: safeNumber(p?.whitelistDuration, 0),
-              }
-            : p
-        ),
         socials:
           formNewbie.socials && formNewbie.socials.length > 0
             ? formNewbie.socials
@@ -132,13 +108,11 @@ export default function FormCreate() {
       const wl = (normalized.presales as any)?.[0]?.whitelistDuration;
       setShowInputWL(!!wl && Number(wl) > 0);
 
-      // Set form ready after all processing is complete
       setIsFormReady(true);
     } catch (error) {
       console.error("Error in useEffect:", error);
       setIsFormReady(true);
     }
-    // onChangeValue is stable from props; suppress exhaustive-deps for it intentionally
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formNewbie, form]);
 
@@ -156,7 +130,6 @@ export default function FormCreate() {
     } catch {}
   }, [form]);
 
-  // Set form ready when API data is available
   useEffect(() => {
     if (chains && categories && projectTypes) {
       setIsFormReady(true);
@@ -177,10 +150,6 @@ export default function FormCreate() {
     name: "socials",
   });
 
-  const { fields: presalesFields } = useFieldArray({
-    control: form.control,
-    name: "presales",
-  });
   const allocations = form.watch("allocations");
   const socialsValues = form.watch("socials");
   const totalPercent = allocations.reduce(
@@ -188,18 +157,15 @@ export default function FormCreate() {
     0
   );
 
-  // Function to get available social platforms for a specific field index
   const getAvailableSocialPlatforms = (currentIndex: number) => {
     if (!socials) return [];
 
-    // Get all selected social IDs except the current field
     const selectedSocialIds = socialsValues
       .map((social: { socialId: string; url: string }, index: number) =>
         index !== currentIndex ? social.socialId : null
       )
       .filter(Boolean);
 
-    // Filter out already selected platforms
     return socials.filter(
       (social) => !selectedSocialIds.includes(social.value)
     );
@@ -244,9 +210,8 @@ export default function FormCreate() {
         value: c.ticker!,
       };
       stabels.push(native);
-      setTokenUnits(stabels);
+      // setTokenUnits(stabels);
     }
-    console.log({ c });
   }
 
   function onCheckedChange(state: boolean) {
@@ -272,18 +237,6 @@ export default function FormCreate() {
       if (banner) {
         bannerUrl = await uploadBanner();
       }
-      const presales = values.presales.map((item: TFormProjectPresale) => {
-        return {
-          ...item,
-          duration: Number(item.duration) || 10,
-          hardcap: String(item.hardcap) || "1",
-          price: String(item.price) || "0.01",
-          maxContribution: String(item.maxContribution) || "0.1",
-          whitelistDuration: item.whitelistDuration || 0,
-          sweepDuration: item.sweepDuration || 0,
-          chainId: chainIds,
-        };
-      });
       const allocations = values.allocations.map(
         (item: TFormProjectAllocation) => {
           return {
@@ -295,7 +248,6 @@ export default function FormCreate() {
       const newValues = {
         ...values,
         whitelistAddress: undefined,
-        whitelistDuration: undefined,
         sweepDuration: undefined,
         totalSupply: String(values.totalSupply),
         slug: Date.now().toString(),
@@ -303,13 +255,6 @@ export default function FormCreate() {
         banner: bannerUrl,
         chainIds: [chainIds],
         chainId: undefined,
-        presales: {
-          ...presales[0],
-          startDate: new Date(),
-          hardcap: "1",
-          price: "0.01",
-          maxContribution: "0.1",
-        },
         allocations,
       };
       createProject(newValues, {
@@ -615,55 +560,29 @@ export default function FormCreate() {
                   + Allocation
                 </Button>
               </div>
-            </div>
-            <div className="bg-form-token-gradient p-4 md:p-8 rounded-2xl">
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold">Presales</h3>
-                <div>
-                  {presalesFields.map((field, index) => (
-                    <Fragment key={field.id}>
-                      <div className="grid gap-6">
-                        <div className="grid lg:grid-cols-3 gap-3">
-                          <FormSelect
-                            control={form.control}
-                            name={`presales.${index}.unit`}
-                            label="Unit"
-                            placeholder="Select Unit"
-                            groups={
-                              tokenUnits
-                                ? [
-                                    {
-                                      options: tokenUnits ?? [],
-                                    },
-                                  ]
-                                : []
-                            }
-                          />
-                          <div ref={whitelistRef}>
-                            <div className="flex items-center space-x-2 mt-10">
-                              <Switch
-                                onCheckedChange={onCheckedChange}
-                                id="enable-whitelist"
-                                checked={showInputWL}
-                              />
-                              <Label htmlFor="enable-whitelist">
-                                Enable Whitelist
-                              </Label>
-                            </div>
-                          </div>
-                          {showInputWL && (
-                            <FormInput
-                              control={form.control}
-                              name={`presales.${index}.whitelistDuration`}
-                              label="Duration (Hours)"
-                              placeholder="Enter Dutaion"
-                              type="number"
-                            />
-                          )}
-                        </div>
-                      </div>
-                    </Fragment>
-                  ))}
+              <div className="grid gap-6">
+                <div className="grid lg:grid-cols-3 gap-3">
+                  <div ref={whitelistRef}>
+                    <div className="flex items-center space-x-2 mt-10">
+                      <Switch
+                        onCheckedChange={onCheckedChange}
+                        id="enable-whitelist"
+                        checked={showInputWL}
+                      />
+                      <Label htmlFor="enable-whitelist">
+                        Enable Whitelist
+                      </Label>
+                    </div>
+                  </div>
+                  {showInputWL && (
+                    <FormInput
+                      control={form.control}
+                      name={`whitelistDuration`}
+                      label="Duration (Hours)"
+                      placeholder="Enter Dutaion"
+                      type="number"
+                    />
+                  )}
                 </div>
               </div>
             </div>
