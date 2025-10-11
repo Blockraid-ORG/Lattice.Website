@@ -127,14 +127,6 @@ export const useSetClaimedAirdrop = () => {
       queryClient.invalidateQueries({
         queryKey: ["get_eligible_airdrop"]
       });
-      toast.success('Success', {
-        description: "Success create data!"
-      })
     },
-    onError: () => {
-      toast.error('Error', {
-        description: "Fail to submit data!"
-      })
-    }
   });
 };

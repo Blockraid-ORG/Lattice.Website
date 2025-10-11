@@ -60,7 +60,7 @@ export default function PaymentContent() {
               <Label>Choose Payment</Label>
               <Select onValueChange={changePaymentGroup}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a payment" />
+                  <SelectValue placeholder="Select the currency" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>

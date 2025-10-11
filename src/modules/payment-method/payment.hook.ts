@@ -20,7 +20,8 @@ export function usePaymentSC() {
       return
     }
     const paymentContract = addressPool.paymentSc;
-    const usdcContract = addressPool.stableCoin.address;
+    const usdAddress = addressPool.stableCoin.address;
+
     const amount = ethers.parseUnits(addressPool.listingFee, addressPool.decimal)
     if (typeof window === 'undefined') return
     if (!walletClient || !address) throw new Error('Wallet not connected')
@@ -29,7 +30,7 @@ export function usePaymentSC() {
     const signer = await provider.getSigner(address)
     try {
       const stableContract = new Contract(
-        usdcContract,
+        usdAddress,
         TokenAbi.abi,
         signer
       )
@@ -45,7 +46,7 @@ export function usePaymentSC() {
       const payer = await signer.getAddress();
       const memo = `PAYFOR_FOR_${project.ticker}`;
 
-      const payTx = await contract.pay(payer, amount, memo);
+      const payTx = await contract.pay(addressPool.stableCoin.address, payer, amount, memo);
       await payTx.wait();
       createPaymentFeeProject({
         projectId: project.id,
@@ -64,7 +65,7 @@ export function usePaymentSC() {
     } catch (error: any) {
       console.log(error)
       toast.error('Error', {
-        description:`Payment failed!`
+        description: `Payment failed!`
       })
     }
   }, [address, createPaymentFeeProject, walletClient])

@@ -48,31 +48,53 @@ export function FormAddress({ data }: { data: TAdditionalReward }) {
     mode: "onChange",
   });
 
-  function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+  function handlePaste(e: React.ClipboardEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const text = e.clipboardData.getData("text");
-    const rows = text.split("\n").map(r => r.trim()).filter(Boolean);
-    const parsed = rows.map(r => {
-      const [address, amount] = r.split(/\t|,/);
-      return {
-        address: address?.trim().toLowerCase() ?? "",
-        amount: Number(amount?.trim() ?? 0),
-      };
-    });
+    const isBulk =
+      text.includes("\n") || text.includes("\t") || text.includes(",");
+
+    if (!isBulk) {
+      return;
+    }
+    e.preventDefault();
+
+    const rows = text
+      .split("\n")
+      .map((r) => r.trim())
+      .filter(Boolean);
+
+    const parsed = rows
+      .map((r) => {
+        const [address, amount] = r.split(/\t|,/);
+        return {
+          address: address?.trim().toLowerCase() ?? "",
+          amount: Number(amount?.trim() ?? 0),
+        };
+      })
+      .filter((item) => item.address && item.amount > 0);
 
     if (parsed.length > 0) {
       let existing = form.getValues("items") ?? [];
-      const uniqueParsed = parsed.filter((item) => {
-        return !existing.some((existingItem) => existingItem.address === item.address);
-      });
 
       if (existing.length === 1 && !existing[0].address && !existing[0].amount) {
         existing = [];
       }
+
+      const uniqueParsed = parsed.filter(
+        (item) =>
+          !existing.some(
+            (existingItem) => existingItem.address === item.address
+          )
+      );
+
       if (uniqueParsed.length > 0) {
-        form.setValue("items", [...existing, ...uniqueParsed], { shouldValidate: true });
+        form.setValue("items", [...existing, ...uniqueParsed], {
+          shouldValidate: true,
+        });
       }
     }
   }
+
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "items",
@@ -145,6 +167,7 @@ export function FormAddress({ data }: { data: TAdditionalReward }) {
                           label=""
                           placeholder="e.g. 1000"
                           type="number"
+                          formatNumber={true}
                         />
                       </div>
                       <Button
