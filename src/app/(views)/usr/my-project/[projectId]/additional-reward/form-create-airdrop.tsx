@@ -76,6 +76,7 @@ export function FormCreateAirdrop({ projectId }: { projectId: string }) {
                   label="Amount"
                   placeholder="0"
                   type="number"
+                  formatNumber={true}
                 />
                 <FormInput
                   control={form.control}
