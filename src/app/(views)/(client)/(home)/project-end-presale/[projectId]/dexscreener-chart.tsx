@@ -40,6 +40,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   pairAddress,
   chainId,
   height = 500,
+  width = "100%",
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { theme, resolvedTheme } = useTheme();
@@ -114,14 +115,14 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
 
   return (
     <div className="w-full">
-      <div
-        className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
-        style={{ height: `${height}px` }}
-      >
+      <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div
           ref={containerRef}
           className="tradingview-widget-container"
-          style={{ width: "100%", height: "100%" }}
+          style={{
+            height: `${height}px`,
+            width: width,
+          }}
         >
           <div
             id="tradingview_widget"
@@ -129,6 +130,19 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
             style={{ height: "100%", width: "100%" }}
           />
         </div>
+      </div>
+
+      {/* Attribution */}
+      <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
+        Powered by{" "}
+        <a
+          href="https://www.tradingview.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+        >
+          TradingView
+        </a>
       </div>
 
       {/* Reference info (hidden, can be used for debugging) */}

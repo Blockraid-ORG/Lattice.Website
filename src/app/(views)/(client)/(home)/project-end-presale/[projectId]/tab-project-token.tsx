@@ -2,7 +2,7 @@
 
 import React from "react";
 import { TProject } from "@/types/project";
-import DexScreenerChart from "./dexscreener-chart";
+import TradingViewChart from "./tradingview-chart";
 
 interface TabProjectTokenProps {
   data: TProject;
@@ -74,18 +74,16 @@ const TabProjectToken = ({ data }: TabProjectTokenProps) => {
         </div>
       </div>
 
-      {/* DexScreener Chart */}
+      {/* TradingView Chart */}
       <div className="mt-8">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Price Chart
         </h3>
-        {/* <DexScreenerChart
+        <TradingViewChart
+          symbol={`BNBUSD`}
           tokenAddress={data.contractAddress}
-          chainId={data.chains?.[0]?.chain?.name?.toLowerCase() || "ethereum"}
-        /> */}
-        <DexScreenerChart
-          tokenAddress={"0xf0a949d3d93b833c183a27ee067165b6f2c9625e"}
-          chainId={"bsc"}
+          chainId={data.chains?.[0]?.chain?.ticker}
+          height={600}
         />
       </div>
     </div>
