@@ -187,6 +187,7 @@ export function useDeployToken() {
           }
         }
         // constructor(address _owner, address _platform = Payment address, uint256 _platformFeeBps=presale fee (10%)
+        // address,whitelist_address, wl_duration,sweep, _platform, _platformFeeBps
         const presale = await presaleFactory.deploy(address, _platform, _platformFeeBps);
         await presale.waitForDeployment();
         deployProject({

@@ -27,9 +27,30 @@ export function formatNumberWithCommas(value: string | number): string {
 }
 
 // Parse formatted number back to raw number
+// export function parseFormattedNumber(value: string): string {
+//   if (!value) return "";
+//   return value.replace(/,/g, "");
+// }
+
 export function parseFormattedNumber(value: string): string {
   if (!value) return "";
-  return value.replace(/,/g, "");
+
+  // Hapus semua karakter kecuali angka dan titik desimal
+  let sanitized = value.replace(/[^0-9.]/g, "");
+
+  // Pastikan hanya 1 titik desimal
+  const parts = sanitized.split(".");
+  if (parts.length > 2) {
+    sanitized = parts[0] + "." + parts.slice(1).join(""); // gabungkan sisa bagian setelah titik kedua
+  }
+
+  // Hapus nol di depan jika bukan "0." (tetap pertahankan angka desimal kecil seperti 0.001)
+  if (!sanitized.startsWith("0.")) {
+    sanitized = sanitized.replace(/^0+/, "");
+    if (sanitized === "") sanitized = "0";
+  }
+
+  return sanitized;
 }
 
 export const toUrlAsset = (path: string) => {
