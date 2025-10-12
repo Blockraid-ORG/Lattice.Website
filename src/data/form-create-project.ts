@@ -79,11 +79,6 @@ export const steps: Step[] = [
       "Split your token supply into slices like Team, Community, Investors, Presale. You can add multiple allocations and manage them all in one place.",
   },
   {
-    id: "presaleUnit",
-    title: "Presales Info",
-    description: "Unit — What will buyers pay with—USDT or another token?",
-  },
-  {
     id: "presaleWhitelist",
     title: "Presales Info",
     description:

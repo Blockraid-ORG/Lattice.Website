@@ -1,15 +1,15 @@
 export const defaultValues = {
-  name: '',
-  slug: '',
-  logo: 'logo.png',
-  banner: 'banner.png',
-  ticker: '',
-  decimals: '18',
-  totalSupply: '0',
-  detail: '',
-  status: 'PENDING',
-  categoryId: '',
-  projectTypeId: '',
+  name: "",
+  slug: "",
+  logo: "logo.png",
+  banner: "banner.png",
+  ticker: "",
+  decimals: "18",
+  totalSupply: "0",
+  detail: "",
+  status: "PENDING",
+  categoryId: "",
+  projectTypeId: "",
   whitelistDuration: 0,
   allocations: [
     {
@@ -25,12 +25,12 @@ export const defaultValues = {
       vesting: 0,
       startDate: new Date().toISOString(),
       isPresale: false,
-    }
+    },
   ],
   socials: [
     {
-      socialId: '',
-      url: '',
+      socialId: "",
+      url: "",
     },
   ],
-}
+};

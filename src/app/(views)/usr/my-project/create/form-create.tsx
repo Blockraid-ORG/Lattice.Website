@@ -18,10 +18,7 @@ import { formCreateProjectSchema } from "@/modules/project/project.schema";
 import { useSocialList, useSocialName } from "@/modules/social/chain.query";
 import { useStableCoinGroupList } from "@/modules/stable-coin/stable-coin.query";
 import { useFormCreateProject } from "@/store/useFormCreateProject";
-import {
-  TFormProject,
-  TFormProjectAllocation,
-} from "@/types/project";
+import { TFormProject, TFormProjectAllocation } from "@/types/project";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -116,12 +113,12 @@ export default function FormCreate() {
         onChangeValue(String((normalized as any).chainId));
       }
 
-      if (normalized.presales[0].whitelistDuration) {
-        setShowInputWL(normalized.presales[0].whitelistDuration > 0);
-        onCheckedChange(normalized.presales[0].whitelistDuration > 0);
+      if (normalized.whitelistDuration) {
+        setShowInputWL(normalized.whitelistDuration > 0);
+        onCheckedChange(normalized.whitelistDuration > 0);
       }
 
-      const wl = (normalized.presales as any)?.[0]?.whitelistDuration;
+      const wl = normalized.whitelistDuration as any;
       setShowInputWL(!!wl && Number(wl) > 0);
 
       setIsFormReady(true);
@@ -598,9 +595,7 @@ export default function FormCreate() {
                         id="enable-whitelist"
                         checked={showInputWL}
                       />
-                      <Label htmlFor="enable-whitelist">
-                        Enable Whitelist
-                      </Label>
+                      <Label htmlFor="enable-whitelist">Enable Whitelist</Label>
                     </div>
                   </div>
                   {showInputWL && (

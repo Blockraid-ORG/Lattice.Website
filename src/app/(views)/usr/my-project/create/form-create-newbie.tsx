@@ -33,21 +33,17 @@ import {
 } from "@/components/ui/alert-dialog";
 import { SocialMediaForm } from "./components/SocialSteps";
 import { AllocationForm } from "./components/AllocationSteps";
-import { PresaleUnit, PresaleWhitelist } from "./components/PresaleSteps";
+import { PresaleWhitelist } from "./components/PresaleSteps";
 import { useFormCreateProject } from "@/store/useFormCreateProject";
-import { useStableCoinGroupList } from "@/modules/stable-coin/stable-coin.query";
-import { TCommonOption } from "@/types/stable-coin";
 
 export default function FormCreateNewbie() {
   const [currentStep, setCurrentStep] = useState<StepId>("intro");
   const [banner, setBanner] = useState<File | null>(null);
   const [logo, setLogo] = useState<File | null>(null);
-  const [presaleIndex] = useState(0);
   const [showWhitelist, setShowWhitelist] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [bannerPreviewUrl, setBannerPreviewUrl] = useState<string | null>(null);
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
-  const { data: stableCoinGroup } = useStableCoinGroupList();
 
   const form = useForm<TFormProject>({
     resolver: zodResolver(formCreateProjectSchema),
@@ -63,35 +59,8 @@ export default function FormCreateNewbie() {
     control: form.control,
     name: "socials",
   });
-  const { fields: presalesFields } = useFieldArray({
-    control: form.control,
-    name: "presales",
-  });
+
   const socialsValues = form.watch("socials");
-  const selectedChainId = form.watch("chainId");
-  const selectedChain = useMemo(
-    () => chains?.find((c: any) => c.value === selectedChainId),
-    [chains, selectedChainId]
-  );
-  const tokenUnits = useMemo<TCommonOption[]>(() => {
-    const stabels = stableCoinGroup?.map((i: { name: string }) => {
-      return {
-        label: i.name,
-        value: i.name,
-      };
-    });
-    if (selectedChain) {
-      const tokenUnitsTmp = [
-        {
-          label: `${selectedChain?.ticker ?? ""}`,
-          value: `${selectedChain?.ticker ?? ""}`,
-        },
-        ...(stabels ?? []),
-      ];
-      return tokenUnitsTmp as TCommonOption[];
-    }
-    return stabels as TCommonOption[];
-  }, [selectedChain, stableCoinGroup]);
 
   const currentIndex = useMemo(
     () => steps.findIndex((s) => s.id === currentStep),
@@ -167,15 +136,6 @@ export default function FormCreateNewbie() {
   useEffect(() => {
     if (socialFields.length === 0) {
       appendSocial({ socialId: "", url: "" } as any);
-    }
-    if ((presalesFields?.length ?? 0) === 0) {
-      // ensure one presale row exists
-      form.setValue("presales", [
-        {
-          unit: "",
-          whitelistDuration: 0,
-        },
-      ] as any);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -741,28 +701,10 @@ export default function FormCreateNewbie() {
             />
           )}
 
-          {currentStep === "presaleUnit" && (
-            <PresaleUnit
-              control={form.control}
-              index={presaleIndex}
-              units={tokenUnits}
-              onBack={goBack}
-              onNext={async () => {
-                const ok = await form.trigger([
-                  `presales.${presaleIndex}.unit`,
-                ] as any);
-                if (!ok) return;
-                goNext();
-              }}
-              onSkip={handoffToNativeForm}
-            />
-          )}
-
           {currentStep === "presaleWhitelist" && (
             <>
               <PresaleWhitelist
                 control={form.control}
-                index={presaleIndex}
                 show={showWhitelist}
                 onToggle={setShowWhitelist}
                 onBack={goBack}
