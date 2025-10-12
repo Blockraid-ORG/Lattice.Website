@@ -46,14 +46,6 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
   });
 
   async function onSubmit(values: TFormProjectPresale) {
-
-    console.log({
-      ...values,
-      price: String(values.price),
-      hardcap: String(values.hardcap),
-      projectId: data.id
-    })
-    // return;
     setIsSubmiting(true)
     createNewPresale({
       ...values,
@@ -130,6 +122,7 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
                     name={`hardcap`}
                     label="Hard Cap"
                     placeholder="e.g. 100000"
+                    formatNumber={true}
                   />
                   <p className='text-[11px]'>
                     Maximum funds you plan to raise (e.g., 100,000 USDC); sale stops when this limit is reached.
