@@ -13,6 +13,19 @@ const ApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 // TVestingData is imported from vesting-utils
 
+/**
+ * ChartVestingPeriod Component
+ *
+ * Displays a stacked area chart showing token unlock schedule over time.
+ * Features:
+ * - Real-time current date indicator (red dashed vertical line)
+ * - Dark/light theme support
+ * - Interactive tooltips with percentage calculations
+ * - Responsive design
+ *
+ * @param data - Array of vesting data for different categories
+ * @param totalSupply - Total supply of tokens for percentage calculations
+ */
 export default function ChartVestingPeriod({
   data,
   totalSupply,
@@ -45,6 +58,31 @@ export default function ChartVestingPeriod({
   );
   const categories = timelineDates.map((d) => moment(d).format("MMM D, YYYY"));
   const colors = data.map((item) => item.color);
+
+  // Get current date for the vertical line
+  const currentDate = moment().format("MMM D, YYYY");
+  const currentDateIndex = categories.findIndex((cat) => cat === currentDate);
+
+  // If current date is not in categories, find the closest date
+  let currentDateForLine = currentDate;
+  if (currentDateIndex === -1 && categories.length > 0) {
+    const currentMoment = moment();
+    let closestDate = categories[0];
+    let minDiff = Math.abs(
+      moment(categories[0], "MMM D, YYYY").diff(currentMoment, "days")
+    );
+
+    for (let i = 1; i < categories.length; i++) {
+      const diff = Math.abs(
+        moment(categories[i], "MMM D, YYYY").diff(currentMoment, "days")
+      );
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestDate = categories[i];
+      }
+    }
+    currentDateForLine = closestDate;
+  }
 
   const options: ApexCharts.ApexOptions = {
     chart: {
@@ -134,6 +172,27 @@ export default function ChartVestingPeriod({
         fontSize: "16px",
         fontWeight: "600",
       },
+    },
+    annotations: {
+      xaxis: [
+        {
+          x: currentDateForLine,
+          borderColor: theme === "dark" ? "#ef4444" : "#dc2626",
+          borderWidth: 2,
+          strokeDashArray: 5,
+          label: {
+            text: currentDateIndex === -1 ? "Current Period" : "Today",
+            style: {
+              color: theme === "dark" ? "#ffffff" : "#000000",
+              background: theme === "dark" ? "#ef4444" : "#dc2626",
+              fontSize: "12px",
+              fontWeight: "600",
+            },
+            orientation: "horizontal",
+            offsetY: -10,
+          },
+        },
+      ],
     },
   };
 

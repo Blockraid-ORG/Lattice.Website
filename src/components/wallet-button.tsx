@@ -15,10 +15,13 @@ import {
   useVerifySignature,
 } from "@/modules/auth/auth.query";
 import { Web3Provider } from "@ethersproject/providers";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function WalletButton({ withText }: { withText?: boolean }) {
   const router = useRouter();
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get('redirect');
+
   const { provider } = useWeb3Auth();
   const { connect, isConnected, loading: connecting } = useWeb3AuthConnect();
   const { disconnect } = useWeb3AuthDisconnect();
@@ -55,8 +58,8 @@ You understand that participation is subject to all applicable laws and regulati
                 },
                 {
                   onSuccess: () => {
-                    window.location.href = "/usr";
-                    router.push("/usr");
+                    window.location.href = redirect || "/usr";
+                    router.push(redirect || '/usr');
                   },
                 }
               );

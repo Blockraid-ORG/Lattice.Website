@@ -133,7 +133,7 @@ export default function FormCreate() {
         },
       });
     } catch (error: any) {
-      error;
+      console.error(error);
       toast.error("Failed to save token");
     } finally {
       setLoading(false);
@@ -245,6 +245,7 @@ export default function FormCreate() {
               name="totalSupply"
               label="Total Supply"
               placeholder="Enter Supply"
+              formatNumber={true}
             />
             <FormInput
               control={form.control}

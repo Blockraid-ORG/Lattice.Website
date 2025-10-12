@@ -1,6 +1,6 @@
-import React from 'react'
-import FormCreate from './form-create'
-import Header from './header'
+import React from "react";
+import FormCreate from "./form-create";
+import Header from "./header";
 
 export default function CreateProjectPage() {
   return (
@@ -8,5 +8,5 @@ export default function CreateProjectPage() {
       <Header />
       <FormCreate />
     </>
-  )
+  );
 }

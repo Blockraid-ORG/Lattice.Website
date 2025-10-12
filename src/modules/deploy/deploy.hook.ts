@@ -14,9 +14,10 @@ import {
   useSetDistributedLocker,
   useSetPauseProject,
   useSetRewardContractAddress,
-  useUpdateAllocation,
-} from "../project/project.query";
-import { useDeployProject } from "./deploy.query";
+  useUpdateAllocation
+} from '../project/project.query';
+import { useDeployProject } from './deploy.query';
+import { TMasterPayment } from '@/types/payment';
 
 export function useDeployToken() {
   const { data: walletClient } = useWalletClient();
@@ -75,14 +76,20 @@ export function useDeployToken() {
     [address, setDistributedLocker, vestings, walletClient]
   );
 
-  const deployFactoryBasic = useCallback(
-    async (project: TProject) => {
-      try {
-        if (typeof window === "undefined") return;
-        if (!walletClient || !address) throw new Error("Wallet not connected");
-        const second = 24 * 60 * 60;
-        const provider = new BrowserProvider(walletClient as any);
-        const signer = await provider.getSigner(address);
+  const deployFactoryBasic = useCallback(async (project: TProject, addressPool: TMasterPayment) => {
+    if (!addressPool) {
+      toast.error('Error', {
+        description:'Payment address not found!'
+      })
+    }
+    const _platformFeeBps = addressPool.presaleFee * 100;
+    const _platform = addressPool.paymentSc
+    try {
+      if (typeof window === 'undefined') return
+      if (!walletClient || !address) throw new Error('Wallet not connected')
+      const second = 24 * 60 * 60;
+      const provider = new BrowserProvider(walletClient as any)
+      const signer = await provider.getSigner(address)
 
         const presaleFactory = new ethers.ContractFactory(
           PresaleAbi.abi,
@@ -193,7 +200,9 @@ export function useDeployToken() {
             }
           }
         }
-        const presale = await presaleFactory.deploy(address);
+        // constructor(address _owner, address _platform = Payment address, uint256 _platformFeeBps=presale fee (10%)
+        // address,whitelist_address, wl_duration,sweep, _platform, _platformFeeBps
+        const presale = await presaleFactory.deploy(address, _platform, _platformFeeBps);
         await presale.waitForDeployment();
         deployProject({
           projectId: project.id,

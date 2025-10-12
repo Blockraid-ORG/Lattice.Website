@@ -655,6 +655,7 @@ export default function FormCreateNewbie() {
                   name="totalSupply"
                   label=""
                   placeholder="e.g. 100000000"
+                  formatNumber={true}
                 />
                 <div className="flex items-center justify-between pt-2">
                   <Button type="button" variant="outline" onClick={goBack}>

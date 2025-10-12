@@ -1,6 +1,16 @@
 'use client'
 import { Icon } from "@/components/icon";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { NumberComma, toUrlAsset } from "@/lib/utils";
 import { useDeployToken } from "@/modules/deploy/deploy.hook";
+import { usePaymentStableChain } from "@/modules/payment-method/payment-method.query";
 import { useStateModal } from "@/store/useStateModal";
 
 import { useVestingStore } from "@/store/useVestingStore";
@@ -26,6 +37,13 @@ export function DeployFactoryToken({ data }: { data: TProject }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { setData: setDataVesting } = useVestingStore()
   const { open, setOpen } = useStateModal()
+  const chainId = data.chains[0].chain.id
+  // const unit = data.presales[0].unit;
+  const { data: addressPool } = usePaymentStableChain({
+    chainId: chainId,
+    group: "unit"
+  })
+
 
   function handleChangeOpen() {
     setOpen(!open)
@@ -34,8 +52,11 @@ export function DeployFactoryToken({ data }: { data: TProject }) {
 
   async function handleDeployContract() {
     setIsSubmitting(true)
-    deployFactoryBasic(data).then(() => setOpen(false)).finally(() => setIsSubmitting(false))
+    deployFactoryBasic(data, addressPool!)
+      .then(() => setOpen(false))
+      .finally(() => setIsSubmitting(false))
   }
+
 
   return (
     <Dialog open={open} onOpenChange={handleChangeOpen}>
@@ -100,7 +121,7 @@ export function DeployFactoryToken({ data }: { data: TProject }) {
                   {data.allocations.map(item => (
                     <div key={item.id} className="flex items-center justify-between py-2 border-b border-dashed text-sm">
                       <div className="flex-1">
-                        <div>{item.name !== 'Deployer' ? 'Contract': ''} {item.name} {`(${item.supply}%)`}</div>
+                        <div>{item.name !== 'Deployer' ? 'Contract' : ''} {item.name} {`(${item.supply}%)`}</div>
                       </div>
                       <div>
                         {

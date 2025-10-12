@@ -2,6 +2,9 @@
 import LaunchAppButton from '@/components/launch-app-button'
 import Image from 'next/image'
 import { ChainHero } from './chain-hero'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Icon } from '@/components/icon'
 export default function NewHero() {
   return (
     <div className='aspect-auto md:aspect-[1440/712] relative'>
@@ -24,16 +27,28 @@ export default function NewHero() {
                 <img className='h-full w-full object-contain' alt='star' src={'/ills/vector-1.png'} width={20} height={200} />
               </div>
             </div>
-            <div className="mt-6 md:mt-10 flex justify-center md:justify-start">
+            <div className="mt-6 md:mt-10 flex justify-center md:justify-start gap-4">
               <LaunchAppButton />
+              <Button asChild size={'lg'}>
+                <Link href={'/faucet'}>
+                  <Icon name='fa6-solid:faucet-drip' />
+                  Faucet
+                </Link>
+              </Button>
             </div>
           </div>
           <div className='order-0 md:order-1 relative mb-4 md:mb-12 md:mt-24'>
             <div className="flex justify-center md:justify-end md:pr-8"><ChainHero /></div>
             <div className='max-w-xl md:-mt-6 mx-auto aspect-[1000/611] will-change-transform relative z-0'>
               <Image
-                className='object-contain h-full w-full rounded-3xl bg-white/20 dark:bg-black/10 backdrop-blur-[2px] border border-white/10 hover:scale-105 duration-300 hover:translate-y-4'
-                alt='rocket' src={'/ills/ill-hero-2.png'}
+                priority
+                className='object-contain px-4 border border-black/10 dark:border-white/10 hidden dark:block h-full w-full rounded-3xl backdrop-blur hover:scale-105 duration-300 hover:translate-y-4'
+                alt='rocket' src={'/ills/ill-hero-1-light.png'}
+                width={1000} height={611} />
+              <Image
+                priority
+                className='object-contain px-4 border border-black/10 dark:border-white/10 dark:hidden h-full w-full rounded-3xl backdrop-blur hover:scale-105 duration-300 hover:translate-y-4'
+                alt='rocket' src={'/ills/ill-hero-1-dark.png'}
                 width={1000} height={611} />
             </div>
           </div>

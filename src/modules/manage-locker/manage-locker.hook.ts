@@ -96,7 +96,7 @@ export function useManageLocker() {
         const tx = await contract.finalize();
         const receipt = await tx.wait();
         toast.success('Success', {
-          description: `Set Beneficiaries success! : ${receipt.hash}`
+          description: `Set finalize success! : ${receipt.hash}`
         })
         finalizeProjectAllocation(locker.id)
       }

@@ -273,7 +273,7 @@ export const useSetContractPresaleProject = () => {
 export const useCreatePaymentFeeProject = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: any) => projectService.CREATE_PAYMENT_FEE_PROJECT(data),
+    mutationFn: (data: any) => projectService.CREATE_PAYMENT_HISTORY(data),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["get_project_by_id"],

@@ -83,7 +83,12 @@ export default function MyContributionInfo({
                 disabled={isClaiming || !isClaimAvailable || isClaimedToken}
                 onClick={onClaimPresale}
                 size={'lg'}
-              >Claim Token</Button>
+              >
+                {
+                  isClaiming || !isClaimAvailable || isClaimedToken ? 'Claimed' :'Claim Token'
+                }
+                
+              </Button>
             ) : (
               <div>
                 {
@@ -102,9 +107,13 @@ export default function MyContributionInfo({
           {
             isRefundAvailable && (
               <Button
-                disabled={isClaiming} onClick={onRefund}
+                disabled={isClaiming || contributionInfo?.isRefunded} onClick={onRefund}
                 size={'lg'}
-              >Refund</Button>
+              >
+                {
+                  contributionInfo?.isRefunded ? 'Refunded' : 'Refund'
+                }
+              </Button>
             )
           }
         </div>
