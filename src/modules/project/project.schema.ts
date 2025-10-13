@@ -11,7 +11,7 @@ export const presalesSchema = z.object({
   hardcap: z.coerce.number().min(0.001, "Hard cap required").optional(),
   price: z.coerce.number().min(0.00000001, "Price must be greater than 0").optional(),
   unit: z.string().min(1, "Unit is required"),
-  maxContribution: z.coerce.number().min(0, "Max contribution required").optional(),
+  maxContribution: z.coerce.number().min(0, "Max contribution required"),
   duration: z.coerce.number().optional(),
   startDate: z.coerce.date().optional(),
   endDate: z.coerce.date().optional(),
@@ -20,6 +20,11 @@ export const presalesSchema = z.object({
   whitelistAddress: z.string().optional(),
   sweepDuration: z.coerce.number().min(0).optional(),
   presaleSCID: z.string().optional(),
+  initialReleaseBps: z.coerce.number(),
+  cliffDuration: z.coerce.number(),
+  vestingDuration: z.coerce.number(),
+  unitTimeCliffDuration: z.enum(["day", "month"]),
+  unitTimeVestingDuration: z.enum(["day", "month"]),
 }).refine(
   (data) =>
     !data.startDate || !data.endDate || data.endDate >= data.startDate,

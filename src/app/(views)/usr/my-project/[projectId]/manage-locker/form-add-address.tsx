@@ -67,6 +67,54 @@ export function FormAddress({ data, allocation }: { data: TProject, allocation: 
   }
   const items = form.watch("items") as FormProjectAllocationAddress[];
   const total = items.reduce((sum, i) => sum + Number(i.amount || 0), 0);
+
+  function handlePaste(e: React.ClipboardEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    
+    const text = e.clipboardData.getData("text");
+    const isBulk =
+      text.includes("\n") || text.includes("\t") || text.includes(",");
+
+    if (!isBulk) {
+      return;
+    }
+    // e.preventDefault();
+
+    const rows = text
+      .split("\n")
+      .map((r) => r.trim())
+      .filter(Boolean);
+    
+    const parsed = rows
+      .map((r) => {
+        const [address, amount] = r.split(/\t|,/);
+        return {
+          address: address?.trim().toLowerCase() ?? "",
+          amount: Number(amount?.trim() ?? 0),
+        };
+      })
+      .filter((item) => item.address && item.amount > 0);
+
+    if (parsed.length > 0) {
+      let existing = form.getValues("items") ?? [];
+
+      if (existing.length === 1 && !existing[0].address && !existing[0].amount) {
+        existing = [];
+      }
+
+      const uniqueParsed = parsed.filter(
+        (item) =>
+          !existing.some(
+            (existingItem:any) => existingItem.address === item.address
+          )
+      );
+
+      if (uniqueParsed.length > 0) {
+        form.setValue("items", [...existing, ...uniqueParsed], {
+          shouldValidate: true,
+        });
+      }
+    }
+  }
   return (
     <Sheet onOpenChange={onOpenChange} open={open}>
       <SheetTrigger asChild>
@@ -108,6 +156,7 @@ export function FormAddress({ data, allocation }: { data: TProject, allocation: 
                           label=""
                           placeholder="0x..."
                           type="text"
+                          onPaste={handlePaste}
                         />
                       </div>
                       <div className="w-1/6 shrink-0 flex items-center gap-1">

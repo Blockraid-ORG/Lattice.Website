@@ -18,6 +18,7 @@ import {
 } from '../project/project.query';
 import { useDeployProject } from './deploy.query';
 import { TMasterPayment } from '@/types/payment';
+import { successMessage } from '@/lib/notification';
 
 export function useDeployToken() {
   const { data: walletClient } = useWalletClient()
@@ -76,11 +77,15 @@ export function useDeployToken() {
   const deployFactoryBasic = useCallback(async (project: TProject, addressPool: TMasterPayment) => {
     if (!addressPool) {
       toast.error('Error', {
-        description:'Payment address not found!'
+        description: 'Payment address not found!'
       })
     }
+
+    
     const _platformFeeBps = addressPool.presaleFee * 100;
-    const _platform = addressPool.paymentSc
+    const _platform = addressPool.paymentSc;
+    const _sweepDuration = project.sweepDuration ?? (60 * 60 * 24) * 30;
+    const _whitelistDuration = project.whitelistDuration ? project.whitelistDuration * 60 * 60 * 24 : 0
     try {
       if (typeof window === 'undefined') return
       if (!walletClient || !address) throw new Error('Wallet not connected')
@@ -129,10 +134,9 @@ export function useDeployToken() {
           // return schedule;
           return schedule.map(v => v.toString());
         })
-        // const durations = vestings.map(i => i.vesting * 30 * second);
+
         const durations = vestings.map(i => {
-          if (i.vesting === 0) return "1"; // jangan kasih 0, kasih 1 detik minimal
-          // return i.vesting * 30 * second;
+          if (i.vesting === 0) return "1";
           return (i.vesting * 30 * second).toString();
         });
         const startTimes = vestings.map(i => {
@@ -141,7 +145,7 @@ export function useDeployToken() {
           }
           const originalDate = new Date(i.startDate);
           const newDate = new Date(originalDate);
-          newDate.setDate(newDate.getDate() + (Number(i.vesting) * 30));
+          newDate.setDate(newDate.getDate() + 2);
           return Math.floor(newDate.getTime() / 1000).toString();
         })
         const tx = await factory.deployAll(
@@ -186,9 +190,16 @@ export function useDeployToken() {
             console.log('Error')
           }
         }
-        // constructor(address _owner, address _platform = Payment address, uint256 _platformFeeBps=presale fee (10%)
-        // address,whitelist_address, wl_duration,sweep, _platform, _platformFeeBps
-        const presale = await presaleFactory.deploy(address, _platform, _platformFeeBps);
+        // Deploy Presale Factory
+        const presale = await presaleFactory.deploy(
+          address,
+          _platform,
+          _platformFeeBps,
+          result.token,
+          result?.whitelist,
+          _whitelistDuration,
+          _sweepDuration
+        );
         await presale.waitForDeployment();
         deployProject({
           projectId: project.id,
@@ -201,10 +212,10 @@ export function useDeployToken() {
         }, {
           onSuccess: async () => {
             try {
-              toast.success(`Success Deploy Contract ${project.name}`, {
-                description: result.token as string,
-                position: 'top-center'
-              });
+              // toast.success(`Success Deploy Contract ${project.name}`, {
+              //   description: result.token as string,
+              //   position: 'top-center'
+              // });
 
               // 1. Update all vesting allocations (parallel)
               const updateVestingAllocations = result.lockers.map((lockerItem, i) =>
@@ -236,6 +247,16 @@ export function useDeployToken() {
                 updatePresale,
                 setRewardContractAddressPromise
               ]);
+              successMessage(
+                {
+                  header: 'Sucess',
+                  description: `Success deploy asset ${project.name}`
+                },
+                {
+                  label: 'View',
+                  url: `${project.chains[0].chain.urlScanner}/address/${result.token}`
+                }
+              )
             } catch (err: any) {
               toast.error(err.message ?? 'Something went wrong during deployment.');
             }

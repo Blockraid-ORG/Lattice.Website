@@ -64,6 +64,9 @@ export type TPresale = {
   isActive?: boolean;
   presaleSCID?: number | string;
   isWithdrawn?: boolean;
+  initialReleaseBps: number
+  vestingDuration: number
+  cliffDuration: number
 };
 type TProjectOwner = {
   id: string;
@@ -138,6 +141,8 @@ export type TProject = {
   rewardContractAddress: string | null;
   presaleAddress?: string;
   whitelistsAddress?: string;
+  sweepDuration?: number;
+  whitelistDuration?: number;
   paused: boolean;
   socials: {
     url: string;

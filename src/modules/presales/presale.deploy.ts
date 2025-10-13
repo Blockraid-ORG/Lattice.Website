@@ -30,6 +30,7 @@ export function useDeployPresaleSC() {
   const { mutate: createClaimed } = useCreateClaimedPresale()
   const { mutate: setWdPresale } = useSetWithdrawPresale()
   const activatePresale = useCallback(async ({ data, item }: TActivatePresale) => {
+
     const isUseStableCoin = isUnitPresaleStable(item.unit)
     if (typeof window === 'undefined') return
     if (!walletClient || !address) throw new Error('Wallet not connected')
@@ -60,22 +61,20 @@ export function useDeployPresaleSC() {
           chainId: data.chains[0].chain.id,
           name: item.unit
         })
-        const tokenAddress = getAddress(data.contractAddress!)
         const contractERC20 = new ethers.Contract(data.contractAddress!, TokenAbi.abi, signer);
         const txApprove = await contractERC20.approve(data.presaleAddress!, ethers.parseUnits(amountToApprove.toString(), data.decimals));
         await txApprove.wait();
         const presaleAction = await presale.activatePresaleStable(
-          tokenAddress,
-          data.whitelistsAddress,
           stableCoinData.address,
           ethers.parseUnits(item.hardcap, stableCoinData.decimal),
           ethers.parseUnits(item.price, stableCoinData.decimal),
           ethers.parseUnits(item.maxContribution, stableCoinData.decimal),
           startTime,
           duration,
-          Number(item.whitelistDuration) * 60 * 60,
           Number(item.claimTime) * second,
-          Number(item.sweepDuration) * 60
+          item.initialReleaseBps,
+          item.cliffDuration,
+          item.vestingDuration,
         );
         await presaleAction.wait()
       } else {
@@ -83,16 +82,15 @@ export function useDeployPresaleSC() {
         const txApprove = await contractERC20.approve(data.presaleAddress, ethers.parseUnits(amountToApprove.toString(), data.decimals));
         await txApprove.wait();
         const presaleAction = await presale.activatePresale(
-          data.contractAddress,
-          data.whitelistsAddress,
           ethers.parseUnits(item.hardcap, data.decimals),
           ethers.parseUnits(item.price, data.decimals),
           ethers.parseUnits(item.maxContribution, data.decimals),
           startTime,
           duration,
-          Number(item.whitelistDuration) * 60 * 60,
           Number(item.claimTime) * second,
-          Number(item.sweepDuration) * second
+          item.initialReleaseBps,
+          item.cliffDuration,
+          item.vestingDuration,
         );
         await presaleAction.wait()
       }
