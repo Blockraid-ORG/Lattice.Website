@@ -3,11 +3,11 @@ import { MultipleRecipientsFormValues } from '@/app/(views)/usr/my-project/[proj
 import AirdropAbi from '@/lib/abis/airdrop.abi.json';
 import TokenAbi from '@/lib/abis/erc20.abi.json';
 import { TAdditionalReward, TAirdropItem } from '@/types/project';
+import dayjs from 'dayjs';
 import { BrowserProvider, ethers } from 'ethers';
 import { useCallback } from 'react';
-import { useAccount, useWalletClient } from 'wagmi';
-import dayjs from 'dayjs';
 import { toast } from 'sonner';
+import { useAccount, useWalletClient } from 'wagmi';
 import {
   useRemoveAllocations,
   useSetAllocations,
@@ -133,16 +133,6 @@ export function useAirdrop() {
         description: "Success claim airdrop!"
       });
     } catch (error: any) {
-      if (error?.data?.message) {
-        console.log("Revert Reason:", error.data.message);
-        // 👉 "execution reverted: already claimed"
-      } else if (error?.data?.originalError?.message) {
-        console.log("Original Reason:", error.data.originalError.message);
-      } else if (error?.reason) {
-        console.log("Reason:", error.reason);
-      } else {
-        console.log("Unknown error:", error);
-      }
       toast.error('Error', {
         description: error?.sortMessage || "Failed claim airdrop!"
       });

@@ -560,10 +560,14 @@ export default function FormCreate() {
                   + Allocation
                 </Button>
               </div>
-              <div className="grid gap-6">
+              
+            </div>
+            <div className="bg-form-token-gradient p-4 md:p-8 rounded-2xl">
+              <div>
+                <h3 className="text-lg font-semibold">Presale Info</h3>
                 <div className="grid lg:grid-cols-3 gap-3">
                   <div ref={whitelistRef}>
-                    <div className="flex items-center space-x-2 mt-10">
+                    <div className="flex items-center space-x-2 mt-4">
                       <Switch
                         onCheckedChange={onCheckedChange}
                         id="enable-whitelist"

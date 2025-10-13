@@ -20,6 +20,7 @@ import {
 import { NumberComma } from "@/lib/utils"
 import { useDeleteIdsProjectAllocationAddress } from "@/modules/project/project.query"
 import { TAllocation, TProject, TProjectAllocationAddress } from "@/types/project"
+import dayjs from "dayjs"
 import { Eye } from "lucide-react"
 import { useEffect, useState } from "react"
 export function LockerAddressList({ data, project }: { data: TAllocation, project: TProject }) {
@@ -76,7 +77,8 @@ export function LockerAddressList({ data, project }: { data: TAllocation, projec
         <SheetHeader className="container">
           <SheetTitle>Address</SheetTitle>
           <SheetDescription>
-            Address listed on <b>{data.name}</b> Locker
+            Beneficiary(ies) list who are eligible to claim from the <b>{data.name}</b> locked address. <br />
+            Claims start on <b>{dayjs(data.startDate).format('DD-MMM-YYYY')}</b> and continue over the next <b>{data.vesting}</b> months.
           </SheetDescription>
         </SheetHeader>
         <ScrollArea className="h-[70vh] overflow-auto container">
@@ -99,7 +101,8 @@ export function LockerAddressList({ data, project }: { data: TAllocation, projec
                     />
                   </TableHead>
                   <TableHead>Address</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-right">Claimable</TableHead>
+                  <TableHead className="text-right">Claimed</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -114,6 +117,7 @@ export function LockerAddressList({ data, project }: { data: TAllocation, projec
                     </TableCell>
                     <TableCell className="font-mono break-all">{item.address}</TableCell>
                     <TableCell className="text-right">{NumberComma(Number(item.amount))}</TableCell>
+                    <TableCell className="text-right">{NumberComma(Number('100'))}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

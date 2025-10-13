@@ -1,9 +1,11 @@
 "use client";
 import TimeCountDown from "@/components/time-count-down";
+import { Button } from "@/components/ui/button";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
 import dayjs from "@/lib/dayjs";
 import { NumberComma } from "@/lib/utils";
 import { TProject } from "@/types/project";
+import Link from "next/link";
 
 export default function PresaleInfo({ data }: { data: TProject }) {
   return (
@@ -11,12 +13,13 @@ export default function PresaleInfo({ data }: { data: TProject }) {
       <div className="relative container bg-white shadow shadow-neutral-100/5 border p-6 dark:bg-neutral-950 rounded-xl my-6">
         <h2 className="text-lg md:text-xl font-semibold">Presale Info</h2>
         <div className="mt-4">
-          {data.presales.map((presale) => (
+          {data.presales.map((presale, index) => (
             <div
               key={presale.id}
-              className="grid grid-cols-2 md:grid-cols-5 gap-2 w-full"
+              className="grid grid-cols-2 md:grid-cols-5 gap-2 w-full border-b py-2"
             >
               <div>
+                <div>{index + 1}</div>
                 <p className="text-sm text-neutral-500">Price</p>
                 <div className="flex gap-2 items-center">
                   <h2 className="font-bold">
@@ -30,14 +33,14 @@ export default function PresaleInfo({ data }: { data: TProject }) {
               <div>
                 <p className="text-sm text-neutral-500">Hardcap</p>
                 <h2 className="font-bold">
-                  {NumberComma(Number(presale.hardcap))}
+                  {NumberComma(Number(presale.hardcap))} {presale.unit}
                 </h2>
               </div>
               <div>
                 <p className="text-sm text-neutral-500">Max Contribution</p>
                 <h2 className="font-bold">
                   {NumberComma(Number(presale.maxContribution))}{" "}
-                  {data.chains[0].chain.ticker}
+                  {presale.unit}
                 </h2>
               </div>
               <div>
@@ -56,14 +59,11 @@ export default function PresaleInfo({ data }: { data: TProject }) {
               </div>
             </div>
           ))}
-          {/* <div className='mt-3 flex justify-start container sticky bottom-0 z-30 px-4 md:px-0'>
-            <FormBuyPresale data={data} />
+          <div className="flex justify-end mt-3">
+            <Button asChild>
+              <Link href={`/usr/presale/${data.id}`}>To Presale Page</Link>
+            </Button>
           </div>
-          <div className="mt-6 border-t">
-            {
-              isConnected && <TableMyContribution data={data} />
-            }
-          </div> */}
         </div>
         <GlowingEffect
           borderWidth={1.5}
