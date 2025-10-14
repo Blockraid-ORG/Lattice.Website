@@ -3,15 +3,14 @@
 import { useProjectDetail } from "@/modules/project/project.query"
 import { useParams } from "next/navigation"
 
+import { Icon } from "@/components/icon"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { cutString } from "@/lib/utils"
-import { FormAddress } from "./form-add-address"
-import ManageLockerHeader from "./manage-locker-header"
-import { LockerAddressList } from "./locker-address-list"
-import { FormDeleteAddress } from "./form-delete-address"
-import { ConfirmLocker } from "./confirm-locker"
-import { Icon } from "@/components/icon"
 import { TAllocation } from "@/types/project"
+import { ConfirmLocker } from "./confirm-locker"
+import { FormAddress } from "./form-add-address"
+import { LockerAddressList } from "./locker-address-list"
+import ManageLockerHeader from "./manage-locker-header"
 
 export default function ContentManageLocker() {
   const { projectId } = useParams()
@@ -73,9 +72,8 @@ export default function ContentManageLocker() {
                           </div>
                         </TableCell>
                         <TableCell className="flex justify-end gap-2">
-                          <ConfirmLocker data={allocation} />
+                          <ConfirmLocker project={data} data={allocation} />
                           <FormAddress data={data} allocation={allocation} />
-                          <FormDeleteAddress data={data} allocation={allocation} />
                         </TableCell>
                       </TableRow>
                     ))}

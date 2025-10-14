@@ -58,7 +58,7 @@ export function usePaymentSC() {
       }, {
         onSuccess: () => {
           toast.success('Success', {
-            description: 'Payment Success, please wait terravest admin review to deploy!'
+            description: 'Payment successful! Please wait for Terravest admin to review your submission.'
           })
         }
       })

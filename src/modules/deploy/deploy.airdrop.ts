@@ -130,7 +130,7 @@ export function useAirdrop() {
       await tx.wait();
       setClaimedAirdrop(data.id)
       toast.success('Success', {
-        description: "Success claim airdrop!"
+        description: "Airdrop claimed! Enjoy your rewards!"
       });
     } catch (error: any) {
       toast.error('Error', {

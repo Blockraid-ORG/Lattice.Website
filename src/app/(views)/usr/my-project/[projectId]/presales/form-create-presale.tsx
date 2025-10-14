@@ -248,44 +248,6 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
                         <div>
                           <div className='flex gap-3'>
                             <div className="flex-1">
-                              <FormInput
-                                control={form.control}
-                                name={`vestingDuration`}
-                                label="Vesting Duration"
-                                placeholder="Enter Dutaion"
-                                type="number"
-                              />
-                            </div>
-                            <div className="w-1/4 shrink-0">
-                              <FormSelect
-                                control={form.control}
-                                name={`unitTimeVestingDuration`}
-                                label="Unit"
-                                placeholder="select unit"
-                                groups={[
-                                  {
-                                    options: [
-                                      {
-                                        label: 'Day',
-                                        value: 'day'
-                                      },
-                                      {
-                                        label: 'Month',
-                                        value: 'month'
-                                      },
-                                    ]
-                                  }
-                                ]}
-                              />
-                            </div>
-                          </div>
-                          <p className='text-[11px]'>
-                            The waiting period before any additional tokens start to unlock.
-                          </p>
-                        </div>
-                        <div>
-                          <div className='flex gap-3'>
-                            <div className="flex-1">
                               <div>
                                 <FormInput
                                   control={form.control}
@@ -323,6 +285,45 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
                             The total time over which the remaining tokens gradually unlock after the cliff.
                           </p>
                         </div>
+                        <div>
+                          <div className='flex gap-3'>
+                            <div className="flex-1">
+                              <FormInput
+                                control={form.control}
+                                name={`vestingDuration`}
+                                label="Vesting Duration"
+                                placeholder="Enter Dutaion"
+                                type="number"
+                              />
+                            </div>
+                            <div className="w-1/4 shrink-0">
+                              <FormSelect
+                                control={form.control}
+                                name={`unitTimeVestingDuration`}
+                                label="Unit"
+                                placeholder="select unit"
+                                groups={[
+                                  {
+                                    options: [
+                                      {
+                                        label: 'Day',
+                                        value: 'day'
+                                      },
+                                      {
+                                        label: 'Month',
+                                        value: 'month'
+                                      },
+                                    ]
+                                  }
+                                ]}
+                              />
+                            </div>
+                          </div>
+                          <p className='text-[11px]'>
+                            The waiting period before any additional tokens start to unlock.
+                          </p>
+                        </div>
+                        
                       </div>
                     </div>
                   )
