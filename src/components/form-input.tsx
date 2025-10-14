@@ -90,7 +90,7 @@ export function FormInput<T extends FieldValues>({
                   placeholder={placeholder}
                   onPaste={onPaste}
                   type={formatNumber ? "text" : type}
-                  min={type === "number" ? min : ""}
+                    min={type === "number" || type === "date" ? min : ""}
                   value={displayValue}
                   onChange={handleChange}
                   onBlur={handleBlur}

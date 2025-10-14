@@ -17,7 +17,7 @@ export const useCreateProject = () => {
     mutationFn: (data: TFormProject) => projectService.CREATE(data),
     onSuccess: () => {
       toast.success("Success", {
-        description: "Success submit project, waiting for review team!",
+        description: "Project submitted successfully! Our review team will check it soon.",
       });
       queryClient.invalidateQueries({
         queryKey: ["get_project"],
@@ -155,7 +155,7 @@ export const useSetDistributedLocker = () => {
     }) => projectService.SET_DISTRIBUTED_LOCKER(data.lockerDistribution),
     onSuccess: (_data, variables) => {
       toast.success("Success", {
-        description: `Locker has been disributed!`,
+        description: `Locker distributed successfully!`,
       });
       queryClient.invalidateQueries({
         queryKey: ["get_project_by_id", variables.projectId],
@@ -214,9 +214,6 @@ export const useDeleteIdsProjectAllocationAddress = () => {
       queryClient.invalidateQueries({
         queryKey: ["get_project_by_id"],
       });
-      toast.success("Success", {
-        description: "Success set allocation address",
-      });
     },
   });
 };
@@ -230,7 +227,7 @@ export const useDeleteProjectAllocationAddress = () => {
         queryKey: ["get_project_by_id"],
       });
       toast.success("Success", {
-        description: "Success set allocation address",
+        description: "Allocation address set!",
       });
     },
   });

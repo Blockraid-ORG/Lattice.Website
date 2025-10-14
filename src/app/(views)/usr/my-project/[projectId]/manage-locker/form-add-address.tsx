@@ -56,7 +56,7 @@ export function FormAddress({ data, allocation }: { data: TProject, allocation: 
         amount: String((Number(data.totalSupply) * (allocation.supply / 100)) * (value.amount / 100))
       }
     })
-    setBeneficiaries(newValues, allocation).then(() => {
+    setBeneficiaries(data,newValues, allocation).then(() => {
       setOpen(false)
       setIsSubmiting(false)
     })
@@ -122,7 +122,7 @@ export function FormAddress({ data, allocation }: { data: TProject, allocation: 
           size={'sm'}
           disabled={allocation.isFinalized}
         >
-          <Plus /> Address
+          Set Beneficiary
         </Button>
       </SheetTrigger>
       <SheetContent side={'bottom'} className="max-h-[90vh]">
@@ -135,6 +135,9 @@ export function FormAddress({ data, allocation }: { data: TProject, allocation: 
         <ScrollArea className="h-[70vh] overflow-auto container">
           <div className="text-sm font-semibold mt-2">
             <div>Supply for {allocation.name}: {NumberComma(Number(data.totalSupply) * (allocation.supply / 100))}</div>
+            <div className="text-red-400 text-xs mt-2">
+              Warning: This action will permanently overwrite the existing address and amount. This cannot be undone.
+            </div>
           </div>
           <Form {...form}>
             <div className="mb-3">

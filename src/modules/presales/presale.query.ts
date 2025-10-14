@@ -101,7 +101,7 @@ export const useAddProjectWhitelistAddress = () => {
         queryKey: ["get_project_by_id"]
       });
       toast.success('Success', {
-        description: "Success add whitelist address!"
+        description: "Whitelist submitted successfully!"
       })
     },
     onError: () => {

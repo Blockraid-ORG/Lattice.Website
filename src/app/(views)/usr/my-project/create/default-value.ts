@@ -33,17 +33,4 @@ export const defaultValues = {
       url: '',
     },
   ],
-  // presales: [
-  //   {
-  //     hardcap: 1,
-  //     price: 1,
-  //     maxContribution: 1,
-  //     startDate: new Date().toISOString(),
-  //     whitelistDuration: 1,
-  //     sweepDuration: 1,
-  //     duration: 1,
-  //     claimTime: 0,
-  //     unit: '',
-  //   }
-  // ],
 }

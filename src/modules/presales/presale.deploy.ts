@@ -251,8 +251,14 @@ export function useDeployPresaleSC() {
         presaleId: item.id,
         transactionHash: tx.hash
       })
-      toast.success("Claim successful", {
-        description: `Transaction hash: ${tx.hash}`
+      toast.success('Success', {
+        description: `Claim successful`,
+        action: {
+          label: "View",
+          onClick: () => {
+            window.open(`${data.chains[0].chain.urlScanner}/tx/${tx.hash}`)
+          }
+        }
       })
     } catch (error: any) {
       toast.error('Error', {
@@ -271,12 +277,16 @@ export function useDeployPresaleSC() {
     if (!presaleAddress || !item.presaleSCID) throw new Error("Presale address is not set")
     try {
       const presaleFactory = new ethers.Contract(presaleAddress, PresaleAbi.abi, signer)
-      // const userAddress = await signer.getAddress()
-      // const tx = await presaleFactory.sweepUnclaimedTokens(item.presaleSCID!, userAddress)
       const tx = await presaleFactory.retrieveUnsoldTokensIfFailed(item.presaleSCID!)
       await tx.wait()
-      toast.success("Withdraw successful", {
-        description: `Transaction hash: ${tx.hash}`
+      toast.success('Success', {
+        description: `Withdraw successful`,
+        action: {
+          label: "View",
+          onClick: () => {
+            window.open(`${data.chains[0].chain.urlScanner}/tx/${tx.hash}`)
+          }
+        }
       })
     } catch (error: any) {
       console.log(error)
@@ -305,9 +315,16 @@ export function useDeployPresaleSC() {
       }
       await tx.wait()
       setWdPresale(item.id)
-      toast.success("Refund successful", {
-        description: `Transaction hash: ${tx.hash}`
+      toast.success('Success', {
+        description: `Refund successful`,
+        action: {
+          label: "View",
+          onClick: () => {
+            window.open(`${data.chains[0].chain.urlScanner}/tx/${tx.hash}`)
+          }
+        }
       })
+      
     } catch (error: any) {
       console.log(error)
       toast.error('Error', {

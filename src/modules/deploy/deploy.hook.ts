@@ -145,7 +145,7 @@ export function useDeployToken() {
           }
           const originalDate = new Date(i.startDate);
           const newDate = new Date(originalDate);
-          newDate.setDate(newDate.getDate() + 2);
+          newDate.setDate(newDate.getDate());
           return Math.floor(newDate.getTime() / 1000).toString();
         })
         const tx = await factory.deployAll(
@@ -250,7 +250,7 @@ export function useDeployToken() {
               successMessage(
                 {
                   header: 'Sucess',
-                  description: `Success deploy asset ${project.name}`
+                  description: `Contracts deployed successfully!`
                 },
                 {
                   label: 'View',

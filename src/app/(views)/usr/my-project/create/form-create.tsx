@@ -15,7 +15,7 @@ import { useChainList } from "@/modules/chain/chain.query";
 import { useProjectTypeList } from "@/modules/project-types/project-types.query";
 import { useCreateProject } from "@/modules/project/project.query";
 import { formCreateProjectSchema } from "@/modules/project/project.schema";
-import { useSocialList } from "@/modules/social/chain.query";
+import { useSocialList, useSocialName } from "@/modules/social/chain.query";
 import { useStableCoinGroupList } from "@/modules/stable-coin/stable-coin.query";
 import { useFormCreateProject } from "@/store/useFormCreateProject";
 import {
@@ -38,6 +38,7 @@ export default function FormCreate() {
     bannerPreview,
     reset: resetFormCreateProject,
   } = useFormCreateProject();
+  const { data: email } = useSocialName('Email')
   const whitelistRef = useRef<HTMLDivElement>(null);
   const [showInputWL, setShowInputWL] = useState(false);
   const { mutate: createProject } = useCreateProject();
@@ -56,6 +57,21 @@ export default function FormCreate() {
     defaultValues: defaultValues,
     mode: "onBlur",
   });
+
+  useEffect(() => {
+    if (email && email.id) {
+      form.reset({
+        ...defaultValues,
+        socials: [
+          {
+            socialId: email.id, // UUID dari DB
+            url: "",            // akan diisi user
+          },
+        ],
+      });
+    }
+  }, [email, form])
+  
 
   useEffect(() => {
     try {
@@ -79,7 +95,7 @@ export default function FormCreate() {
             ? formNewbie.totalSupply
             : defaultValues.totalSupply,
         allocations: (formNewbie.allocations &&
-        formNewbie.allocations.length > 0
+          formNewbie.allocations.length > 0
           ? formNewbie.allocations
           : defaultValues.allocations
         ).map((a: any) => ({
@@ -127,7 +143,7 @@ export default function FormCreate() {
         form.reset(parsed);
         localStorage.removeItem("createProjectDraft");
       }
-    } catch {}
+    } catch { }
   }, [form]);
 
   useEffect(() => {
@@ -149,6 +165,8 @@ export default function FormCreate() {
     control: form.control,
     name: "socials",
   });
+
+  console.log({ email })
 
   const allocations = form.watch("allocations");
   const socialsValues = form.watch("socials");
@@ -434,13 +452,20 @@ export default function FormCreate() {
                         control={form.control}
                         name={`socials.${index}.url`}
                         label="URL"
-                        placeholder={`https://...`}
+                        placeholder={
+                          index === 0 ? (
+                          'example@email.com'
+                          ): (
+                            'https://example.com'
+                          )
+                        }
                       />
                     </div>
                     <Button
                       type="button"
                       variant="destructive"
                       size="icon"
+                      disabled={index === 0}
                       onClick={() => removeSocial(index)}
                     >
                       <Icon name="tabler:trash" />
@@ -513,6 +538,7 @@ export default function FormCreate() {
                             field.name === "Presale" ||
                             field.name === "Deployer"
                           }
+                          min={new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
                         />
                       </div>
                       <Button
@@ -530,9 +556,8 @@ export default function FormCreate() {
                 </div>
                 <div className="flex justify-between">
                   <p
-                    className={`text-xs font-semibold ${
-                      totalPercent !== 100 ? "text-red-500" : "text-green-600"
-                    }`}
+                    className={`text-xs font-semibold ${totalPercent !== 100 ? "text-red-500" : "text-green-600"
+                      }`}
                   >
                     Total Allocation: {totalPercent}%
                   </p>
@@ -560,7 +585,7 @@ export default function FormCreate() {
                   + Allocation
                 </Button>
               </div>
-              
+
             </div>
             <div className="bg-form-token-gradient p-4 md:p-8 rounded-2xl">
               <div>

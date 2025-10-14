@@ -35,7 +35,7 @@ export const presalesSchema = z.object({
 )
 export const socialSchema = z.object({
   socialId: z.string().uuid(),
-  url: z.string().url(),
+  url: z.string()
 });
 
 export const formCreateProjectSchema = z.object({
@@ -63,9 +63,35 @@ export const formCreateProjectSchema = z.object({
       path: ["allocations"],
     }
   ),
-  // presales: z.array(presalesSchema).optional(),
-  socials: z.array(socialSchema),
-});
+  socials: z
+    .array(socialSchema)
+    .superRefine((socials, ctx) => {
+      if (socials.length === 0) return;
+
+      const firstUrl = socials[0].url;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(firstUrl)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Invalid email address (e.g. example@email.com)",
+          path: [0, "url"],
+        });
+      }
+
+      for (let i = 1; i < socials.length; i++) {
+        const url = socials[i].url;
+        try {
+          new URL(url);
+        } catch {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Invalid URL (e.g. https://example.com)`,
+            path: [i, "url"],
+          });
+        }
+      }
+    }),
+})
 
 export const formFilterProjectSchema = z.object({
   status: z.enum(["PENDING", "APPROVED", "REJECTED", "DEPLOYED"]),
