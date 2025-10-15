@@ -19,7 +19,7 @@ export const presalesSchema = z.object({
   whitelistDuration: z.coerce.number().optional(),
   whitelistAddress: z.string().optional(),
   sweepDuration: z.coerce.number().min(0).optional(),
-  presaleSCID: z.string().optional(),
+  presaleSCID: z.string().nullable().optional(),
   initialReleaseBps: z.coerce.number(),
   cliffDuration: z.coerce.number(),
   vestingDuration: z.coerce.number(),

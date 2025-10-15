@@ -29,13 +29,16 @@ export default function PresaleInfoItem({ data, presale }: { data: TProject, pre
       setPresaleSc({
         startTime: Number(result[0]),
         endTime: Number(result[1]),
-        whitelistDuration: Number(result[2]),
+        claimTime: Number(result[2]),
         claimDelay: Number(result[3]),
-        claimTime: Number(result[4]),
-        finalized: result[5],
-        hardCap: result[6].toString(),
-        totalRaised: result[7].toString(),
-        tokensNeeded: result[8].toString(),
+        finalized: result[4],
+        hardCap: result[5].toString(),
+        totalRaised: result[6].toString(),
+        tokensNeeded: result[7].toString(),
+        initialReleaseBps: result[8].toString(),
+        cliffDuration: Number(result[9]),
+        vestingDuration: Number(result[10]),
+        sweepDuration: Number(result[11]),
       })
     } catch (err) {
       console.error("Gagal fetch presale SC", err)
