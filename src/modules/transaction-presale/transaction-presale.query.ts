@@ -76,15 +76,6 @@ export const useCreateClaimedPresale = () => {
     mutationFn: (data: TFormClaimPresale) =>
       tansactionpresaleService.CREATE_CLAIM_PRESALE(data),
     onSuccess: () => {
-      toast.success("Success", {
-        description: `Your claim success`,
-        action: {
-          label: "View Transaction",
-          onClick: () => {
-            window.location.href = ``;
-          },
-        },
-      });
       queryClient.invalidateQueries({
         queryKey: ["get_my_claimed_presale"],
       });

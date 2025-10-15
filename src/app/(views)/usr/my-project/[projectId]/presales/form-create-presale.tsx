@@ -74,7 +74,7 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
       projectId: data.id,
       cliffDuration: toSeconds(values.cliffDuration, values.unitTimeCliffDuration),
       vestingDuration: toSeconds(values.vestingDuration, values.unitTimeVestingDuration),
-      initialReleaseBps: values.initialReleaseBps * 100
+      initialReleaseBps: Number(values.initialReleaseBps) * 100
     }
     createNewPresale(newValues, {
       onSuccess: () => {
@@ -282,7 +282,7 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
                             </div>
                           </div>
                           <p className='text-[11px]'>
-                            The total time over which the remaining tokens gradually unlock after the cliff.
+                            The waiting period before any additional tokens start to unlock.
                           </p>
                         </div>
                         <div>
@@ -320,7 +320,7 @@ export default function FormCreatePresale({ data }: { data: TProject }) {
                             </div>
                           </div>
                           <p className='text-[11px]'>
-                            The waiting period before any additional tokens start to unlock.
+                            The total time over which the remaining tokens gradually unlock after the cliff.
                           </p>
                         </div>
                         
