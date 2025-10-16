@@ -689,6 +689,7 @@ export default function FormCreateNewbie() {
               onNext={goNext}
               onSkip={handoffToNativeForm}
               socialsValues={socialsValues}
+              setValue={form.setValue}
             />
           )}
 
