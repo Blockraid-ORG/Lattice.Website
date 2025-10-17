@@ -254,7 +254,9 @@ export function SocialMediaForm({
                 control={control}
                 name={`socials.${index}.url`}
                 label=""
-                placeholder="https://..."
+                placeholder={
+                  index === 0 ? "example@email.com" : "https://example.com"
+                }
               />
             </div>
             {fields.length > 1 && (
@@ -262,6 +264,7 @@ export function SocialMediaForm({
                 type="button"
                 variant="outline"
                 size="icon"
+                disabled={index === 0}
                 onClick={() => removeSocial(index)}
                 className="h-10 w-10 text-red-500 hover:text-red-700 hover:bg-red-50"
               >

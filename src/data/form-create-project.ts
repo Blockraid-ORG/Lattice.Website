@@ -30,12 +30,12 @@ export const steps: Step[] = [
     description: "e.g. SPN",
     validateFields: ["ticker"],
   },
-  {
-    id: "decimals",
-    title: "Decimal",
-    description: "Usually 18",
-    validateFields: ["decimals"],
-  },
+  // {
+  //   id: "decimals",
+  //   title: "Decimal",
+  //   description: "Usually 18",
+  //   validateFields: ["decimals"],
+  // },
   {
     id: "chainId",
     title: "Select Chain",
