@@ -14,10 +14,10 @@ import {
   useSetDistributedLocker,
   useSetPauseProject,
   useSetRewardContractAddress,
-  useUpdateAllocation
-} from '../project/project.query';
-import { useDeployProject } from './deploy.query';
-import { TMasterPayment } from '@/types/payment';
+  useUpdateAllocation,
+} from "../project/project.query";
+import { useDeployProject } from "./deploy.query";
+import { TMasterPayment } from "@/types/payment";
 
 export function useDeployToken() {
   const { data: walletClient } = useWalletClient();
@@ -76,20 +76,21 @@ export function useDeployToken() {
     [address, setDistributedLocker, vestings, walletClient]
   );
 
-  const deployFactoryBasic = useCallback(async (project: TProject, addressPool: TMasterPayment) => {
-    if (!addressPool) {
-      toast.error('Error', {
-        description:'Payment address not found!'
-      })
-    }
-    const _platformFeeBps = addressPool.presaleFee * 100;
-    const _platform = addressPool.paymentSc
-    try {
-      if (typeof window === 'undefined') return
-      if (!walletClient || !address) throw new Error('Wallet not connected')
-      const second = 24 * 60 * 60;
-      const provider = new BrowserProvider(walletClient as any)
-      const signer = await provider.getSigner(address)
+  const deployFactoryBasic = useCallback(
+    async (project: TProject, addressPool: TMasterPayment) => {
+      if (!addressPool) {
+        toast.error("Error", {
+          description: "Payment address not found!",
+        });
+      }
+      const _platformFeeBps = addressPool.presaleFee * 100;
+      const _platform = addressPool.paymentSc;
+      try {
+        if (typeof window === "undefined") return;
+        if (!walletClient || !address) throw new Error("Wallet not connected");
+        const second = 24 * 60 * 60;
+        const provider = new BrowserProvider(walletClient as any);
+        const signer = await provider.getSigner(address);
 
         const presaleFactory = new ethers.ContractFactory(
           PresaleAbi.abi,
@@ -98,6 +99,15 @@ export function useDeployToken() {
         );
 
         const factoryContract = await deployFactoryContractBasic();
+
+        const result = {
+          token: undefined as string | undefined,
+          whitelist: undefined as string | undefined,
+          airdrop: undefined as string | undefined,
+          lockers: [] as string[],
+        };
+
+        let presaleAllocation;
 
         if (factoryContract?.target) {
           setAllocationDeploy({
@@ -117,9 +127,7 @@ export function useDeployToken() {
           const symbol = project.ticker;
           const initialSupply = project.totalSupply;
 
-          const presaleAllocation = project.allocations.find(
-            (i) => i.isPresale
-          );
+          presaleAllocation = project.allocations.find((i) => i.isPresale);
           const lockerNames = vestings.map((i) => i.name);
           const amountSupply = project.totalSupply;
           const amounts = vestings.map((i) =>
@@ -171,12 +179,7 @@ export function useDeployToken() {
 
           const receipt = await tx.wait();
           const iface = new ethers.Interface(FactoryAbi.abi);
-          const result = {
-            token: undefined as string | undefined,
-            whitelist: undefined as string | undefined,
-            airdrop: undefined as string | undefined,
-            lockers: [] as string[],
-          };
+
           for (const log of receipt.logs) {
             try {
               const parsed = iface.parseLog(log);
@@ -199,26 +202,32 @@ export function useDeployToken() {
               console.log("Error");
             }
           }
-        }
-        // constructor(address _owner, address _platform = Payment address, uint256 _platformFeeBps=presale fee (10%)
-        // address,whitelist_address, wl_duration,sweep, _platform, _platformFeeBps
-        const presale = await presaleFactory.deploy(address, _platform, _platformFeeBps);
-        await presale.waitForDeployment();
-        deployProject({
-          projectId: project.id,
-          status: 'DEPLOYED',
-          note: 'Deployed by project owner',
-          contractAddress: result.token as string,
-          factoryAddress: factoryContract?.target as string,
-          presaleAddress: presale?.target as string,
-          whitelistsAddress: result?.whitelist as string
-        }, {
-          onSuccess: async () => {
-            try {
-              toast.success(`Success Deploy Contract ${project.name}`, {
-                description: result.token as string,
-                position: 'top-center'
-              });
+
+          // constructor(address _owner, address _platform = Payment address, uint256 _platformFeeBps=presale fee (10%)
+          // address,whitelist_address, wl_duration,sweep, _platform, _platformFeeBps
+          const presale = await presaleFactory.deploy(
+            address,
+            _platform,
+            _platformFeeBps
+          );
+          await presale.waitForDeployment();
+          deployProject(
+            {
+              projectId: project.id,
+              status: "DEPLOYED",
+              note: "Deployed by project owner",
+              contractAddress: result.token as string,
+              factoryAddress: factoryContract?.target as string,
+              presaleAddress: presale?.target as string,
+              whitelistsAddress: result?.whitelist as string,
+            },
+            {
+              onSuccess: async () => {
+                try {
+                  toast.success(`Success Deploy Contract ${project.name}`, {
+                    description: result.token as string,
+                    position: "top-center",
+                  });
 
                   // 1. Update all vesting allocations (parallel)
                   const updateVestingAllocations = result.lockers.map(
@@ -230,38 +239,53 @@ export function useDeployToken() {
                       })
                   );
 
-              // 2. Update presale allocation (if exists)
-              const updatePresale = presaleAllocation
-                ? updateAllocation({
-                  projectId: project.id,
-                  id: presaleAllocation.id,
-                  contractAddress: presale.target as string
-                })
-                : Promise.resolve();
-              const setRewardContractAddressPromise = setRewardContractAddress({
-                projectId: project.id,
-                rewardContract: {
-                  id: project.id,
-                  rewardContractAddress: result.airdrop as string
-                }
-              });
+                  // 2. Update presale allocation (if exists)
+                  const updatePresale = presaleAllocation
+                    ? updateAllocation({
+                        projectId: project.id,
+                        id: presaleAllocation.id,
+                        contractAddress: presale.target as string,
+                      })
+                    : Promise.resolve();
+                  const setRewardContractAddressPromise =
+                    setRewardContractAddress({
+                      projectId: project.id,
+                      rewardContract: {
+                        id: project.id,
+                        rewardContractAddress: result.airdrop as string,
+                      },
+                    });
 
-              await Promise.all([
-                ...updateVestingAllocations,
-                updatePresale,
-                setRewardContractAddressPromise
-              ]);
-            } catch (err: any) {
-              toast.error(err.message ?? 'Something went wrong during deployment.');
+                  await Promise.all([
+                    ...updateVestingAllocations,
+                    updatePresale,
+                    setRewardContractAddressPromise,
+                  ]);
+                } catch (err: any) {
+                  toast.error(
+                    err.message ?? "Something went wrong during deployment."
+                  );
+                }
+              },
             }
-          }
-        })
+          );
+        }
+      } catch (error: any) {
+        console.error({ error: error.message });
+        toast.error("Something went wrong during deployment.");
       }
-    } catch (error: any) {
-      console.error({ error: error.message })
-      toast.error('Something went wrong during deployment.');
-    }
-  }, [walletClient, address, deployFactoryContractBasic, setAllocationDeploy, vestings, deployProject, updateAllocation, setRewardContractAddress])
+    },
+    [
+      walletClient,
+      address,
+      deployFactoryContractBasic,
+      setAllocationDeploy,
+      vestings,
+      deployProject,
+      updateAllocation,
+      setRewardContractAddress,
+    ]
+  );
 
   const setPauseAsset = useCallback(
     async (project: TProject) => {

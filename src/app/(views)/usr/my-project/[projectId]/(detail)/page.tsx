@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import ProjectContent from "./content";
 import PageContainer from "@/components/containers/page-container";

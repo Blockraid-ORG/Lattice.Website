@@ -40,9 +40,12 @@ type TTokenUnit = {
 
 export default function FormEdit() {
   const { projectId } = useParams();
-  const { data: detail } = useProjectDetail(projectId.toString());
+  const projectIdString = Array.isArray(projectId)
+    ? projectId[0]
+    : projectId?.toString() || "";
+  const { data: detail } = useProjectDetail(projectIdString);
   const [tokenUnits, setTokenUnits] = useState<TTokenUnit[]>([]);
-  const { mutate: updateProject } = useUpdateProject(projectId.toString());
+  const { mutate: updateProject } = useUpdateProject(projectIdString);
   const [logo, setLogo] = useState<File | null>(null);
   const [banner, setBanner] = useState<File | null>(null);
   const { data: chains } = useChainList();

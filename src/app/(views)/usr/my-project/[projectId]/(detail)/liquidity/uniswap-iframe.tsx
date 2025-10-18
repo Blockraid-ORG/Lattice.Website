@@ -1,114 +1,79 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/icon";
 import { useParams } from "next/navigation";
 import { useProjectDetail } from "@/modules/project/project.query";
-
-// interface UniswapIframeProps {
-//   tokenA?: string;
-//   tokenB?: string;
-//   chain?: string;
-//   contractAddress: string;
-// }
-
-// interface CopyableTextProps {
-//   text: string;
-//   displayText?: string;
-//   className?: string;
-// }
-
-// function CopyableText({
-//   text,
-//   displayText,
-//   className = "",
-// }: CopyableTextProps) {
-//   const [copied, setCopied] = useState(false);
-
-//   const handleCopy = async () => {
-//     try {
-//       await navigator.clipboard.writeText(text);
-//       setCopied(true);
-//       toast.success("Contract address copied to clipboard!", {
-//         duration: 2000,
-//       });
-
-//       // Reset copied state after 2 seconds
-//       setTimeout(() => setCopied(false), 2000);
-//     } catch (err) {
-//       toast.error("Failed to copy to clipboard");
-//       console.error("Failed to copy: ", err);
-//     }
-//   };
-
-//   const formatAddress = (address: string) => {
-//     if (address.length <= 12) return address;
-//     return `${address.slice(0, 6)}...${address.slice(-4)}`;
-//   };
-
-//   return (
-//     <TooltipProvider>
-//       <Tooltip>
-//         <TooltipTrigger asChild>
-//           <div
-//             className={`inline-flex items-center gap-2 px-3 py-1.5 bg-muted/50 hover:bg-muted/70 rounded-lg border transition-colors cursor-pointer group ${className}`}
-//             onClick={handleCopy}
-//           >
-//             <code className="text-xs font-mono">
-//               {displayText || formatAddress(text)}
-//             </code>
-//             <Icon
-//               name={copied ? "mdi:check" : "mdi:content-copy"}
-//               className={`text-sm transition-all duration-200 ${
-//                 copied
-//                   ? "text-green-500 scale-110"
-//                   : "text-muted-foreground group-hover:text-foreground"
-//               }`}
-//             />
-//           </div>
-//         </TooltipTrigger>
-//         <TooltipContent>
-//           <p>{copied ? "Copied!" : "Click to copy contract address"}</p>
-//         </TooltipContent>
-//       </Tooltip>
-//     </TooltipProvider>
-//   );
-// }
+import { ModalLiquidity } from "@/components/liquidity-pool/modal-liquidity";
+import { ConfirmationModal } from "@/components/liquidity-pool/confirmation-modal";
 
 export default function ActionsLiquidity() {
   const { projectId } = useParams();
-  const { data: project, isLoading } = useProjectDetail(projectId.toString());
+  const { data: project, isLoading } = useProjectDetail(
+    Array.isArray(projectId) ? projectId[0] : projectId?.toString() || ""
+  );
+
+  const [openLiquidityModal, setOpenLiquidityModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [modalData, setModalData] = useState<any>(null);
 
   const handleOpen = () => {
-    const chain = project?.chains[0].chain.name.split(" ")[0].toLowerCase();
-    const contractAddress = project?.contractAddress;
-    window.open(
-      `https://app.uniswap.org/positions/create/v3?currencyA=NATIVE&currencyB=${contractAddress}&chain=${chain}&hook=undefined&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}
-`,
-      "_blank"
-    );
+    if (!project?.chains || project.chains.length === 0) {
+      console.error("No chain data available");
+      return;
+    }
+
+    if (!project?.contractAddress) {
+      console.error("No contract address available");
+      return;
+    }
+
+    setOpenLiquidityModal(true);
   };
 
   if (isLoading) return <div>Loading...</div>;
+
   if (project?.status === "DEPLOYED") {
     return (
-      // <UniswapIframe
-      //   tokenA={"0xB8c77482e45F1F44dE1745F52C74426C631bDD52"} // BNB - TODO: ganti jadi dari database
-      //   tokenB={project.contractAddress}
-      //   contractAddress={project.contractAddress ?? ""}
-      // />
+      <>
+        <Button
+          onClick={handleOpen}
+          size="sm"
+          variant="default"
+          className="flex items-center gap-2"
+        >
+          <Icon className="text-sm" name="mdi:water-plus" />
+          Add Liquidity
+        </Button>
 
-      <Button
-        onClick={handleOpen}
-        size="sm"
-        variant="default"
-        className="flex items-center gap-2"
-      >
-        <Icon className="text-sm" name="mdi:water-plus" />
-        Add Liquidity
-      </Button>
+        <ModalLiquidity
+          open={openLiquidityModal}
+          setOpen={setOpenLiquidityModal}
+          setShowConfirmModal={setShowConfirmModal}
+          setModalData={setModalData}
+          projectData={{
+            name: project.name,
+            ticker: project.ticker,
+            contractAddress: project.contractAddress,
+            chains: project.chains,
+            logo: project.logo || "",
+          }}
+        />
+
+        {/* Confirmation Modal - This was missing! */}
+        {modalData && (
+          <ConfirmationModal
+            showConfirmModal={showConfirmModal}
+            setShowConfirmModal={setShowConfirmModal}
+            setOpen={setOpenLiquidityModal}
+            {...modalData}
+          />
+        )}
+      </>
     );
   }
+
   return null;
 }
 

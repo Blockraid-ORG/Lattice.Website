@@ -896,30 +896,18 @@ export function ConfirmationModal({
           );
         }
 
-        // CRITICAL FIX: Ensure correct amount mapping based on token symbols
-        let correctedAmount0, correctedAmount1;
-
-        if (tokenASDK.symbol === "USDC") {
-          // tokenA is USDC, should get 0.5
-          correctedAmount0 = "0.5";
-          correctedAmount1 = "1000"; // tokenB should be KM with 1000
-        } else if (tokenASDK.symbol === "KM") {
-          // tokenA is KM, should get 1000
-          correctedAmount0 = "1000";
-          correctedAmount1 = "0.5"; // tokenB should be USDC with 0.5
-        } else {
-          // Fallback to original amounts if symbols don't match expected
-          correctedAmount0 = tokenAAmount.toString();
-          correctedAmount1 = tokenBAmount.toString();
-        }
+        // FIXED: Use actual user input amounts (removed hardcoded test values)
+        // User's input amounts are already validated and should be used as-is
+        const finalAmount0 = tokenAAmount.toString();
+        const finalAmount1 = tokenBAmount.toString();
 
         // Use fresh SDK service with validated parameters
         const params = {
           tokenA: tokenASDK,
           tokenB: tokenBSDK,
           fee: fee,
-          amount0: correctedAmount0,
-          amount1: correctedAmount1,
+          amount0: finalAmount0,
+          amount1: finalAmount1,
           ...(rangeType === "custom" && {
             tickLower: Math.round(parseFloat(minPrice || "0")),
             tickUpper: Math.round(parseFloat(maxPrice || "887220")),

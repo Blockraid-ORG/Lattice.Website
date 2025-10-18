@@ -677,7 +677,7 @@ export class UniswapV3SDKService {
             tokenAddress.toLowerCase() ===
             "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d" // USDC BSC (fallback)
           ) {
-            decimals = 6; // USDC BSC (FIXED: USDC has 6 decimals, not 18!)
+            decimals = 18; // USDC BSC (Binance-Peg) has 18 decimals, NOT 6!
           } else if (
             tokenAddress.toLowerCase() ===
             "0xc327d83686f6b491b1d93755fcee036abd4877dc" // KS Token BSC (fallback)
@@ -760,8 +760,13 @@ export class UniswapV3SDKService {
 
       const tokenSymbol =
         isArbitrumUSDC || isBscUSDC ? "USDC" : isArbitrumTH ? "KM" : "UNKNOWN";
-      const tokenDecimals =
-        isArbitrumUSDC || isBscUSDC ? 6 : isArbitrumTH ? 18 : 18;
+      const tokenDecimals = isArbitrumUSDC
+        ? 6
+        : isBscUSDC
+        ? 18
+        : isArbitrumTH
+        ? 18
+        : 18; // FIXED: BSC USDC = 18 decimals
 
       // SAFETY CHECK: Prevent absurdly large approval amounts (likely decimal conversion bug)
       const humanReadableAmount = new BigNumber(amount).dividedBy(

@@ -9,10 +9,12 @@ import LoadingTokenInformation from "./token-detail/token-information/loading";
 
 export default function ProjectContent() {
   const { projectId } = useParams();
-  const { data: project, isLoading } = useProjectDetail(projectId.toString());
+  const { data: project, isLoading } = useProjectDetail(
+    Array.isArray(projectId) ? projectId[0] : projectId?.toString() || ""
+  );
   const { switchChain } = useSwitchChain();
   useEffect(() => {
-    if (project && project.chains.length > 0) {
+    if (project && project.chains && project.chains.length > 0) {
       switchChain({
         chainId: project?.chains[0].chain.chainid,
       });

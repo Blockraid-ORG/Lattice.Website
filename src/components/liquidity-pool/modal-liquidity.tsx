@@ -103,18 +103,26 @@ export function ModalLiquidity({
 
   // Utility function to get correct decimals for each token
   const getCorrectDecimals = (tokenSymbol: string, address?: string) => {
-    // Known USDC addresses with 6 decimals
-    const usdcAddresses = [
+    // BSC USDC (Binance-Peg) has 18 decimals, not 6!
+    const bscUsdcAddress = "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d";
+
+    // Known USDC addresses with 6 decimals (Arbitrum only)
+    const usdc6DecimalAddresses = [
       "0xaf88d065e77c8cc2239327c5edb3a432268e5831", // Native USDC Arbitrum
-      "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // USDC BSC
       "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8", // USDC.e Arbitrum
     ];
 
+    // Special case: BSC USDC uses 18 decimals (Binance-Peg token standard)
+    if (address && address.toLowerCase() === bscUsdcAddress) {
+      return 18; // BSC USDC = 18 decimals!
+    }
+
+    // Arbitrum USDC uses 6 decimals
     if (
       tokenSymbol?.toUpperCase() === "USDC" ||
-      (address && usdcAddresses.includes(address.toLowerCase()))
+      (address && usdc6DecimalAddresses.includes(address.toLowerCase()))
     ) {
-      return 6; // USDC always has 6 decimals
+      return 6; // Arbitrum USDC = 6 decimals
     }
 
     // Most other tokens use 18 decimals (ETH standard)
