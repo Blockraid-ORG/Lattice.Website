@@ -18,10 +18,7 @@ import { formCreateProjectSchema } from "@/modules/project/project.schema";
 import { useSocialList, useSocialName } from "@/modules/social/chain.query";
 import { useStableCoinGroupList } from "@/modules/stable-coin/stable-coin.query";
 import { useFormCreateProject } from "@/store/useFormCreateProject";
-import {
-  TFormProject,
-  TFormProjectAllocation,
-} from "@/types/project";
+import { TFormProject, TFormProjectAllocation } from "@/types/project";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -38,7 +35,7 @@ export default function FormCreate() {
     bannerPreview,
     reset: resetFormCreateProject,
   } = useFormCreateProject();
-  const { data: email } = useSocialName('Email')
+  const { data: email } = useSocialName("Email");
   const whitelistRef = useRef<HTMLDivElement>(null);
   const [showInputWL, setShowInputWL] = useState(false);
   const { mutate: createProject } = useCreateProject();
@@ -65,13 +62,12 @@ export default function FormCreate() {
         socials: [
           {
             socialId: email.id, // UUID dari DB
-            url: "",            // akan diisi user
+            url: "", // akan diisi user
           },
         ],
       });
     }
-  }, [email, form])
-  
+  }, [email, form]);
 
   useEffect(() => {
     try {
@@ -95,7 +91,7 @@ export default function FormCreate() {
             ? formNewbie.totalSupply
             : defaultValues.totalSupply,
         allocations: (formNewbie.allocations &&
-          formNewbie.allocations.length > 0
+        formNewbie.allocations.length > 0
           ? formNewbie.allocations
           : defaultValues.allocations
         ).map((a: any) => ({
@@ -116,12 +112,12 @@ export default function FormCreate() {
         onChangeValue(String((normalized as any).chainId));
       }
 
-      if (normalized.presales[0].whitelistDuration) {
-        setShowInputWL(normalized.presales[0].whitelistDuration > 0);
-        onCheckedChange(normalized.presales[0].whitelistDuration > 0);
+      if (normalized.whitelistDuration) {
+        setShowInputWL(normalized.whitelistDuration > 0);
+        onCheckedChange(normalized.whitelistDuration > 0);
       }
 
-      const wl = (normalized.presales as any)?.[0]?.whitelistDuration;
+      const wl = normalized.whitelistDuration as any;
       setShowInputWL(!!wl && Number(wl) > 0);
 
       setIsFormReady(true);
@@ -143,7 +139,7 @@ export default function FormCreate() {
         form.reset(parsed);
         localStorage.removeItem("createProjectDraft");
       }
-    } catch { }
+    } catch {}
   }, [form]);
 
   useEffect(() => {
@@ -165,8 +161,6 @@ export default function FormCreate() {
     control: form.control,
     name: "socials",
   });
-
-  console.log({ email })
 
   const allocations = form.watch("allocations");
   const socialsValues = form.watch("socials");
@@ -453,11 +447,9 @@ export default function FormCreate() {
                         name={`socials.${index}.url`}
                         label="URL"
                         placeholder={
-                          index === 0 ? (
-                          'example@email.com'
-                          ): (
-                            'https://example.com'
-                          )
+                          index === 0
+                            ? "example@email.com"
+                            : "https://example.com"
                         }
                       />
                     </div>
@@ -538,7 +530,11 @@ export default function FormCreate() {
                             field.name === "Presale" ||
                             field.name === "Deployer"
                           }
-                          min={new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
+                          min={
+                            new Date(Date.now() + 1 * 24 * 60 * 60 * 1000)
+                              .toISOString()
+                              .split("T")[0]
+                          }
                         />
                       </div>
                       <Button
@@ -556,8 +552,9 @@ export default function FormCreate() {
                 </div>
                 <div className="flex justify-between">
                   <p
-                    className={`text-xs font-semibold ${totalPercent !== 100 ? "text-red-500" : "text-green-600"
-                      }`}
+                    className={`text-xs font-semibold ${
+                      totalPercent !== 100 ? "text-red-500" : "text-green-600"
+                    }`}
                   >
                     Total Allocation: {totalPercent}%
                   </p>
@@ -585,7 +582,6 @@ export default function FormCreate() {
                   + Allocation
                 </Button>
               </div>
-
             </div>
             <div className="bg-form-token-gradient p-4 md:p-8 rounded-2xl">
               <div>
@@ -598,9 +594,7 @@ export default function FormCreate() {
                         id="enable-whitelist"
                         checked={showInputWL}
                       />
-                      <Label htmlFor="enable-whitelist">
-                        Enable Whitelist
-                      </Label>
+                      <Label htmlFor="enable-whitelist">Enable Whitelist</Label>
                     </div>
                   </div>
                   {showInputWL && (

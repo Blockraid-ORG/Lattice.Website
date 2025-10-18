@@ -7,35 +7,40 @@ export const allocationSchema = z.object({
   isPresale: z.boolean().optional(),
 });
 
-export const presalesSchema = z.object({
-  hardcap: z.coerce.number().min(0.001, "Hard cap required").optional(),
-  price: z.coerce.number().min(0.00000001, "Price must be greater than 0").optional(),
-  unit: z.string().min(1, "Unit is required"),
-  maxContribution: z.coerce.number().min(0, "Max contribution required"),
-  duration: z.coerce.number().optional(),
-  startDate: z.coerce.date().optional(),
-  endDate: z.coerce.date().optional(),
-  claimTime: z.coerce.number().min(0).optional(),
-  whitelistDuration: z.coerce.number().optional(),
-  whitelistAddress: z.string().optional(),
-  sweepDuration: z.coerce.number().min(0).optional(),
-  presaleSCID: z.string().nullable().optional(),
-  initialReleaseBps: z.coerce.number(),
-  cliffDuration: z.coerce.number(),
-  vestingDuration: z.coerce.number(),
-  unitTimeCliffDuration: z.enum(["day", "month"]),
-  unitTimeVestingDuration: z.enum(["day", "month"]),
-}).refine(
-  (data) =>
-    !data.startDate || !data.endDate || data.endDate >= data.startDate,
-  {
-    message: "End Date cannot be earlier than Start Date",
-    path: ["endDate"], // error diarahkan ke endDate
-  }
-)
+export const presalesSchema = z
+  .object({
+    hardcap: z.coerce.number().min(0.001, "Hard cap required").optional(),
+    price: z.coerce
+      .number()
+      .min(0.00000001, "Price must be greater than 0")
+      .optional(),
+    unit: z.string().min(1, "Unit is required"),
+    maxContribution: z.coerce.number().min(0, "Max contribution required"),
+    duration: z.coerce.number().optional(),
+    startDate: z.coerce.date().optional(),
+    endDate: z.coerce.date().optional(),
+    claimTime: z.coerce.number().min(0).optional(),
+    whitelistDuration: z.coerce.number().optional(),
+    whitelistAddress: z.string().optional(),
+    sweepDuration: z.coerce.number().min(0).optional(),
+    presaleSCID: z.string().nullable().optional(),
+    initialReleaseBps: z.coerce.number(),
+    cliffDuration: z.coerce.number(),
+    vestingDuration: z.coerce.number(),
+    unitTimeCliffDuration: z.enum(["day", "month"]),
+    unitTimeVestingDuration: z.enum(["day", "month"]),
+  })
+  .refine(
+    (data) =>
+      !data.startDate || !data.endDate || data.endDate >= data.startDate,
+    {
+      message: "End Date cannot be earlier than Start Date",
+      path: ["endDate"], // error diarahkan ke endDate
+    }
+  );
 export const socialSchema = z.object({
   socialId: z.string().uuid(),
-  url: z.string()
+  url: z.string(),
 });
 
 export const formCreateProjectSchema = z.object({
@@ -63,35 +68,33 @@ export const formCreateProjectSchema = z.object({
       path: ["allocations"],
     }
   ),
-  socials: z
-    .array(socialSchema)
-    .superRefine((socials, ctx) => {
-      if (socials.length === 0) return;
+  socials: z.array(socialSchema).superRefine((socials, ctx) => {
+    if (socials.length === 0) return;
 
-      const firstUrl = socials[0].url;
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(firstUrl)) {
+    const firstUrl = socials[0].url;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(firstUrl)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Invalid email address (e.g. example@email.com)",
+        path: [0, "url"],
+      });
+    }
+
+    for (let i = 1; i < socials.length; i++) {
+      const url = socials[i].url;
+      try {
+        new URL(url);
+      } catch {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Invalid email address (e.g. example@email.com)",
-          path: [0, "url"],
+          message: `Invalid URL (e.g. https://example.com)`,
+          path: [i, "url"],
         });
       }
-
-      for (let i = 1; i < socials.length; i++) {
-        const url = socials[i].url;
-        try {
-          new URL(url);
-        } catch {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `Invalid URL (e.g. https://example.com)`,
-            path: [i, "url"],
-          });
-        }
-      }
-    }),
-})
+    }
+  }),
+});
 
 export const formFilterProjectSchema = z.object({
   status: z.enum(["PENDING", "APPROVED", "REJECTED", "DEPLOYED"]),

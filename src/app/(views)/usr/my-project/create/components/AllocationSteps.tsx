@@ -340,6 +340,11 @@ export function AllocationForm({
                   placeholder="e.g. 6"
                   type="date"
                   disabled={isLocked}
+                  min={
+                    new Date(Date.now() + 1 * 24 * 60 * 60 * 1000)
+                      .toISOString()
+                      .split("T")[0]
+                  }
                 />
               </div>
               <Button
