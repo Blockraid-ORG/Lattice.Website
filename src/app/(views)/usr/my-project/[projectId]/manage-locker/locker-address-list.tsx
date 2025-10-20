@@ -137,7 +137,7 @@ export function LockerAddressList({ data, project }: { data: TAllocation, projec
                     }
                     <TableCell className="font-mono break-all">{item.address}</TableCell>
                     <TableCell className="text-right">{NumberComma(Number(item.amount))}</TableCell>
-                    <TableCell className="text-right">{NumberComma(Number('100'))}</TableCell>
+                    <TableCell className="text-right">{NumberComma(Number('0'))}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
