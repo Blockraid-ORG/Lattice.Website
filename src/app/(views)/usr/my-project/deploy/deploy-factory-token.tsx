@@ -55,6 +55,7 @@ export function DeployFactoryToken({ data }: { data: TProject }) {
   }
 
   async function handleDeployContract() {
+    setIsSubmitting(true)
     if (typeof window === 'undefined') return
     if (!walletClient || !address) throw new Error('Wallet not connected')
     const provider = new BrowserProvider(walletClient as any)
