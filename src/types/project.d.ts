@@ -232,4 +232,24 @@ export type FormBaseProjectAllocationAddress = z.infer<
 >;
 export type FormProjectAddressWhitelist = z.infer<
   typeof formProjectAddressWhitelistSchema
->;
+  >;
+
+export type TFormPredictVanity = {
+  factoryAddress: string
+  rpc: string
+  name: string
+  symbol: string
+  supply: string
+  decimals: string
+  suffix: string
+  address: string
+  signature: string
+  message: string
+}
+
+export type TResponsePredict = {
+  factoryAddress:string
+  initCode: string
+  predictedAddress: string
+  salt: string
+}

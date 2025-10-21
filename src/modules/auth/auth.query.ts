@@ -1,5 +1,5 @@
 "use client";
-import { TRequestNonce, TVerifySignature } from "@/types/auth";
+import { TFormSignVanity, TRequestNonce, TVerifySignature } from "@/types/auth";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Cookies from 'js-cookie';
 import authService from "./auth.service";
@@ -46,4 +46,10 @@ export const useCheckAuth = () => {
   });
   return queryChain
 }
+
+export const useSignVanity = () => {
+  return useMutation({
+    mutationFn: (data: TFormSignVanity) => authService.SIGN_VANITY(data),
+  });
+};
 

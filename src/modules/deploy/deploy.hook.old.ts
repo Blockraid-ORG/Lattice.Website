@@ -4,7 +4,7 @@ import PresaleAbi from '@/lib/abis/presale.abi.json';
 import ERC20Abi from '@/lib/abis/erc20.abi.json';
 
 import { useVestingStore } from '@/store/useVestingStore';
-import { TFormPredictVanity, TProject } from '@/types/project';
+import { TProject } from '@/types/project';
 import { BrowserProvider, ethers } from "ethers";
 import { useCallback } from 'react';
 import { toast } from 'sonner';
@@ -19,8 +19,6 @@ import {
 import { useDeployProject } from './deploy.query';
 import { TMasterPayment } from '@/types/payment';
 import { successMessage } from '@/lib/notification';
-import { TSignVanityResponse } from '@/types/auth';
-import contractService from './contract.service';
 
 export function useDeployToken() {
   const { data: walletClient } = useWalletClient()
@@ -33,10 +31,6 @@ export function useDeployToken() {
   const { data: vestings } = useVestingStore()
   const { mutate: deployProject } = useDeployProject()
 
-  async function predictVanityAddress(form: TFormPredictVanity) {
-    const res = await contractService.PREDICT_VANITY(form);
-    return res;
-  }
   const deployFactoryContractBasic = useCallback(async () => {
     if (typeof window === 'undefined') return
     if (!walletClient || !address) throw new Error('Wallet not connected')
@@ -80,13 +74,14 @@ export function useDeployToken() {
 
   }, [address, setDistributedLocker, vestings, walletClient])
 
-  const deployFactoryBasic = useCallback(async (project: TProject, addressPool: TMasterPayment, responseSign: TSignVanityResponse) => {
+  const deployFactoryBasic = useCallback(async (project: TProject, addressPool: TMasterPayment) => {
     if (!addressPool) {
       toast.error('Error', {
         description: 'Payment address not found!'
       })
     }
 
+    
     const _platformFeeBps = addressPool.presaleFee * 100;
     const _platform = addressPool.paymentSc;
     const _sweepDuration = project.sweepDuration ?? (60 * 60 * 24) * 30;
@@ -107,20 +102,6 @@ export function useDeployToken() {
       const factoryContract = await deployFactoryContractBasic();
 
       if (factoryContract?.target) {
-
-        const responsePredict = await predictVanityAddress({
-          factoryAddress: factoryContract.target as string,
-          address: address,
-          name: project.name,
-          symbol: project.ticker,
-          decimals: project.decimals.toString(),
-          suffix: '77',
-          supply: project.totalSupply,
-          rpc: project.chains[0].chain.urlRpc,
-          message: responseSign.message,
-          signature: responseSign.signature,
-        })
-
         setAllocationDeploy({
           projectId: project.id,
           allocations: vestings.map(i => {
@@ -130,6 +111,9 @@ export function useDeployToken() {
           })
         })
         const factory = new ethers.Contract(factoryContract.target, FactoryAbi.abi, signer);
+        const tokenName = project.name;
+        const symbol = project.ticker;
+        const initialSupply = project.totalSupply;
 
         const presaleAllocation = project.allocations.find(i => i.isPresale)
         const lockerNames = vestings.map(i => i.name);
@@ -164,29 +148,16 @@ export function useDeployToken() {
           newDate.setDate(newDate.getDate());
           return Math.floor(newDate.getTime() / 1000).toString();
         })
-        const dataaaa = {
-          initCode: responsePredict.initCode,
-          lockerNames,
-          amounts,
-          startTimes,
-          durations,
-          schedules,
-          salt: responsePredict.salt
-        }
-
-        console.log({
-          dataaaa
-        })
-
-        // return
         const tx = await factory.deployAll(
-          responsePredict.initCode,
+          tokenName,
+          symbol,
+          initialSupply,
+          project.decimals,
           lockerNames,
           amounts,
           startTimes,
           durations,
           schedules,
-          responsePredict.salt
         );
 
         const receipt = await tx.wait();
@@ -338,7 +309,6 @@ export function useDeployToken() {
   return {
     lockAndDistribute,
     deployFactoryBasic,
-    setPauseAsset,
-    deployFactoryContractBasic
+    setPauseAsset
   }
 }
