@@ -1,5 +1,6 @@
 import axiosInstance from "@/lib/axios"
-import { TRequestNonce, TVerifySignature } from "@/types/auth"
+import vanitiClient from "@/lib/vanityClient"
+import { TFormSignVanity, TRequestNonce, TVerifySignature } from "@/types/auth"
 
 class AuthService {
   protected endpoint = 'auth'
@@ -25,6 +26,15 @@ class AuthService {
       url: `${this.endpoint}/logout`,
     })
     return response
+  }
+
+  async SIGN_VANITY(data: TFormSignVanity) {
+    const response = await vanitiClient({
+      method: 'POST',
+      url: `sign`,
+      data: data
+    })
+    return response.data
   }
 }
 

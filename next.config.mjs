@@ -18,6 +18,7 @@ const nextConfig = {
     ZKME_APP_ID: process.env.ZKME_APP_ID,
     ZKME_PROGRAM_NO: process.env.ZKME_PROGRAM_NO,
     ZKME_DAPP_NAME: process.env.ZKME_DAPP_NAME,
+    VANITY_API_URL: process.env.VANITY_API_URL,
   },
   images: {
     remotePatterns: [
