@@ -164,21 +164,6 @@ export function useDeployToken() {
           newDate.setDate(newDate.getDate());
           return Math.floor(newDate.getTime() / 1000).toString();
         })
-        const dataaaa = {
-          initCode: responsePredict.initCode,
-          lockerNames,
-          amounts,
-          startTimes,
-          durations,
-          schedules,
-          salt: responsePredict.salt
-        }
-
-        console.log({
-          dataaaa
-        })
-
-        // return
         const tx = await factory.deployAll(
           responsePredict.initCode,
           lockerNames,
@@ -230,6 +215,7 @@ export function useDeployToken() {
           _sweepDuration
         );
         await presale.waitForDeployment();
+        // TODO: verify contract wahyuuuuuuu
         deployProject({
           projectId: project.id,
           status: 'DEPLOYED',

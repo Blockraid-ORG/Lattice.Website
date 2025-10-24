@@ -1,10 +1,14 @@
 import PageContainer from '@/components/containers/page-container'
 import React from 'react'
+import VestingContent from './content'
 
 export default function VestingPage() {
   return (
     <PageContainer
       title='Vesting'
-    >VestingPage</PageContainer>
+      subtitle='Your Eligible Vesting'
+    >
+      <VestingContent />
+    </PageContainer>
   )
 }
