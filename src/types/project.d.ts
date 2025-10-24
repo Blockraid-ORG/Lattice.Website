@@ -253,3 +253,8 @@ export type TResponsePredict = {
   predictedAddress: string
   salt: string
 }
+
+
+export  type TMyVetsing = TAllocation & {
+  project: TProject;
+}

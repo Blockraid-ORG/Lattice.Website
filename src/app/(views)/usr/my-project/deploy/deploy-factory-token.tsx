@@ -29,7 +29,7 @@ import { useStateModal } from "@/store/useStateModal";
 
 import { useVestingStore } from "@/store/useVestingStore";
 import { TProject } from "@/types/project";
-import { BrowserProvider } from "ethers";
+import { BrowserProvider, ethers } from "ethers";
 import Image from "next/image";
 import { useState } from "react";
 import { useAccount, useWalletClient } from "wagmi";
@@ -67,6 +67,9 @@ export function DeployFactoryToken({ data }: { data: TProject }) {
       decimals: data.decimals,
       rpc: data.chains[0].chain.urlRpc
     })
+    const payloadBytes = ethers.toUtf8Bytes(message)
+    const payloadHash = ethers.keccak256(payloadBytes);
+    const xxx = ethers.toBeArray(payloadHash);
     const sig = await signer.signMessage(message);
     const addr = await signer.getAddress();
     const responseSign = {
@@ -74,6 +77,9 @@ export function DeployFactoryToken({ data }: { data: TProject }) {
       message,
       signature: sig
     };
+
+    console.log({ payloadBytes, xxx, payloadHash });
+
     deployFactoryBasic(data, addressPool!, responseSign)
       .then(() => setOpen(false))
       .finally(() => setIsSubmitting(false))

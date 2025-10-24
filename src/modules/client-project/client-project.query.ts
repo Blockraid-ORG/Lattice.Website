@@ -16,3 +16,11 @@ export const useClientProject = (filters?: { status?: string }) => {
     enabled: true
   });
 }
+
+export const useClientMyVesting = () => {
+  return useQuery({
+    queryKey: ["get_my_vesting"],
+    queryFn: () => clientProjectService.GetMyVesting(),
+    enabled: true
+  });
+}
