@@ -67,18 +67,18 @@ export function DeployFactoryToken({ data }: { data: TProject }) {
       decimals: data.decimals,
       rpc: data.chains[0].chain.urlRpc
     })
-    const payloadBytes = ethers.toUtf8Bytes(message)
-    const payloadHash = ethers.keccak256(payloadBytes);
-    const xxx = ethers.toBeArray(payloadHash);
-    const sig = await signer.signMessage(message);
+
+    const bytes = ethers.toUtf8Bytes(message);
+    const hexMessage = ethers.hexlify(bytes);
+
+    const sig = await signer.signMessage(hexMessage);
     const addr = await signer.getAddress();
+
     const responseSign = {
       signer: addr,
       message,
       signature: sig
     };
-
-    console.log({ payloadBytes, xxx, payloadHash });
 
     deployFactoryBasic(data, addressPool!, responseSign)
       .then(() => setOpen(false))
