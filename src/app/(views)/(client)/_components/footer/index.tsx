@@ -30,23 +30,14 @@ export default function MainFooter() {
           <div>
             <h2 className='text-lg font-semibold'>Resources</h2>
             <div className='mt-3 space-y-2'>
-              <Link className='flex text-sm' href="/">
+              <Link target="_blank" rel="noopener noreferrer" className='flex text-sm' href="https://terravest-1.gitbook.io/terravest-1">
                 Documentation
-              </Link>
-              <Link className='flex text-sm' href="/">
-                Blog
-              </Link>
-              <Link className='flex text-sm' href="/">
-                Team
               </Link>
             </div>
           </div>
           <div>
-            <h2 className='text-lg font-semibold'>Legal</h2>
+            <h2 className='text-lg font-semibold'>Term</h2>
             <div className='mt-3 space-y-2'>
-              <Link className='flex text-sm' href="/">
-                Privacy Policy
-              </Link>
               <Link className='flex text-sm' href="/term-and-condition">
                 Terms and Conditions
               </Link>
