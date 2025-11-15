@@ -18,13 +18,15 @@ import {
   TableRow
 } from "@/components/ui/table"
 import { NumberComma } from "@/lib/utils"
-import { useDeleteIdsProjectAllocationAddress } from "@/modules/project/project.query"
+import { useManageLocker } from "@/modules/manage-locker/manage-locker.hook"
 import { TAllocation, TProject, TProjectAllocationAddress } from "@/types/project"
+import dayjs from "dayjs"
 import { Eye } from "lucide-react"
 import { useEffect, useState } from "react"
-export function LockerAddressList({ data, project }: { data: TAllocation, project: TProject }) {
-  const { mutate: deleteByIdsProjectAllocationAddress } = useDeleteIdsProjectAllocationAddress()
+export function LockerAddressList({ data, project }: { data: TAllocation, project:TProject }) {
+  const { resetBeneficiaries } = useManageLocker()
   const [open, setOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [checkAllState, setcheckAllState] = useState<any>()
   const [items, setItems] = useState<TProjectAllocationAddress[]>([])
   const toggleSelect = (id: string) => {
@@ -40,6 +42,7 @@ export function LockerAddressList({ data, project }: { data: TAllocation, projec
   function onOpenChange(state: boolean) {
     setOpen(state)
     if (state) {
+      console.log(data,"DATA")
       setItems(data.addresses)
     }
   }
@@ -59,12 +62,20 @@ export function LockerAddressList({ data, project }: { data: TAllocation, projec
 
   async function handleDeleteByIds() {
     const checkedData = items.filter(i => i.isChecked)
-    const ids = checkedData.map(i => i.id)
-    deleteByIdsProjectAllocationAddress({ ids }, {
-      onSuccess: () => {
-        setOpen(false)
+    const unchecked = items.filter(i => !i.isChecked).map(i => {
+      return {
+        amount: i.amount,
+        address: i.address,
       }
     })
+    const checkedIds = checkedData.map(i => i.id)
+    setDeleting(true)
+    resetBeneficiaries(
+      checkedIds,
+      project,
+      unchecked,
+      data,
+    ).then(() => setOpen(false)).finally(() => setDeleting(false))
   }
 
   return (
@@ -76,14 +87,15 @@ export function LockerAddressList({ data, project }: { data: TAllocation, projec
         <SheetHeader className="container">
           <SheetTitle>Address</SheetTitle>
           <SheetDescription>
-            Address listed on <b>{data.name}</b> Locker
+            Beneficiary(ies) list who are eligible to claim from the <b>{data.name}</b> locked address. <br />
+            Claims start on <b>{dayjs(data.startDate).add(2, "day").format('DD-MMM-YYYY')}</b> and continue over the next <b>{data.vesting}</b> months.
           </SheetDescription>
         </SheetHeader>
         <ScrollArea className="h-[70vh] overflow-auto container">
           <div className="mt-4">
             <div className="mb-4">
               {items.filter(i => i.isChecked).length > 0 && (
-                <Button disabled={project.status === 'DEPLOYED'} onClick={handleDeleteByIds} variant={'destructive'} className="flex gap-2">
+                <Button disabled={data.isFinalized || deleting} onClick={handleDeleteByIds} variant={'destructive'} className="flex gap-2">
                   Delete {items.filter(i => i.isChecked).length} Selected
                 </Button>
               )}
@@ -91,29 +103,41 @@ export function LockerAddressList({ data, project }: { data: TAllocation, projec
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[50px]">
-                    <Checkbox
-                      className="rounded"
-                      checked={checkAllState}
-                      onCheckedChange={(val) => toggleSelectAll(Boolean(val))}
-                    />
-                  </TableHead>
+                  {
+                    !data.isFinalized && (
+                      <TableHead className="w-[50px]">
+                        <Checkbox
+                          className="rounded"
+                          checked={checkAllState}
+                          disabled={data.isFinalized}
+                          onCheckedChange={(val) => toggleSelectAll(Boolean(val))}
+                        />
+                      </TableHead>
+
+                    )
+                  }
                   <TableHead>Address</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-right">Claimable</TableHead>
+                  <TableHead className="text-right">Claimed</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {items.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell>
-                      <Checkbox
-                        className="rounded"
-                        checked={item.isChecked}
-                        onCheckedChange={() => toggleSelect(item.id)}
-                      />
-                    </TableCell>
+                    {
+                      !data.isFinalized && (
+                        <TableCell>
+                          <Checkbox
+                            className="rounded"
+                            checked={item.isChecked}
+                            onCheckedChange={() => toggleSelect(item.id)}
+                          />
+                        </TableCell>
+                      )
+                    }
                     <TableCell className="font-mono break-all">{item.address}</TableCell>
                     <TableCell className="text-right">{NumberComma(Number(item.amount))}</TableCell>
+                    <TableCell className="text-right">{NumberComma(Number('0'))}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

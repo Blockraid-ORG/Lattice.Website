@@ -455,8 +455,6 @@ function OurProject() {
   // Menggunakan dummy data untuk preview
   const data = dummyData;
   const isLoading = false;
-
-  console.log(data);
   return (
     <section className="py-12 md:py-24 bg-gradient-to-br from-[#D8E9FD]/20 via-[#E8F4FD]/10 to-[#F0F8FF]/20 dark:from-[#001123] dark:via-[#001A2E] dark:to-[#002244]">
       <div className="container">

@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef, memo } from "react";
 import { useTheme } from "next-themes";
 
-interface DexScreenerChartProps {
+interface TradingViewChartProps {
+  symbol?: string;
   tokenAddress?: string;
   pairAddress?: string;
   chainId?: string;
@@ -12,84 +13,146 @@ interface DexScreenerChartProps {
 }
 
 /**
- * DexScreenerChart Component
+ * TradingViewChart Component
  *
- * Embeds a DexScreener chart iframe for displaying token price charts.
+ * Embeds a TradingView advanced chart widget for displaying token price charts.
  * Automatically adapts to the current theme (dark/light mode).
  *
- * @param tokenAddress - The contract address of the token
- * @param pairAddress - The pair address (if available, takes priority over tokenAddress)
- * @param chainId - The blockchain network (e.g., "ethereum", "bsc", "polygon")
- * @param height - Height of the chart in pixels (default: 400)
+ * @param symbol - The trading symbol (e.g., "BTCUSD", "ETHUSD")
+ * @param tokenAddress - The contract address of the token (for reference)
+ * @param pairAddress - The pair address (for reference)
+ * @param chainId - The blockchain network (for reference)
+ * @param height - Height of the chart in pixels (default: 500)
  * @param width - Width of the chart (default: "100%")
  *
  * @example
- * <DexScreenerChart
- *   tokenAddress="0x1234..."
- *   chainId="ethereum"
- *   height={500}
+ * <TradingViewChart
+ *   symbol="BTCUSD"
+ *   height={600}
  * />
  *
  * @note The chart theme automatically follows the app's theme using next-themes
  */
 
-const DexScreenerChart: React.FC<DexScreenerChartProps> = ({
+const TradingViewChart: React.FC<TradingViewChartProps> = ({
+  symbol = "BTCUSD",
   tokenAddress,
   pairAddress,
-  chainId = "ethereum",
-  height = 400,
+  chainId,
+  height = 500,
   width = "100%",
 }) => {
-  const { theme } = useTheme();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { theme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
 
-  // Generate DexScreener embed URL with theme support
-  const generateEmbedUrl = () => {
-    const themeParam = theme === "dark" ? "dark" : "light";
+  // Get the actual theme (resolved)
+  const currentTheme = mounted
+    ? theme === "system"
+      ? resolvedTheme
+      : theme
+    : "light";
 
-    if (pairAddress) {
-      // If we have pair address, use it directly
-      return `https://dexscreener.com/${chainId}/${pairAddress}?embed=1&theme=${themeParam}&trades=0&info=0`;
-    } else if (tokenAddress) {
-      // If we only have token address, use token-based URL
-      return `https://dexscreener.com/${chainId}/${tokenAddress}?embed=1&theme=${themeParam}&trades=0&info=0`;
-    } else {
-      // Fallback to a default chart (you can change this to any popular token)
-      return `https://dexscreener.com/ethereum/0xa0b86a33e6441b8c4c8c0e4b8c4c8c0e4b8c4c8c0?embed=1&theme=${themeParam}&trades=0&info=0`;
-    }
-  };
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || !containerRef.current) return;
+
+    // Clear existing widget
+    const container = containerRef.current;
+    container.innerHTML = "";
+
+    // Create script element
+    const script = document.createElement("script");
+    script.src =
+      "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+    script.type = "text/javascript";
+    script.async = true;
+
+    // Configure the widget
+    const config = {
+      autosize: true,
+      symbol: symbol,
+      interval: "D",
+      timezone: "Etc/UTC",
+      theme: currentTheme === "dark" ? "dark" : "light",
+      style: "1",
+      locale: "en",
+      enable_publishing: false,
+      allow_symbol_change: true,
+      calendar: false,
+      support_host: "https://www.tradingview.com",
+      hide_top_toolbar: false,
+      hide_legend: false,
+      save_image: false,
+      studies: ["STD;Volume"],
+      container_id: "tradingview_widget",
+    };
+
+    script.innerHTML = JSON.stringify(config);
+    container.appendChild(script);
+
+    // Cleanup function
+    return () => {
+      if (container) {
+        container.innerHTML = "";
+      }
+    };
+  }, [symbol, currentTheme, mounted]);
+
+  if (!mounted) {
+    return (
+      <div
+        className="w-full bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center"
+        style={{ height: `${height}px` }}
+      >
+        <div className="text-gray-500 dark:text-gray-400">Loading chart...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
       <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <iframe
-          src={generateEmbedUrl()}
-          width={width}
-          height={height}
-          frameBorder="0"
-          allowTransparency={true}
-          title="DexScreener Chart"
-          className="w-full"
+        <div
+          ref={containerRef}
+          className="tradingview-widget-container"
           style={{
-            border: "none",
-            borderRadius: "8px",
+            height: `${height}px`,
+            width: width,
           }}
-        />
+        >
+          <div
+            id="tradingview_widget"
+            className="tradingview-widget-container__widget"
+            style={{ height: "100%", width: "100%" }}
+          />
+        </div>
       </div>
 
       {/* Attribution */}
       <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
         Powered by{" "}
         <a
-          href="https://dexscreener.com"
+          href="https://www.tradingview.com/"
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
         >
-          DexScreener
+          TradingView
         </a>
       </div>
+
+      {/* Reference info (hidden, can be used for debugging) */}
+      {(tokenAddress || pairAddress || chainId) && (
+        <div className="hidden">
+          Token: {tokenAddress}, Pair: {pairAddress}, Chain: {chainId}
+        </div>
+      )}
     </div>
   );
 };
 
-export default DexScreenerChart;
+export default memo(TradingViewChart);

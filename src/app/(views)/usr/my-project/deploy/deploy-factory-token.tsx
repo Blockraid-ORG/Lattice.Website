@@ -29,17 +29,20 @@ import { useStateModal } from "@/store/useStateModal";
 
 import { useVestingStore } from "@/store/useVestingStore";
 import { TProject } from "@/types/project";
+import { BrowserProvider, ethers } from "ethers";
 import Image from "next/image";
 import { useState } from "react";
+import { useAccount, useWalletClient } from "wagmi";
 
 export function DeployFactoryToken({ data }: { data: TProject }) {
+  const { data: walletClient } = useWalletClient();
+  const { address } = useAccount();
   const { deployFactoryBasic } = useDeployToken();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { setData: setDataVesting } = useVestingStore();
   const { open, setOpen } = useStateModal();
+  const chainId = data.chains[0].chain.id;
 
-  const chainId = data.chains?.[0]?.chain?.id;
-  // const unit = data.presales[0].unit;
   const { data: addressPool } = usePaymentStableChain({
     chainId: chainId || "",
     group: "unit",
@@ -57,7 +60,31 @@ export function DeployFactoryToken({ data }: { data: TProject }) {
 
   async function handleDeployContract() {
     setIsSubmitting(true);
-    deployFactoryBasic(data, addressPool!)
+    if (typeof window === "undefined") return;
+    if (!walletClient || !address) throw new Error("Wallet not connected");
+    const provider = new BrowserProvider(walletClient as any);
+    const signer = await provider.getSigner(address);
+    const message = JSON.stringify({
+      name: data.name,
+      symbol: data.ticker,
+      initialSupply: +data.totalSupply,
+      decimals: data.decimals,
+      rpc: data.chains[0].chain.urlRpc,
+    });
+
+    const bytes = ethers.toUtf8Bytes(message);
+    const hexMessage = ethers.hexlify(bytes);
+
+    const sig = await signer.signMessage(hexMessage);
+    const addr = await signer.getAddress();
+
+    const responseSign = {
+      signer: addr,
+      message,
+      signature: sig,
+    };
+
+    deployFactoryBasic(data, addressPool!, responseSign)
       .then(() => setOpen(false))
       .finally(() => setIsSubmitting(false));
   }

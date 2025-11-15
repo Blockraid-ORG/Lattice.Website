@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { FormSelect } from "@/components/form-select";
 import { FormInput } from "@/components/form-input";
 import { Button } from "@/components/ui/button";
@@ -140,6 +140,7 @@ type SocialMediaFormProps = {
   onNext: () => void;
   onSkip: () => void;
   socialsValues?: { socialId: string; url: string }[];
+  setValue?: any;
 };
 
 export function SocialMediaForm({
@@ -149,6 +150,7 @@ export function SocialMediaForm({
   onNext,
   onSkip,
   socialsValues = [],
+  setValue,
 }: SocialMediaFormProps) {
   const { fields, append, remove } = useFieldArray({
     control,
@@ -178,6 +180,26 @@ export function SocialMediaForm({
       (social) => !selectedSocialIds.includes(social.value)
     );
   };
+
+  // Set default email value for first field
+  useEffect(() => {
+    if (
+      socialsOptions?.length > 0 &&
+      fields?.length > 0 &&
+      setValue &&
+      !watchedSocialsValues?.[0]?.socialId
+    ) {
+      const emailPlatform = socialsOptions.find(
+        (social) =>
+          social.label.toLowerCase().includes("email") ||
+          social.label.toLowerCase().includes("mail")
+      );
+
+      if (emailPlatform) {
+        setValue("socials.0.socialId", emailPlatform.value);
+      }
+    }
+  }, [socialsOptions, fields.length, setValue, watchedSocialsValues]);
 
   const addSocial = () => {
     append({ socialId: "", url: "" });
@@ -232,7 +254,9 @@ export function SocialMediaForm({
                 control={control}
                 name={`socials.${index}.url`}
                 label=""
-                placeholder="https://..."
+                placeholder={
+                  index === 0 ? "example@email.com" : "https://example.com"
+                }
               />
             </div>
             {fields.length > 1 && (
@@ -240,6 +264,7 @@ export function SocialMediaForm({
                 type="button"
                 variant="outline"
                 size="icon"
+                disabled={index === 0}
                 onClick={() => removeSocial(index)}
                 className="h-10 w-10 text-red-500 hover:text-red-700 hover:bg-red-50"
               >

@@ -11,15 +11,15 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { useManageLocker } from "@/modules/manage-locker/manage-locker.hook"
-import { TAllocation } from "@/types/project"
+import { TAllocation, TProject } from "@/types/project"
 import { useState } from "react"
 
-export function ConfirmLocker({ data }: { data: TAllocation }) {
+export function ConfirmLocker({ project, data }: {project:TProject, data: TAllocation }) {
   const [loading, setLoading] = useState(false)
   const { finalizeAllocation } = useManageLocker()
   function handleContinue() {
     setLoading(true)
-    finalizeAllocation(data).finally(() => setLoading(false))
+    finalizeAllocation(project, data).finally(() => setLoading(false))
   }
   return (
     <AlertDialog>
@@ -28,9 +28,9 @@ export function ConfirmLocker({ data }: { data: TAllocation }) {
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-sm">
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will finalize token locker!
+            This will finalize beneficiaries list and cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

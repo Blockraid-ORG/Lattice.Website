@@ -62,9 +62,10 @@ export function useFaucetHook() {
         unit: unit,
         txHash: tx.hash
       })
-      console.log("⏳ Transaction sent:", tx.hash);
       await tx.wait();
-      console.log("✅ Request successful!");
+      toast.success('Success', {
+        description: `✅ Request successful!`,
+      })
       return tx;
     } catch (error: any) {
       console.log(error)

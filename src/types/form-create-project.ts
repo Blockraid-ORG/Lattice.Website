@@ -20,7 +20,6 @@ export type StepId =
   | "allocStartDate"
   | "allocAddMore"
   | "allocTotal"
-  | "presaleUnit"
   | "presaleHardcap"
   | "presalePrice"
   | "presaleMaxContribution"

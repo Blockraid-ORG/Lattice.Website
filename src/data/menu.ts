@@ -28,7 +28,7 @@ export const sidemenus = [
     ]
   },
   {
-    label: "Projects",
+    label: "Project Management",
     path: "#",
     children: [
       {
@@ -44,13 +44,18 @@ export const sidemenus = [
     ]
   },
   {
-    label: "Market",
+    label: "Public",
     path: "#",
     children: [
       {
         label:'Projects',
         icon:'bxs:collection',
         path:'/usr/projects'
+      },
+      {
+        label: 'Vesting',
+        icon: 'streamline-ultimate:locker-room-suitcase-key-bold',
+        path: '/usr/vesting'
       },
       {
         label:'Presale',

@@ -10,6 +10,7 @@ export type TChain = {
   ticker: string
   logo: string
   urlScanner: string
+  urlRpc: string
   type: string
   chainid: number
 }

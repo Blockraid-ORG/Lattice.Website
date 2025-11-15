@@ -1,7 +1,9 @@
 import TimeCountDown from '@/components/time-count-down'
 import { Progress } from '@/components/ui/progress'
 import PresaleAbi from '@/lib/abis/presale.abi.json'
-import { NumberComma } from '@/lib/utils'
+import { NumberComma, safeDivide } from '@/lib/utils'
+import { isAvailableContribute, isUnitPresaleStable } from '@/lib/validationActionSc'
+import presaleService from '@/modules/presales/presale.service'
 import { TContributionInfo, TPresaleSC } from '@/types/presale'
 import { TPresale, TProject } from '@/types/project'
 import dayjs from 'dayjs'
@@ -10,8 +12,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAccount, useWalletClient } from 'wagmi'
 import FormContribute from './form-contribute'
 import MyContributionInfo from './my-contribution-info'
-import { isAvailableContribute, isUnitPresaleStable } from '@/lib/validationActionSc'
-import presaleService from '@/modules/presales/presale.service'
 export default function PresaleInfoItem({ data, presale }: { data: TProject, presale: TPresale }) {
   const { data: walletClient } = useWalletClient()
   const [contributionInfo, setContributionInfo] = useState<TContributionInfo>(null);
@@ -29,13 +29,16 @@ export default function PresaleInfoItem({ data, presale }: { data: TProject, pre
       setPresaleSc({
         startTime: Number(result[0]),
         endTime: Number(result[1]),
-        whitelistDuration: Number(result[2]),
+        claimTime: Number(result[2]),
         claimDelay: Number(result[3]),
-        claimTime: Number(result[4]),
-        finalized: result[5],
-        hardCap: result[6].toString(),
-        totalRaised: result[7].toString(),
-        tokensNeeded: result[8].toString(),
+        finalized: result[4],
+        hardCap: result[5].toString(),
+        totalRaised: result[6].toString(),
+        tokensNeeded: result[7].toString(),
+        initialReleaseBps: result[8].toString(),
+        cliffDuration: Number(result[9]),
+        vestingDuration: Number(result[10]),
+        sweepDuration: Number(result[11]),
       })
     } catch (err) {
       console.error("Gagal fetch presale SC", err)
@@ -81,10 +84,11 @@ export default function PresaleInfoItem({ data, presale }: { data: TProject, pre
     getPresaleData().then(setContributionInfo)
   }, [address, fetchPresale, getPresaleData, setContributionInfo, walletClient])
   const progress = presaleSc
-    ? (Number(presaleSc.totalRaised) / Number(presaleSc.hardCap)) * 100
+    ? safeDivide(Number(presaleSc?.totalRaised) , Number(presaleSc?.hardCap)) * 100
     : 0
 
   const isCanContribute = isAvailableContribute(presaleSc)
+
   return (
     <div className='bg-white shadow shadow-neutral-100/5 border p-6 pb-0 dark:bg-neutral-950 rounded-xl my-6'>
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 w-full'>
@@ -140,7 +144,7 @@ export default function PresaleInfoItem({ data, presale }: { data: TProject, pre
           <div className="my-4">
             <Progress className='h-3' value={progress} />
             <div className="flex justify-center text-sm font-semibold">
-              {Math.round(progress)}%
+              {progress.toFixed(2)}%
             </div>
           </div>
         )

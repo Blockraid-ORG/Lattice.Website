@@ -25,3 +25,11 @@ export const useSocialList = () => {
   });
   return queryChain
 }
+export const useSocialName = (name: string) => {
+  const queryChain = useQuery({
+    queryKey: ["get_social_name", name],
+    queryFn: () => socialService.GetByName(name),
+    enabled: true
+  });
+  return queryChain
+}

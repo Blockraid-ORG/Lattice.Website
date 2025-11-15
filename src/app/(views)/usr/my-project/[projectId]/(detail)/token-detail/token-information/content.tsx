@@ -21,18 +21,6 @@ import { Button } from "@/components/ui/button";
 export default function TokenInformation({ data }: { data: TProject }) {
   const search = useSearchParams();
   const tabActive = search.get("tab");
-
-  // Validasi data chains dan properti penting
-  if (!data || !data.chains || data.chains.length === 0) {
-    return <div>Data tidak lengkap. Harap hubungi administrator.</div>;
-  }
-
-  // Pastikan properti array diinisialisasi dengan default value
-  const socials = data.socials || [];
-  const allocations = data.allocations || [];
-  const reviewLogs = data.reviewLogs || [];
-  const paymentHistory = data.PaymentHistory || [];
-
   return (
     <>
       {data && (
@@ -67,7 +55,7 @@ export default function TokenInformation({ data }: { data: TProject }) {
                 <div className="flex flex-col md:flex-row justify-between mb-2 ">
                   <h2 className="text-lg font-semibold">Project Info</h2>
                   <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 px-3">
-                    <ReviewLog data={reviewLogs} />
+                    <ReviewLog data={data.reviewLogs} />
                   </div>
                 </div>
                 <div className="grid lg:grid-cols-2">
@@ -97,7 +85,7 @@ export default function TokenInformation({ data }: { data: TProject }) {
                         <div className="w-3">:</div>
                         <div className="flex-1">
                           <div className="flex items-center gap-1">
-                            {socials.map((social, index) => (
+                            {data.socials.map((social, index) => (
                               <Link
                                 key={index}
                                 href={social.url}
@@ -218,9 +206,11 @@ export default function TokenInformation({ data }: { data: TProject }) {
                     <div className="w-3 shrink-0">:</div>
                     <div className="flex flex-1 justify-between items-center">
                       <BadgeProjectPayment
-                        status={paymentHistory.length >= 1 ? "PAID" : "UNPAID"}
+                        status={
+                          data.PaymentHistory?.length >= 1 ? "PAID" : "UNPAID"
+                        }
                       />
-                      {paymentHistory.length < 1 && (
+                      {data.PaymentHistory?.length < 1 && (
                         <Button size={"sm"} asChild>
                           <Link href={`/usr/my-project/${data.id}/pay`}>
                             Pay Now
@@ -234,13 +224,13 @@ export default function TokenInformation({ data }: { data: TProject }) {
               <div className="mt-6 bg-white border dark:bg-primary-foreground/50 p-4 rounded-lg">
                 <div className="grid gap-3 lg:grid-cols-1 items-center">
                   <Allocations
-                    data={allocations}
+                    data={data.allocations}
                     totalSupply={data.totalSupply}
                     contract={`${data.chains[0].chain.urlScanner}/address/`}
                   />
                 </div>
                 <div className="max-w-xs mx-auto">
-                  <ChartAllocations data={allocations} />
+                  <ChartAllocations data={data.allocations} />
                 </div>
               </div>
               <div className="mt-6 bg-white border dark:bg-primary-foreground/50 p-4 rounded-lg">

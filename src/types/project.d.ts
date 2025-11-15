@@ -64,6 +64,9 @@ export type TPresale = {
   isActive?: boolean;
   presaleSCID?: number | string;
   isWithdrawn?: boolean;
+  initialReleaseBps: number
+  vestingDuration: number
+  cliffDuration: number
 };
 type TProjectOwner = {
   id: string;
@@ -138,6 +141,8 @@ export type TProject = {
   rewardContractAddress: string | null;
   presaleAddress?: string;
   whitelistsAddress?: string;
+  sweepDuration?: number;
+  whitelistDuration?: number;
   paused: boolean;
   socials: {
     url: string;
@@ -227,4 +232,29 @@ export type FormBaseProjectAllocationAddress = z.infer<
 >;
 export type FormProjectAddressWhitelist = z.infer<
   typeof formProjectAddressWhitelistSchema
->;
+  >;
+
+export type TFormPredictVanity = {
+  factoryAddress: string
+  rpc: string
+  name: string
+  symbol: string
+  supply: string
+  decimals: string
+  suffix: string
+  address: string
+  signature: string
+  message: string
+}
+
+export type TResponsePredict = {
+  factoryAddress:string
+  initCode: string
+  predictedAddress: string
+  salt: string
+}
+
+
+export  type TMyVetsing = TAllocation & {
+  project: TProject;
+}
