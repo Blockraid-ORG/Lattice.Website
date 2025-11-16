@@ -17,7 +17,8 @@ export const useCreateProject = () => {
     mutationFn: (data: TFormProject) => projectService.CREATE(data),
     onSuccess: () => {
       toast.success("Success", {
-        description: "Project submitted successfully! Our review team will check it soon.",
+        description:
+          "Project submitted successfully! Our review team will check it soon.",
       });
       queryClient.invalidateQueries({
         queryKey: ["get_project"],
