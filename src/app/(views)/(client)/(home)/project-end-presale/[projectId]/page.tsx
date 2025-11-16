@@ -9,7 +9,7 @@ import ProjectContent from "./content";
 function ProjectDetail() {
   const { projectId } = useParams();
   const { data, isLoading } = useProjectDetail(projectId as string);
-
+  console.log("data project detail", data);
   if (isLoading) {
     return <ContentLoader />;
   }

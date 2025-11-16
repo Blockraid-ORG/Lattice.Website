@@ -66,16 +66,16 @@ export function toSeconds(value: number, unit: string): number {
   const secondsInDay = 24 * 60 * 60;
   const secondsInMonth = 30 * secondsInDay;
 
-  if (unit.toLowerCase() === 'day') {
+  if (unit.toLowerCase() === "day") {
     return value * secondsInDay;
-  } else if (unit.toLowerCase() === 'month') {
+  } else if (unit.toLowerCase() === "month") {
     return value * secondsInMonth;
   } else {
     throw new Error('Invalid unit: must be "day" or "month"');
   }
 }
 
-export function safeDivide(a:number, b:number) {
+export function safeDivide(a: number, b: number) {
   if (b === 0) return 0; // kalau pembagi 0, kembalikan 0
   const result = a / b;
   return Number.isNaN(result) ? 0 : result; // kalau NaN juga balikin 0
