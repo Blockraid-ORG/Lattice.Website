@@ -3,6 +3,7 @@
 import React from "react";
 import { TProject } from "@/types/project";
 import TradingViewChart from "./tradingview-chart";
+import { formatNumberWithCommas } from "@/lib/utils";
 
 interface TabProjectTokenProps {
   data: TProject;
@@ -45,7 +46,7 @@ const TabProjectToken = ({ data }: TabProjectTokenProps) => {
                 Total Supply:
               </span>
               <span className="text-gray-900 dark:text-gray-100">
-                {data.totalSupply}
+                {formatNumberWithCommas(data.totalSupply)}
               </span>
             </div>
           </div>

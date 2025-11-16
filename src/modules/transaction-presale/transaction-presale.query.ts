@@ -55,6 +55,18 @@ export const useActivePresale = (filters?: { status?: string }) => {
     enabled: true,
   });
 };
+export const useEndedPresale = (filters?: { status?: string }) => {
+  const searchString = useSearchParams();
+  const query = {
+    ...toObjectQuery(searchString),
+    ...(filters?.status && { status: filters.status }),
+  };
+  return useQuery({
+    queryKey: ["get_ended_presale", query],
+    queryFn: () => tansactionpresaleService.GET_ENDED(query),
+    enabled: true,
+  });
+};
 export const useMyContribution = (projectId?: string, presaleId?: string) => {
   return useQuery({
     queryKey: ["get_my_contribution", projectId, presaleId],
@@ -103,8 +115,7 @@ export const useMyClaimedPresale = (filters?: { status?: string }) => {
 export const useSetWithdrawPresale = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) =>
-      tansactionpresaleService.SET_WD_PRESALE(id),
+    mutationFn: (id: string) => tansactionpresaleService.SET_WD_PRESALE(id),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["get_project_by_id"],
@@ -116,4 +127,4 @@ export const useSetWithdrawPresale = () => {
       });
     },
   });
-}
+};
