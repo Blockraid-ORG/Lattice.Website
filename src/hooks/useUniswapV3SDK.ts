@@ -38,7 +38,7 @@ export function useUniswapV3SDK(chainId: number = 56) {
   const { connect, isConnected } = useWeb3AuthConnect();
 
   // 🔧 BSC Network Switching Helper (Updated with Dynamic RPC)
-  const switchToBSC = async (provider: any) => {
+  const switchToBSC = useCallback(async (provider: any) => {
     try {
       // Get dynamic RPC URL dari Terravest API
       const { getRPCUrl } = await import("@/data/constants");
@@ -80,146 +80,156 @@ export function useUniswapV3SDK(chainId: number = 56) {
       console.error("❌ Failed to switch to BSC:", error);
       throw new Error(`Failed to switch to BSC: ${(error as Error).message}`);
     }
-  };
+  }, []);
 
   // Update state helper
   const updateState = useCallback((updates: Partial<UseUniswapV3State>) => {
     setState((prev) => ({ ...prev, ...updates }));
   }, []);
 
+  // Initialize SDK services function (extracted for reuse)
+  const initializeServices = useCallback(async () => {
+    if (!isConnected) {
+      updateState({
+        sdkService: null,
+        swapAddService: null,
+        positions: [],
+      });
+      return;
+    }
+
+    try {
+      updateState({ isConnecting: true, error: null });
+
+      const provider = await connect();
+      if (!provider) throw new Error("No provider available");
+
+      const ethersProvider = new ethers.BrowserProvider(provider);
+      const signer = await ethersProvider.getSigner();
+
+      // 🔧 CRITICAL FIX: Override provider dengan Dynamic RPC dari Terravest API
+      let finalProvider = ethersProvider;
+      if (chainId === 56) {
+        // 🔧 Load dynamic RPC providers dari Terravest API
+        const { getBSCRPCProviders } = await import("@/data/constants");
+        const rpcProviders = await getBSCRPCProviders().catch(() => [
+          "https://bsc-dataseed1.binance.org/",
+          "https://bsc-dataseed2.binance.org/",
+        ]);
+
+        let workingProvider = null;
+
+        for (const rpcUrl of rpcProviders) {
+          try {
+            const providerName = rpcUrl.includes("alchemy")
+              ? "Alchemy"
+              : rpcUrl.includes("binance")
+              ? "Binance"
+              : rpcUrl.includes("ankr")
+              ? "Ankr"
+              : "PublicNode";
+
+            const testProvider = new ethers.JsonRpcProvider(rpcUrl);
+
+            // Quick connectivity test dengan timeout protection
+            const testPromise = Promise.all([
+              testProvider.getNetwork(),
+              testProvider.getBlockNumber(),
+            ]);
+
+            const timeoutPromise = new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("RPC timeout")), 5000)
+            );
+
+            const [network, blockNumber] = (await Promise.race([
+              testPromise,
+              timeoutPromise,
+            ])) as any;
+
+            workingProvider = testProvider;
+            break; // Use first working provider
+          } catch (providerError) {
+            continue; // Try next provider
+          }
+        }
+
+        if (workingProvider) {
+          finalProvider = workingProvider as any;
+        } else {
+          // 🚨 Alert user about potential circuit breaker issues
+          toast.warning(
+            "⚠️ All BSC RPC providers are experiencing issues. Transaction may fail due to circuit breaker. Please try again later."
+          );
+        }
+      }
+
+      // Test network connection with RPC endpoint info
+      try {
+        const network = await ethersProvider.getNetwork();
+
+        // Test provider RPC endpoint
+        let rpcEndpoint = "Unknown";
+        try {
+          // Try to get RPC URL if available (might not always work)
+          rpcEndpoint =
+            (ethersProvider as any)?._getConnection?.()?.url ||
+            "Web3Auth Provider";
+        } catch (e) {
+          rpcEndpoint = "Web3Auth Provider";
+        }
+
+        // Test basic RPC functionality
+        const blockNumber = await ethersProvider.getBlockNumber();
+
+        if (Number(network.chainId) !== chainId) {
+          // 🔄 AUTOMATIC NETWORK SWITCHING untuk BSC
+          if (chainId === 56) {
+            await switchToBSC(provider);
+          }
+        }
+      } catch (networkError) {
+        console.error("❌ Network connection test failed:", networkError);
+      }
+
+      // Initialize SDK services dengan provider yang sudah di-override
+      const sdkService = new UniswapV3SDKService(
+        finalProvider,
+        chainId,
+        signer
+      );
+      const swapAddService = new UniswapSwapAndAddService(
+        finalProvider,
+        signer,
+        chainId
+      );
+
+      updateState({
+        sdkService,
+        swapAddService,
+        isConnecting: false,
+      });
+    } catch (error) {
+      console.error("❌ Error initializing SDK services:", error);
+      updateState({
+        error: (error as Error).message,
+        isConnecting: false,
+      });
+    }
+  }, [isConnected, connect, chainId, updateState, switchToBSC]);
+
   // Initialize SDK services when wallet is connected
   useEffect(() => {
-    const initializeServices = async () => {
-      if (!isConnected) {
-        updateState({
-          sdkService: null,
-          swapAddService: null,
-          positions: [],
-        });
-        return;
-      }
-
-      try {
-        updateState({ isConnecting: true, error: null });
-
-        const provider = await connect();
-        if (!provider) throw new Error("No provider available");
-
-        const ethersProvider = new ethers.BrowserProvider(provider);
-        const signer = await ethersProvider.getSigner();
-
-        // 🔧 CRITICAL FIX: Override provider dengan Dynamic RPC dari Terravest API
-        let finalProvider = ethersProvider;
-        if (chainId === 56) {
-          // 🔧 Load dynamic RPC providers dari Terravest API
-          const { getBSCRPCProviders } = await import("@/data/constants");
-          const rpcProviders = await getBSCRPCProviders().catch(() => [
-            "https://bsc-dataseed1.binance.org/",
-            "https://bsc-dataseed2.binance.org/",
-          ]);
-
-          let workingProvider = null;
-
-          for (const rpcUrl of rpcProviders) {
-            try {
-              const providerName = rpcUrl.includes("alchemy")
-                ? "Alchemy"
-                : rpcUrl.includes("binance")
-                ? "Binance"
-                : rpcUrl.includes("ankr")
-                ? "Ankr"
-                : "PublicNode";
-
-              const testProvider = new ethers.JsonRpcProvider(rpcUrl);
-
-              // Quick connectivity test dengan timeout protection
-              const testPromise = Promise.all([
-                testProvider.getNetwork(),
-                testProvider.getBlockNumber(),
-              ]);
-
-              const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("RPC timeout")), 5000)
-              );
-
-              const [network, blockNumber] = (await Promise.race([
-                testPromise,
-                timeoutPromise,
-              ])) as any;
-
-              workingProvider = testProvider;
-              break; // Use first working provider
-            } catch (providerError) {
-              continue; // Try next provider
-            }
-          }
-
-          if (workingProvider) {
-            finalProvider = workingProvider as any;
-          } else {
-            // 🚨 Alert user about potential circuit breaker issues
-            toast.warning(
-              "⚠️ All BSC RPC providers are experiencing issues. Transaction may fail due to circuit breaker. Please try again later."
-            );
-          }
-        }
-
-        // Test network connection with RPC endpoint info
-        try {
-          const network = await ethersProvider.getNetwork();
-
-          // Test provider RPC endpoint
-          let rpcEndpoint = "Unknown";
-          try {
-            // Try to get RPC URL if available (might not always work)
-            rpcEndpoint =
-              (ethersProvider as any)?._getConnection?.()?.url ||
-              "Web3Auth Provider";
-          } catch (e) {
-            rpcEndpoint = "Web3Auth Provider";
-          }
-
-          // Test basic RPC functionality
-          const blockNumber = await ethersProvider.getBlockNumber();
-
-          if (Number(network.chainId) !== chainId) {
-            // 🔄 AUTOMATIC NETWORK SWITCHING untuk BSC
-            if (chainId === 56) {
-              await switchToBSC(provider);
-            }
-          }
-        } catch (networkError) {
-          console.error("❌ Network connection test failed:", networkError);
-        }
-
-        // Initialize SDK services dengan provider yang sudah di-override
-        const sdkService = new UniswapV3SDKService(
-          finalProvider,
-          chainId,
-          signer
-        );
-        const swapAddService = new UniswapSwapAndAddService(
-          finalProvider,
-          signer,
-          chainId
-        );
-
-        updateState({
-          sdkService,
-          swapAddService,
-          isConnecting: false,
-        });
-      } catch (error) {
-        console.error("❌ Error initializing SDK services:", error);
-        updateState({
-          error: (error as Error).message,
-          isConnecting: false,
-        });
-      }
-    };
-
     initializeServices();
-  }, [isConnected, connect, chainId, updateState]);
+  }, [initializeServices]);
+
+  // Function to manually refresh/reload SDK
+  const refreshSDK = useCallback(async () => {
+    if (!isConnected) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
+    await initializeServices();
+  }, [isConnected, initializeServices]);
 
   /**
    * 1. LIQUIDITY POSITIONS & FETCHING POSITIONS
@@ -606,6 +616,7 @@ export function useUniswapV3SDK(chainId: number = 56) {
     calculateOptimalTicks,
     getOptimalTickRange,
     clearError,
+    refreshSDK, // Function to manually refresh SDK
 
     // Services (for advanced usage)
     sdkService: state.sdkService,

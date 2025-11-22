@@ -1372,13 +1372,80 @@ export class UniswapV3SDKService {
 
         const txResponse = await this.signer.sendTransaction(transaction);
 
+        // CRITICAL: Store transaction hash immediately (before waiting for receipt)
+        const transactionHash = txResponse.hash;
+
+        // CRITICAL: Log transaction hash immediately after sending
+        console.log("📤 Transaction sent:", {
+          hash: transactionHash,
+          to: transaction.to,
+          value: transaction.value,
+          dataLength: transaction.data?.length,
+        });
+
         const receipt = await txResponse.wait();
         if (!receipt) {
           throw new Error("Transaction receipt not available");
         }
 
-        // Parse result and return
-        const result = this.parseMintResult(receipt);
+        // CRITICAL: Verify transaction status (1 = success, 0 = failed)
+        if (receipt.status !== 1) {
+          console.error("❌ Transaction failed on blockchain:", {
+            hash: receipt.hash || transactionHash,
+            status: receipt.status,
+            blockNumber: receipt.blockNumber,
+          });
+          throw new Error(
+            `Transaction failed on blockchain. Status: ${receipt.status}. Please check BSCScan for details.`
+          );
+        }
+
+        // CRITICAL: Double-check transaction exists on blockchain
+        try {
+          const verifiedReceipt = await this.provider.getTransactionReceipt(
+            transactionHash
+          );
+          if (!verifiedReceipt) {
+            throw new Error(
+              "Transaction receipt not found on blockchain. Transaction may still be pending."
+            );
+          }
+          if (verifiedReceipt.status !== 1) {
+            throw new Error(
+              `Transaction failed on blockchain. Status: ${verifiedReceipt.status}`
+            );
+          }
+          console.log("✅ Transaction verified on blockchain:", {
+            hash: verifiedReceipt.hash,
+            blockNumber: verifiedReceipt.blockNumber,
+            status: verifiedReceipt.status,
+          });
+        } catch (verifyError: any) {
+          console.error("❌ Transaction verification failed:", verifyError);
+          throw new Error(
+            `Transaction verification failed: ${verifyError.message}. Please check BSCScan manually.`
+          );
+        }
+
+        // CRITICAL: Verify receipt hash matches transaction hash
+        if (receipt.hash !== transactionHash) {
+          console.warn(
+            "⚠️ Receipt hash mismatch:",
+            { txHash: transactionHash, receiptHash: receipt.hash }
+          );
+        }
+
+        // CRITICAL: Log receipt details for debugging
+        console.log("✅ Transaction confirmed:", {
+          hash: receipt.hash || transactionHash,
+          blockNumber: receipt.blockNumber,
+          gasUsed: receipt.gasUsed?.toString(),
+          status: receipt.status,
+          confirmations: receipt.confirmations || 0,
+        });
+
+        // Parse result and return (use transactionHash as fallback)
+        const result = this.parseMintResult(receipt, transactionHash);
 
         if (!result.tokenId || result.tokenId.toString() === "0") {
           throw new Error(
@@ -2690,7 +2757,7 @@ export class UniswapV3SDKService {
    * Private helper methods
    */
 
-  private parseMintResult(receipt: any): MintResult {
+  private parseMintResult(receipt: any, fallbackHash?: string): MintResult {
     // Parse mint result from transaction logs
     // Following Uniswap V3 position manager events
 
@@ -2753,7 +2820,7 @@ export class UniswapV3SDKService {
       }
 
       const result: MintResult = {
-        hash: receipt.hash,
+        hash: receipt.hash || fallbackHash || "0x",
         blockNumber: receipt.blockNumber,
         gasUsed: receipt.gasUsed?.toString() || "0",
         tokenId,
@@ -2762,12 +2829,24 @@ export class UniswapV3SDKService {
         amount1,
       };
 
+      // CRITICAL: Validate hash format
+      if (!result.hash || result.hash.length !== 66 || !result.hash.startsWith("0x")) {
+        console.error("❌ Invalid hash in parseMintResult:", result.hash);
+        if (fallbackHash) {
+          result.hash = fallbackHash;
+        } else {
+          throw new Error("Invalid transaction hash");
+        }
+      }
+
       return result;
-    } catch {
-      // Return basic result if parsing fails
+    } catch (error) {
+      // Return basic result if parsing fails (use fallback hash if available)
+      const hash = receipt.hash || fallbackHash || "0x";
+      console.error("❌ Error in parseMintResult, using fallback:", error);
       return {
-        hash: receipt.hash,
-        blockNumber: receipt.blockNumber,
+        hash: hash,
+        blockNumber: receipt.blockNumber || 0,
         gasUsed: receipt.gasUsed?.toString() || "0",
         tokenId: 0,
         liquidity: "0",

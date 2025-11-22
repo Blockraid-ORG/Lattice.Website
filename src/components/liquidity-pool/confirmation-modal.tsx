@@ -83,7 +83,10 @@ export function ConfirmationModal({
     const price = new BigNumber(tokenPrices?.[symbol] || 0);
     const usdValue = tokenAmount.multipliedBy(price);
 
-    return `US$${usdValue.toFixed(6)}`;
+    // Format USD value untuk display (max 8 decimal places untuk DISPLAY SAJA)
+    // PENTING: Ini hanya untuk tampilan, tidak mempengaruhi payload ke API
+    const formattedUSD = usdValue.decimalPlaces(8, BigNumber.ROUND_DOWN).toFixed();
+    return `US$${formattedUSD}`;
   },
   calculateTotalPoolValue = () => "US$0",
   // New props with defaults
@@ -896,10 +899,26 @@ export function ConfirmationModal({
           );
         }
 
-        // FIXED: Use actual user input amounts (removed hardcoded test values)
-        // User's input amounts are already validated and should be used as-is
-        const finalAmount0 = tokenAAmount.toString();
-        const finalAmount1 = tokenBAmount.toString();
+        // CRITICAL FIX: Format amounts to match token decimals before sending to SDK
+        // ethers.parseUnits cannot handle values with too many decimal places
+        // Format to match token decimals to prevent "too many decimals" error
+        const formatAmountForSDK = (amount: string, decimals: number): string => {
+          const amountBN = new BigNumber(amount || "0");
+          if (amountBN.isZero() || amountBN.isNaN()) return "0";
+          
+          // Limit decimal places to token decimals (max 18 for most tokens)
+          // This prevents "too many decimals" error in ethers.parseUnits
+          const maxDecimals = Math.min(decimals, 18);
+          return amountBN.decimalPlaces(maxDecimals, BigNumber.ROUND_DOWN).toFixed();
+        };
+
+        // Get token decimals (default to 18 if not available)
+        const tokenADecimals = tokenASDK.decimals || 18;
+        const tokenBDecimals = tokenBSDK.decimals || 18;
+
+        // Format amounts to match token decimals
+        const finalAmount0 = formatAmountForSDK(tokenAAmount.toString(), tokenADecimals);
+        const finalAmount1 = formatAmountForSDK(tokenBAmount.toString(), tokenBDecimals);
 
         // Use fresh SDK service with validated parameters
         const params = {
@@ -919,23 +938,87 @@ export function ConfirmationModal({
 
         const result = await freshSDKService.mintPosition(params);
 
+        // CRITICAL: Log transaction details for debugging
+        console.log("✅ Mint position result:", {
+          hash: result.hash,
+          tokenId: result.tokenId.toString(),
+          blockNumber: result.blockNumber,
+          gasUsed: result.gasUsed,
+          amount0: result.amount0,
+          amount1: result.amount1,
+        });
+
+        // Validate transaction hash
+        if (!result.hash || result.hash.length !== 66 || !result.hash.startsWith("0x")) {
+          console.error("❌ Invalid transaction hash:", result.hash);
+          throw new Error("Invalid transaction hash received from SDK");
+        }
+
         setTransactionHash(result.hash);
         setNftTokenId(result.tokenId.toString());
         setShowSuccess(true);
+
+        // Create explorer URL
+        const explorerUrl =
+          chainId === 42161
+            ? `https://arbiscan.io/tx/${result.hash}`
+            : `https://bscscan.com/tx/${result.hash}`;
+
+        // CRITICAL: Verify transaction on blockchain after a short delay
+        // This ensures transaction is indexed by block explorers
+        setTimeout(async () => {
+          try {
+            const { ethers } = await import("ethers");
+            const { getRPCUrl } = await import("@/data/constants");
+            const rpcUrl = await getRPCUrl(chainId || 56);
+            const verifyProvider = new ethers.JsonRpcProvider(rpcUrl);
+
+            const verifyReceipt = await verifyProvider.getTransactionReceipt(
+              result.hash
+            );
+
+            if (!verifyReceipt) {
+              console.warn(
+                "⚠️ Transaction not yet indexed by block explorer. This is normal for new transactions."
+              );
+              toast.warning("Transaction may take a few moments to appear on BSCScan", {
+                description: "Please wait a few seconds and refresh BSCScan, or check your MetaMask activity.",
+                duration: 8000,
+              });
+            } else if (verifyReceipt.status !== 1) {
+              console.error("❌ Transaction failed on blockchain:", verifyReceipt.status);
+              toast.error("Transaction failed on blockchain", {
+                description: `Status: ${verifyReceipt.status}. Please check BSCScan for details.`,
+                duration: 10000,
+                action: {
+                  label: "View on BSCScan",
+                  onClick: () => window.open(explorerUrl, "_blank"),
+                },
+              });
+            } else {
+              console.log("✅ Transaction verified on blockchain:", {
+                hash: verifyReceipt.hash,
+                blockNumber: verifyReceipt.blockNumber,
+                status: verifyReceipt.status,
+              });
+            }
+          } catch (verifyError: any) {
+            console.warn("⚠️ Could not verify transaction:", verifyError.message);
+            // Don't show error to user, transaction might still be processing
+          }
+        }, 5000); // Wait 5 seconds before verification
 
         toast.success(
           `🎉 ${tokenASDK.symbol}/${tokenBSDK.symbol} Liquidity Position Created!`,
           {
             description: `NFT Token ID: ${
               result.tokenId
-            } | Tx: ${result.hash.substring(0, 10)}...`,
+            } | Tx: ${result.hash.substring(0, 10)}...${result.hash.substring(
+              result.hash.length - 8
+            )} | Block: ${result.blockNumber}`,
             action: {
               label: chainId === 42161 ? "View on Arbiscan" : "View on BSCScan",
               onClick: () => {
-                const explorerUrl =
-                  chainId === 42161
-                    ? `https://arbiscan.io/tx/${result.hash}`
-                    : `https://bscscan.com/tx/${result.hash}`;
                 window.open(explorerUrl, "_blank");
               },
             },
@@ -1031,6 +1114,24 @@ export function ConfirmationModal({
     }
   };
 
+  // Format token amount untuk display (max 8 decimal places untuk DISPLAY SAJA)
+  // PENTING: Ini hanya untuk tampilan, tidak mempengaruhi payload ke API
+  const formatTokenAmountForDisplay = (value: string) => {
+    if (!value || value === "0" || value === "") return "0";
+    const valueBN = new BigNumber(value);
+    if (valueBN.isZero() || valueBN.isNaN()) return "0";
+    // Batasi ke maksimal 8 decimal places untuk display
+    return valueBN.decimalPlaces(8, BigNumber.ROUND_DOWN).toFixed();
+  };
+
+  // Format USD price untuk display (max 8 decimal places untuk DISPLAY SAJA)
+  const formatUSDPriceForDisplay = (value: number | BigNumber) => {
+    const valueBN = value instanceof BigNumber ? value : new BigNumber(value);
+    if (valueBN.isZero() || valueBN.isNaN()) return "0";
+    // Batasi ke maksimal 8 decimal places untuk display
+    return valueBN.decimalPlaces(8, BigNumber.ROUND_DOWN).toFixed();
+  };
+
   // Format rate untuk starting price display menggunakan BigNumber
   const formatRateWithoutRounding = (value: number | BigNumber | undefined) => {
     // Handle undefined, null values
@@ -1049,8 +1150,8 @@ export function ConfirmationModal({
         return valueBN.decimalPlaces(2).toFixed();
       }
     } else {
-      // Untuk angka < 1, tampilkan full precision (0.2315423423, 0.0000045)
-      return valueBN.toFixed();
+      // Untuk angka < 1, tampilkan maksimal 8 decimal places
+      return valueBN.decimalPlaces(8, BigNumber.ROUND_DOWN).toFixed();
     }
   };
 
@@ -1176,7 +1277,8 @@ export function ConfirmationModal({
                     usdPrice = tokenAPrice;
                   }
 
-                  return `US$${formatUSDWithoutRounding(usdPrice)}`;
+                  // Format USD price untuk display (max 8 decimal places)
+                  return `US$${formatUSDPriceForDisplay(usdPrice)}`;
                 })()}
               </div>
             </div>
@@ -1192,7 +1294,7 @@ export function ConfirmationModal({
                     <Icon name={tokenAData.icon} className="w-6 h-6" />
                     <div>
                       <div className="font-mono text-lg">
-                        {tokenAAmount || "0"} {tokenAData.symbol}
+                        {formatTokenAmountForDisplay(tokenAAmount || "0")} {tokenAData.symbol}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {calculateUSDValue(
@@ -1208,7 +1310,7 @@ export function ConfirmationModal({
                     <Icon name={tokenBData.icon} className="w-6 h-6" />
                     <div>
                       <div className="font-mono text-lg">
-                        {tokenBAmount || "0"} {tokenBData.symbol}
+                        {formatTokenAmountForDisplay(tokenBAmount || "0")} {tokenBData.symbol}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {calculateUSDValue(
@@ -1242,16 +1344,54 @@ export function ConfirmationModal({
               <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                 <div className="flex items-center gap-2 text-green-700">
                   <Icon name="mdi:check-circle" className="w-4 h-4" />
-                  <span className="text-sm">Position berhasil dibuat!</span>
+                  <span className="text-sm font-medium">Position berhasil dibuat!</span>
                 </div>
                 {transactionHash && (
-                  <div className="mt-2 text-xs text-green-600 font-mono">
-                    TX: {transactionHash.slice(0, 20)}...
+                  <div className="mt-2 space-y-2">
+                    <div className="space-y-1">
+                      <div className="text-xs font-semibold text-green-800">Transaction Hash:</div>
+                      <div className="text-xs text-green-600 font-mono break-all bg-green-100 p-2 rounded">
+                        {transactionHash}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs text-green-700 hover:text-green-800 border border-green-300"
+                        onClick={() => {
+                          const explorerUrl =
+                            chainId === 42161
+                              ? `https://arbiscan.io/tx/${transactionHash}`
+                              : `https://bscscan.com/tx/${transactionHash}`;
+                          window.open(explorerUrl, "_blank");
+                        }}
+                      >
+                        <Icon name="mdi:open-in-new" className="w-3 h-3 mr-1" />
+                        View on {chainId === 42161 ? "Arbiscan" : "BSCScan"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs text-green-700 hover:text-green-800 border border-green-300"
+                        onClick={() => {
+                          navigator.clipboard.writeText(transactionHash);
+                          toast.success("Transaction hash copied to clipboard");
+                        }}
+                      >
+                        <Icon name="mdi:content-copy" className="w-3 h-3 mr-1" />
+                        Copy Hash
+                      </Button>
+                    </div>
+                    <div className="text-xs text-green-600 bg-green-100 p-2 rounded">
+                      <div className="font-semibold mb-1">💡 Note:</div>
+                      <div>If transaction doesn't appear on BSCScan immediately, wait 10-30 seconds and refresh. Transactions may take time to be indexed by block explorers.</div>
+                    </div>
                   </div>
                 )}
                 {nftTokenId && (
-                  <div className="text-xs text-green-600">
-                    NFT Token ID: {nftTokenId}
+                  <div className="mt-2 text-xs text-green-600">
+                    <span className="font-semibold">NFT Token ID:</span> {nftTokenId}
                   </div>
                 )}
               </div>

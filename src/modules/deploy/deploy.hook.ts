@@ -3,8 +3,8 @@ import FactoryAbi from "@/lib/abis/factory.abi.json";
 import PresaleAbi from "@/lib/abis/presale.abi.json";
 import ERC20Abi from "@/lib/abis/erc20.abi.json";
 
-import { useVestingStore } from '@/store/useVestingStore';
-import { TFormPredictVanity, TProject } from '@/types/project';
+import { useVestingStore } from "@/store/useVestingStore";
+import { TFormPredictVanity, TProject } from "@/types/project";
 import { BrowserProvider, ethers } from "ethers";
 import { useCallback } from "react";
 import { toast } from "sonner";
@@ -14,24 +14,24 @@ import {
   useSetDistributedLocker,
   useSetPauseProject,
   useSetRewardContractAddress,
-  useUpdateAllocation
-} from '../project/project.query';
-import { useDeployProject } from './deploy.query';
-import { TMasterPayment } from '@/types/payment';
-import { successMessage } from '@/lib/notification';
-import { TSignVanityResponse } from '@/types/auth';
-import contractService from './contract.service';
+  useUpdateAllocation,
+} from "../project/project.query";
+import { useDeployProject } from "./deploy.query";
+import { TMasterPayment } from "@/types/payment";
+import { successMessage } from "@/lib/notification";
+import { TSignVanityResponse } from "@/types/auth";
+import contractService from "./contract.service";
 
 export function useDeployToken() {
-  const { data: walletClient } = useWalletClient()
-  const { address } = useAccount()
-  const { mutate: updateAllocation } = useUpdateAllocation()
-  const { mutate: setAllocationDeploy } = useSetAllocationDeploy()
-  const { mutate: setDistributedLocker } = useSetDistributedLocker()
-  const { mutate: setRewardContractAddress } = useSetRewardContractAddress()
-  const { mutate: setPauseProject } = useSetPauseProject()
-  const { data: vestings } = useVestingStore()
-  const { mutate: deployProject } = useDeployProject()
+  const { data: walletClient } = useWalletClient();
+  const { address } = useAccount();
+  const { mutate: updateAllocation } = useUpdateAllocation();
+  const { mutate: setAllocationDeploy } = useSetAllocationDeploy();
+  const { mutate: setDistributedLocker } = useSetDistributedLocker();
+  const { mutate: setRewardContractAddress } = useSetRewardContractAddress();
+  const { mutate: setPauseProject } = useSetPauseProject();
+  const { data: vestings } = useVestingStore();
+  const { mutate: deployProject } = useDeployProject();
 
   async function predictVanityAddress(form: TFormPredictVanity) {
     const res = await contractService.PREDICT_VANITY(form);
@@ -83,23 +83,30 @@ export function useDeployToken() {
     [address, setDistributedLocker, vestings, walletClient]
   );
 
-  const deployFactoryBasic = useCallback(async (project: TProject, addressPool: TMasterPayment, responseSign: TSignVanityResponse) => {
-    if (!addressPool) {
-      toast.error('Error', {
-        description: 'Payment address not found!'
-      })
-    }
+  const deployFactoryBasic = useCallback(
+    async (
+      project: TProject,
+      addressPool: TMasterPayment,
+      responseSign: TSignVanityResponse
+    ) => {
+      if (!addressPool) {
+        toast.error("Error", {
+          description: "Payment address not found!",
+        });
+      }
 
-    const _platformFeeBps = addressPool.presaleFee * 100;
-    const _platform = addressPool.paymentSc;
-    const _sweepDuration = project.sweepDuration ?? (60 * 60 * 24) * 30;
-    const _whitelistDuration = project.whitelistDuration ? project.whitelistDuration * 60 * 60 * 24 : 0
-    try {
-      if (typeof window === 'undefined') return
-      if (!walletClient || !address) throw new Error('Wallet not connected')
-      const second = 24 * 60 * 60;
-      const provider = new BrowserProvider(walletClient as any)
-      const signer = await provider.getSigner(address)
+      const _platformFeeBps = addressPool.presaleFee * 100;
+      const _platform = addressPool.paymentSc;
+      const _sweepDuration = project.sweepDuration ?? 60 * 60 * 24 * 30;
+      const _whitelistDuration = project.whitelistDuration
+        ? project.whitelistDuration * 60 * 60 * 24
+        : 0;
+      try {
+        if (typeof window === "undefined") return;
+        if (!walletClient || !address) throw new Error("Wallet not connected");
+        const second = 24 * 60 * 60;
+        const provider = new BrowserProvider(walletClient as any);
+        const signer = await provider.getSigner(address);
 
         const presaleFactory = new ethers.ContractFactory(
           PresaleAbi.abi,
@@ -107,78 +114,96 @@ export function useDeployToken() {
           signer
         );
 
-      const factoryContract = await deployFactoryContractBasic();
+        const factoryContract = await deployFactoryContractBasic();
 
-      if (factoryContract?.target) {
+        if (factoryContract?.target) {
+          const responsePredict = await predictVanityAddress({
+            factoryAddress: factoryContract.target as string,
+            address: address,
+            name: project.name,
+            symbol: project.ticker,
+            decimals: project.decimals.toString(),
+            suffix: "77",
+            supply: project.totalSupply,
+            rpc: project.chains[0].chain.urlRpc,
+            message: responseSign.message,
+            signature: responseSign.signature,
+          });
 
-        const responsePredict = await predictVanityAddress({
-          factoryAddress: factoryContract.target as string,
-          address: address,
-          name: project.name,
-          symbol: project.ticker,
-          decimals: project.decimals.toString(),
-          suffix: '77',
-          supply: project.totalSupply,
-          rpc: project.chains[0].chain.urlRpc,
-          message: responseSign.message,
-          signature: responseSign.signature,
-        })
+          setAllocationDeploy({
+            projectId: project.id,
+            allocations: vestings.map((i) => {
+              return {
+                id: i.id,
+              };
+            }),
+          });
+          const factory = new ethers.Contract(
+            factoryContract.target,
+            FactoryAbi.abi,
+            signer
+          );
 
-        setAllocationDeploy({
-          projectId: project.id,
-          allocations: vestings.map(i => {
-            return {
-              id: i.id
+          const presaleAllocation = project.allocations.find(
+            (i) => i.isPresale
+          );
+          const lockerNames = vestings.map((i) => i.name);
+          const amountSupply = project.totalSupply;
+          const amounts = vestings.map((i) =>
+            ethers
+              .parseUnits(
+                ((Number(amountSupply) * i.supply) / 100).toString(),
+                project.decimals
+              )
+              .toString()
+          );
+          const schedules = vestings.map((i) => {
+            if (i.vesting === 0) {
+              return ["10000"];
             }
-          })
-        })
-        const factory = new ethers.Contract(factoryContract.target, FactoryAbi.abi, signer);
+            const totalBasisPoints = 10000;
+            const base = Math.floor(totalBasisPoints / i.vesting);
+            const remainder = totalBasisPoints - base * i.vesting;
+            const schedule = Array(i.vesting).fill(base);
+            schedule[i.vesting - 1] += remainder;
+            // return schedule;
+            return schedule.map((v) => v.toString());
+          });
 
-        const presaleAllocation = project.allocations.find(i => i.isPresale)
-        const lockerNames = vestings.map(i => i.name);
-        const amountSupply = project.totalSupply
-        const amounts = vestings.map(i =>
-          ethers.parseUnits(
-            (Number(amountSupply) * i.supply / 100).toString(),
-            project.decimals).toString());
-        const schedules = vestings.map(i => {
-          if (i.vesting === 0) {
-            return ["10000"];
-          }
-          const totalBasisPoints = 10000;
-          const base = Math.floor(totalBasisPoints / i.vesting);
-          const remainder = totalBasisPoints - (base * i.vesting);
-          const schedule = Array(i.vesting).fill(base);
-          schedule[i.vesting - 1] += remainder;
-          // return schedule;
-          return schedule.map(v => v.toString());
-        })
-
-        const durations = vestings.map(i => {
-          if (i.vesting === 0) return "1";
-          return (i.vesting * 30 * second).toString();
-        });
-        const startTimes = vestings.map(i => {
-          if (i.vesting === 0) {
-            return Math.floor(Date.now() / 1000).toString();
-          }
-          const originalDate = new Date(i.startDate);
-          const newDate = new Date(originalDate);
-          newDate.setDate(newDate.getDate());
-          return Math.floor(newDate.getTime() / 1000).toString();
-        })
-        const tx = await factory.deployAll(
-          responsePredict.initCode,
-          lockerNames,
-          amounts,
-          startTimes,
-          durations,
-          schedules,
-          responsePredict.salt
-        );
+          const durations = vestings.map((i) => {
+            if (i.vesting === 0) return "1";
+            return (i.vesting * 30 * second).toString();
+          });
+          const startTimes = vestings.map((i) => {
+            if (i.vesting === 0) {
+              return Math.floor(Date.now() / 1000).toString();
+            }
+            const originalDate = new Date(i.startDate);
+            const newDate = new Date(originalDate);
+            newDate.setDate(newDate.getDate());
+            return Math.floor(newDate.getTime() / 1000).toString();
+          });
+          const tx = await factory.deployAll(
+            responsePredict.initCode,
+            lockerNames,
+            amounts,
+            startTimes,
+            durations,
+            schedules,
+            responsePredict.salt
+          );
 
           const receipt = await tx.wait();
           const iface = new ethers.Interface(FactoryAbi.abi);
+
+          const result: {
+            token?: string;
+            whitelist?: string;
+            lockers: string[];
+            airdrop?: string;
+          } = {
+            lockers: [],
+          };
 
           for (const log of receipt.logs) {
             try {
@@ -202,34 +227,36 @@ export function useDeployToken() {
               console.log("Error");
             }
           }
-        }
-        // Deploy Presale Factory
-        const presale = await presaleFactory.deploy(
-          address,
-          _platform,
-          _platformFeeBps,
-          result.token,
-          result?.whitelist,
-          _whitelistDuration,
-          _sweepDuration
-        );
-        await presale.waitForDeployment();
-        // TODO: verify contract wahyuuuuuuu
-        deployProject({
-          projectId: project.id,
-          status: 'DEPLOYED',
-          note: 'Deployed by project owner',
-          contractAddress: result.token as string,
-          factoryAddress: factoryContract?.target as string,
-          presaleAddress: presale?.target as string,
-          whitelistsAddress: result?.whitelist as string
-        }, {
-          onSuccess: async () => {
-            try {
-              // toast.success(`Success Deploy Contract ${project.name}`, {
-              //   description: result.token as string,
-              //   position: 'top-center'
-              // });
+
+          // Deploy Presale Factory
+          const presale = await presaleFactory.deploy(
+            address,
+            _platform,
+            _platformFeeBps,
+            result.token,
+            result?.whitelist,
+            _whitelistDuration,
+            _sweepDuration
+          );
+          await presale.waitForDeployment();
+          // TODO: verify contract wahyuuuuuuu
+          deployProject(
+            {
+              projectId: project.id,
+              status: "DEPLOYED",
+              note: "Deployed by project owner",
+              contractAddress: result.token as string,
+              factoryAddress: factoryContract?.target as string,
+              presaleAddress: presale?.target as string,
+              whitelistsAddress: result?.whitelist as string,
+            },
+            {
+              onSuccess: async () => {
+                try {
+                  // toast.success(`Success Deploy Contract ${project.name}`, {
+                  //   description: result.token as string,
+                  //   position: 'top-center'
+                  // });
 
                   // 1. Update all vesting allocations (parallel)
                   const updateVestingAllocations = result.lockers.map(
@@ -258,32 +285,46 @@ export function useDeployToken() {
                       },
                     });
 
-              await Promise.all([
-                ...updateVestingAllocations,
-                updatePresale,
-                setRewardContractAddressPromise
-              ]);
-              successMessage(
-                {
-                  header: 'Sucess',
-                  description: `Contracts deployed successfully!`
-                },
-                {
-                  label: 'View',
-                  url: `${project.chains[0].chain.urlScanner}/address/${result.token}`
+                  await Promise.all([
+                    ...updateVestingAllocations,
+                    updatePresale,
+                    setRewardContractAddressPromise,
+                  ]);
+                  successMessage(
+                    {
+                      header: "Sucess",
+                      description: `Contracts deployed successfully!`,
+                    },
+                    {
+                      label: "View",
+                      url: `${project.chains[0].chain.urlScanner}/address/${result.token}`,
+                    }
+                  );
+                } catch (err: any) {
+                  toast.error(
+                    err.message ?? "Something went wrong during deployment."
+                  );
                 }
-              )
-            } catch (err: any) {
-              toast.error(err.message ?? 'Something went wrong during deployment.');
+              },
             }
-          }
-        })
+          );
+        }
+      } catch (error: any) {
+        console.error({ error: error.message });
+        toast.error("Something went wrong during deployment.");
       }
-    } catch (error: any) {
-      console.error({ error: error.message })
-      toast.error('Something went wrong during deployment.');
-    }
-  }, [walletClient, address, deployFactoryContractBasic, setAllocationDeploy, vestings, deployProject, updateAllocation, setRewardContractAddress])
+    },
+    [
+      walletClient,
+      address,
+      deployFactoryContractBasic,
+      setAllocationDeploy,
+      vestings,
+      deployProject,
+      updateAllocation,
+      setRewardContractAddress,
+    ]
+  );
 
   const setPauseAsset = useCallback(
     async (project: TProject) => {
@@ -329,6 +370,6 @@ export function useDeployToken() {
     lockAndDistribute,
     deployFactoryBasic,
     setPauseAsset,
-    deployFactoryContractBasic
-  }
+    deployFactoryContractBasic,
+  };
 }

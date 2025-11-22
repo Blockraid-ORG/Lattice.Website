@@ -27,6 +27,16 @@ export default function MarketPricesDisplay({
   tokenBAmount,
   calculateTotalPoolValue,
 }: MarketPricesDisplayProps) {
+  // Format USD price dengan maksimal 8 decimal places
+  const formatUSDPrice = (value: number | BigNumber) => {
+    const valueBN = value instanceof BigNumber ? value : new BigNumber(value);
+
+    if (valueBN.isZero() || valueBN.isNaN()) return "0";
+
+    // Batasi ke maksimal 8 decimal places
+    return valueBN.decimalPlaces(8, BigNumber.ROUND_DOWN).toFixed();
+  };
+
   return (
     <div className="p-3 bg-muted/20 rounded-lg">
       <div className="text-xs text-muted-foreground mb-2">
@@ -40,9 +50,7 @@ export default function MarketPricesDisplay({
           </div>
           <span className="font-mono">
             US$
-            {formatUSDWithoutRounding(
-              tokenPricesBN[tokenASymbol] || new BigNumber(0)
-            )}
+            {formatUSDPrice(tokenPricesBN[tokenASymbol] || new BigNumber(0))}
           </span>
         </div>
         <div className="flex items-center justify-between">
@@ -52,7 +60,7 @@ export default function MarketPricesDisplay({
           </div>
           <span className="font-mono">
             US$
-            {formatUSDWithoutRounding(
+            {formatUSDPrice(
               // Use calculated project price if available for project token
               !displayProjectTokenPrice.isZero() && tokenBSymbol
                 ? displayProjectTokenPrice

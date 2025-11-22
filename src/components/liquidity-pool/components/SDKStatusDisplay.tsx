@@ -1,4 +1,6 @@
 import { Icon } from "@/components/icon";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 interface SDKStatusDisplayProps {
   isWalletConnected: boolean;
@@ -6,6 +8,7 @@ interface SDKStatusDisplayProps {
   sdkError: string | null;
   isSDKReady: boolean;
   projectChainId: number;
+  refreshSDK?: () => Promise<void>;
 }
 
 export default function SDKStatusDisplay({
@@ -14,7 +17,22 @@ export default function SDKStatusDisplay({
   sdkError,
   isSDKReady,
   projectChainId,
+  refreshSDK,
 }: SDKStatusDisplayProps) {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    if (!refreshSDK || isRefreshing) return;
+    
+    setIsRefreshing(true);
+    try {
+      await refreshSDK();
+    } catch (error) {
+      console.error("Error refreshing SDK:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
   // Only show if wallet is connected
   if (!isWalletConnected) {
     return null;
@@ -29,15 +47,49 @@ export default function SDKStatusDisplay({
         </div>
       )}
       {sdkError && (
-        <div className="flex items-center gap-2 text-sm text-red-600">
-          <Icon name="mdi:alert-circle" className="w-4 h-4" />
-          <span>SDK Error: {sdkError}</span>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-sm text-red-600">
+            <Icon name="mdi:alert-circle" className="w-4 h-4" />
+            <span>SDK Error: {sdkError}</span>
+          </div>
+          {refreshSDK && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={isRefreshing || isSDKConnecting}
+              className="h-8 w-8 p-0"
+              title="Refresh SDK"
+            >
+              <Icon
+                name="mdi:refresh"
+                className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+              />
+            </Button>
+          )}
         </div>
       )}
       {!isSDKReady && !isSDKConnecting && !sdkError && (
-        <div className="flex items-center gap-2 text-sm text-amber-600">
-          <Icon name="mdi:alert" className="w-4 h-4" />
-          <span>Uniswap SDK not ready</span>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-sm text-amber-600">
+            <Icon name="mdi:alert" className="w-4 h-4" />
+            <span>Uniswap SDK not ready</span>
+          </div>
+          {refreshSDK && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={isRefreshing || isSDKConnecting}
+              className="h-8 w-8 p-0"
+              title="Refresh SDK"
+            >
+              <Icon
+                name="mdi:refresh"
+                className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+              />
+            </Button>
+          )}
         </div>
       )}
       {isSDKReady && !isSDKConnecting && !sdkError && (

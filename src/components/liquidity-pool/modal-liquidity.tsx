@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { TokenSelectionModal } from "./token-selection-modal";
 import { useTokenPrices } from "@/hooks/useTokenPrices";
 import { useUniswapV3SDK } from "@/hooks/useUniswapV3SDK";
+import { UniswapPoolService } from "@/services/uniswap/uniswap-pool.service";
 import StepSidebar from "./components/StepSidebar";
 import HeaderControls from "./components/HeaderControls";
 import TokenPairSelection from "./components/TokenPairSelection";
@@ -79,6 +80,11 @@ export function ModalLiquidity({
     "tokenA" | "tokenB" | null
   >(null);
 
+  // State untuk track pool existence
+  const [poolExists, setPoolExists] = useState(false);
+  const [isCheckingPool, setIsCheckingPool] = useState(false);
+  const [poolAddress, setPoolAddress] = useState<string | null>(null);
+
   // Ref untuk menyimpan calculated project token price (avoid setState loops)
   const calculatedProjectTokenPriceRef = useRef<BigNumber>(new BigNumber(0));
   const [displayProjectTokenPrice, setDisplayProjectTokenPrice] =
@@ -96,6 +102,7 @@ export function ModalLiquidity({
     isReady: isSDKReady,
     isConnecting: isSDKConnecting,
     error: sdkError,
+    refreshSDK,
   } = useUniswapV3SDK(projectChainId || 56); // Fallback only for hook initialization
 
   // State untuk user address
@@ -779,7 +786,9 @@ export function ModalLiquidity({
           // Contoh: 125 BU = 1 BNB → 0.016 BNB = 0.016 × 125 = 2 BU
           tokenBValue = tokenAValue.multipliedBy(rate);
         }
-        setTokenBAmount(tokenBValue.toFixed());
+        // PENTING: Gunakan toString() untuk mempertahankan full precision
+        // Jangan gunakan toFixed() yang bisa memotong precision
+        setTokenBAmount(tokenBValue.toString());
       } else if (tokenAValue.isZero()) {
         setTokenBAmount("0");
       }
@@ -793,7 +802,9 @@ export function ModalLiquidity({
         } else {
           tokenAValue = tokenBValue.dividedBy(rate);
         }
-        setTokenAAmount(tokenAValue.toFixed());
+        // PENTING: Gunakan toString() untuk mempertahankan full precision
+        // Jangan gunakan toFixed() yang bisa memotong precision
+        setTokenAAmount(tokenAValue.toString());
       } else if (tokenBValue.isZero()) {
         setTokenAAmount("0");
       }
@@ -818,8 +829,121 @@ export function ModalLiquidity({
     { value: "1", label: "1%", description: "For exotic pairs" },
   ];
 
-  const handleContinue = () => {
+  // Fungsi untuk cek pool existence dan get price
+  const checkPoolAndGetPrice = useCallback(async () => {
+    if (!tokenASymbol || !tokenBSymbol || !projectChainId) {
+      return;
+    }
+
+    setIsCheckingPool(true);
+    try {
+      // Get token addresses
+      const tokenAMap = tokenAddressMap[tokenASymbol];
+      const tokenAAddress = tokenAMap?.isNative
+        ? undefined // Native tokens don't have address for pool check
+        : tokenAMap?.address;
+      const tokenBAddress = projectData?.contractAddress;
+
+      if (!tokenAAddress || !tokenBAddress) {
+        console.warn("Token addresses not available for pool check", {
+          tokenAAddress,
+          tokenBAddress,
+          tokenASymbol,
+          tokenBSymbol,
+        });
+        setPoolExists(false);
+        setIsCheckingPool(false);
+        return;
+      }
+
+      // Convert fee tier to number (0.3% = 3000)
+      const fee = parseFloat(selectedFeeTier) * 10000;
+
+      // Check if pool exists
+      const existingPoolAddress = await UniswapPoolService.checkPoolExists(
+        tokenAAddress,
+        tokenBAddress,
+        fee,
+        projectChainId
+      );
+
+      if (existingPoolAddress) {
+        // Pool exists, get pool info to extract price
+        const poolInfo = await UniswapPoolService.getPoolInfo(
+          existingPoolAddress,
+          projectChainId
+        );
+
+        setPoolAddress(existingPoolAddress);
+        setPoolExists(true);
+
+        // Calculate price from sqrtPriceX96
+        // Formula: price = (sqrtPriceX96 / 2^96)^2
+        const sqrtPriceX96 = new BigNumber(poolInfo.sqrtPriceX96);
+        const Q96 = new BigNumber(2).pow(96);
+        const sqrtPrice = sqrtPriceX96.dividedBy(Q96);
+        const price = sqrtPrice.pow(2);
+
+        // Determine which token is token0 and token1 in the pool
+        const [token0, token1] = UniswapPoolService.sortTokens(
+          tokenAAddress.toLowerCase(),
+          tokenBAddress.toLowerCase()
+        );
+
+        // Check if our tokenA is token0 or token1
+        const isTokenAToken0 = tokenAAddress.toLowerCase() === token0;
+
+        // Calculate the price based on token order
+        // If tokenA is token0, price = token1/token0
+        // If tokenA is token1, price = token0/token1
+        let finalPrice: BigNumber;
+        if (isTokenAToken0) {
+          // tokenA is token0, so price = token1/token0
+          // If baseToken is TokenA: X TokenA = 1 TokenB → price = 1/price
+          // If baseToken is TokenB: X TokenB = 1 TokenA → price = price
+          finalPrice =
+            baseToken === "TokenA" ? new BigNumber(1).dividedBy(price) : price;
+        } else {
+          // tokenA is token1, so price = token0/token1
+          // If baseToken is TokenA: X TokenA = 1 TokenB → price = price
+          // If baseToken is TokenB: X TokenB = 1 TokenA → price = 1/price
+          finalPrice =
+            baseToken === "TokenA" ? price : new BigNumber(1).dividedBy(price);
+        }
+
+        // Set starting price from pool
+        // PENTING: Gunakan toString() untuk mempertahankan full precision
+        setStartingPrice(finalPrice.toString());
+      } else {
+        // Pool doesn't exist
+        setPoolExists(false);
+        setPoolAddress(null);
+      }
+    } catch (error) {
+      console.error("Error checking pool:", error);
+      // If error, assume pool doesn't exist (allow user to create new pool)
+      setPoolExists(false);
+      setPoolAddress(null);
+      toast.error(
+        "Failed to check pool existence. You can proceed to create a new pool."
+      );
+    } finally {
+      setIsCheckingPool(false);
+    }
+  }, [
+    tokenASymbol,
+    tokenBSymbol,
+    projectChainId,
+    tokenAddressMap,
+    projectData?.contractAddress,
+    selectedFeeTier,
+    baseToken,
+  ]);
+
+  const handleContinue = async () => {
     if (currentStep === 1) {
+      // Cek pool existence sebelum masuk step 2
+      await checkPoolAndGetPrice();
       setCurrentStep(2);
     } else {
       // Handle final submission
@@ -905,7 +1029,9 @@ export function ModalLiquidity({
                 // TokenB selected: "rate TokenB = 1 TokenA"
                 tokenBValue = tokenAAmountBN.multipliedBy(rate);
               }
-              setTokenBAmount(tokenBValue.toFixed());
+              // PENTING: Gunakan toString() untuk mempertahankan full precision
+              // Jangan gunakan toFixed() yang bisa memotong precision
+              setTokenBAmount(tokenBValue.toString());
             }
           } else if (
             lastUpdatedField === "tokenB" ||
@@ -921,7 +1047,9 @@ export function ModalLiquidity({
                 // TokenB selected: "rate TokenB = 1 TokenA"
                 tokenAValue = tokenBAmountBN.dividedBy(rate);
               }
-              setTokenAAmount(tokenAValue.toFixed());
+              // PENTING: Gunakan toString() untuk mempertahankan full precision
+              // Jangan gunakan toFixed() yang bisa memotong precision
+              setTokenAAmount(tokenAValue.toString());
             }
           }
         }
@@ -959,16 +1087,32 @@ export function ModalLiquidity({
     const rate = new BigNumber(startingPrice || 0);
     if (rate.isNaN() || rate.isZero()) return null;
 
+    // Format function untuk conversion rate (max 8 decimal places untuk DISPLAY SAJA)
+    // PENTING: Ini hanya untuk tampilan, tidak mempengaruhi payload ke API
+    const formatConversionRate = (value: BigNumber) => {
+      if (value.isZero() || value.isNaN()) return "0";
+      // Batasi ke maksimal 8 decimal places untuk display
+      // Gunakan decimalPlaces() untuk membatasi precision, lalu toFixed(8) untuk format
+      const formatted = value.decimalPlaces(8, BigNumber.ROUND_DOWN);
+      // toFixed(8) akan selalu menampilkan maksimal 8 digit di belakang koma
+      // Contoh: 2000.00000000000025208 → 2000.00000000
+      return formatted.toFixed(8);
+    };
+
     if (baseToken === "TokenA") {
       // TokenA selected: "rate TokenA = 1 TokenB"
       // Show: 1 TokenA = X TokenB
       const tokenBPerTokenA = new BigNumber(1).dividedBy(rate);
-      return `1 ${tokenASymbol} = ${tokenBPerTokenA.toFormat()} ${tokenBSymbol}`;
+      return `1 ${tokenASymbol} = ${formatConversionRate(
+        tokenBPerTokenA
+      )} ${tokenBSymbol}`;
     } else {
       // TokenB selected: "rate TokenB = 1 TokenA"
       // Show: 1 TokenB = X TokenA
       const tokenAPerTokenB = new BigNumber(1).dividedBy(rate);
-      return `1 ${tokenBSymbol} = ${tokenAPerTokenB.toFormat()} ${tokenASymbol}`;
+      return `1 ${tokenBSymbol} = ${formatConversionRate(
+        tokenAPerTokenB
+      )} ${tokenASymbol}`;
     }
   };
 
@@ -988,6 +1132,9 @@ export function ModalLiquidity({
     setTokenAAmount("0");
     setTokenBAmount("0");
     setLastUpdatedField(null);
+    setPoolExists(false);
+    setPoolAddress(null);
+    setIsCheckingPool(false);
     setTokenAData({
       symbol: "",
       name: "",
@@ -1108,6 +1255,9 @@ export function ModalLiquidity({
                       handleStartingPriceChange={handleStartingPriceChange}
                       setBaseToken={setBaseToken}
                       formatUSDWithoutRounding={formatUSDWithoutRounding}
+                      poolExists={poolExists}
+                      isCheckingPool={isCheckingPool}
+                      poolAddress={poolAddress}
                     />
 
                     <div className="space-y-4">
@@ -1169,6 +1319,7 @@ export function ModalLiquidity({
                           sdkError={sdkError}
                           isSDKReady={isSDKReady}
                           projectChainId={projectChainId || 1}
+                          refreshSDK={refreshSDK}
                         />
 
                         {/* Balance Status Display */}

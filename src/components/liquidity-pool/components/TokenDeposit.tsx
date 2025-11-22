@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/icon";
 import BigNumber from "bignumber.js";
+import { useState, useEffect, useRef } from "react";
 
 interface TokenDepositProps {
   // Token A props
@@ -50,6 +51,40 @@ export default function TokenDeposit({
   lastUpdatedField,
   hasAutoCalculationError,
 }: TokenDepositProps) {
+  // Local state untuk display value (formatted untuk tampilan)
+  const [displayTokenA, setDisplayTokenA] = useState(tokenAAmount);
+  const [displayTokenB, setDisplayTokenB] = useState(tokenBAmount);
+  const isUserTypingTokenARef = useRef(false);
+  const isUserTypingTokenBRef = useRef(false);
+
+  // Format number untuk display dengan maksimal 8 decimal places
+  const formatAmountForDisplay = (value: string) => {
+    if (!value || value === "") return "";
+    
+    const valueBN = new BigNumber(value);
+    if (valueBN.isZero() || valueBN.isNaN()) return "0";
+
+    // Batasi ke maksimal 8 decimal places
+    return valueBN.decimalPlaces(8, BigNumber.ROUND_DOWN).toFixed();
+  };
+
+  // Sync display value dengan props (terutama saat auto-calculated)
+  useEffect(() => {
+    if (!isUserTypingTokenARef.current) {
+      // Format untuk display saat sync dari parent (auto-calculated)
+      const formatted = formatAmountForDisplay(tokenAAmount);
+      setDisplayTokenA(formatted || tokenAAmount);
+    }
+  }, [tokenAAmount]);
+
+  useEffect(() => {
+    if (!isUserTypingTokenBRef.current) {
+      // Format untuk display saat sync dari parent (auto-calculated)
+      const formatted = formatAmountForDisplay(tokenBAmount);
+      setDisplayTokenB(formatted || tokenBAmount);
+    }
+  }, [tokenBAmount]);
+
   return (
     <>
       {/* Token Deposit Header */}
@@ -72,8 +107,34 @@ export default function TokenDeposit({
           <div className="flex items-center justify-between mb-2">
             <input
               type="text"
-              value={tokenAAmount}
-              onChange={(e) => handleTokenAAmountChange(e.target.value)}
+              value={displayTokenA}
+              onChange={(e) => {
+                isUserTypingTokenARef.current = true;
+                const inputValue = e.target.value;
+                // Remove non-numeric characters except decimal point
+                const cleaned = inputValue.replace(/[^0-9.]/g, "");
+                setDisplayTokenA(cleaned);
+                // Update parent state dengan value asli (full precision)
+                handleTokenAAmountChange(cleaned);
+              }}
+              onBlur={(e) => {
+                isUserTypingTokenARef.current = false;
+                // Format display value untuk tampilan (max 8 decimal places)
+                const valueBN = new BigNumber(e.target.value || 0);
+                if (!valueBN.isNaN() && !valueBN.isZero()) {
+                  const formatted = valueBN
+                    .decimalPlaces(8, BigNumber.ROUND_DOWN)
+                    .toFixed();
+                  setDisplayTokenA(formatted);
+                  // PENTING: Jangan update parent state dengan value yang sudah diformat
+                  // Biarkan parent state tetap menyimpan value asli (full precision)
+                } else if (e.target.value === "" || valueBN.isZero()) {
+                  setDisplayTokenA("0");
+                }
+              }}
+              onFocus={() => {
+                isUserTypingTokenARef.current = false;
+              }}
               className={`flex-1 bg-transparent text-3xl font-mono focus:outline-none placeholder:text-muted-foreground ${
                 isTokenAAmountEmpty() || !isTokenAAmountValid()
                   ? "text-red-500"
@@ -190,8 +251,34 @@ export default function TokenDeposit({
           <div className="flex items-center justify-between mb-2">
             <input
               type="text"
-              value={tokenBAmount}
-              onChange={(e) => handleTokenBAmountChange(e.target.value)}
+              value={displayTokenB}
+              onChange={(e) => {
+                isUserTypingTokenBRef.current = true;
+                const inputValue = e.target.value;
+                // Remove non-numeric characters except decimal point
+                const cleaned = inputValue.replace(/[^0-9.]/g, "");
+                setDisplayTokenB(cleaned);
+                // Update parent state dengan value asli (full precision)
+                handleTokenBAmountChange(cleaned);
+              }}
+              onBlur={(e) => {
+                isUserTypingTokenBRef.current = false;
+                // Format display value untuk tampilan (max 8 decimal places)
+                const valueBN = new BigNumber(e.target.value || 0);
+                if (!valueBN.isNaN() && !valueBN.isZero()) {
+                  const formatted = valueBN
+                    .decimalPlaces(8, BigNumber.ROUND_DOWN)
+                    .toFixed();
+                  setDisplayTokenB(formatted);
+                  // PENTING: Jangan update parent state dengan value yang sudah diformat
+                  // Biarkan parent state tetap menyimpan value asli (full precision)
+                } else if (e.target.value === "" || valueBN.isZero()) {
+                  setDisplayTokenB("0");
+                }
+              }}
+              onFocus={() => {
+                isUserTypingTokenBRef.current = false;
+              }}
               className={`flex-1 bg-transparent text-3xl font-mono focus:outline-none placeholder:text-muted-foreground ${
                 isTokenBAmountEmpty() || !isTokenBAmountValid()
                   ? "text-red-500"
