@@ -100,22 +100,6 @@ export function TokenSelectionModal({
       icon: "cryptocurrency-color:bnb",
       tokens: [
         {
-          symbol: "LINK",
-          name: "Chainlink",
-          icon: "cryptocurrency-color:link",
-          price: "$24.30",
-          address: "0xf8a0bf9cf54bb92f17374d9e9a321e6a111a51bd",
-          chain: "bsc",
-        },
-        {
-          symbol: "UNI",
-          name: "Uniswap",
-          icon: "cryptocurrency-color:uni",
-          price: "$10.00",
-          address: "0xbf5140a22578168fd562dccf235e5d43a02ce9b1",
-          chain: "bsc",
-        },
-        {
           symbol: "USDC",
           name: "USD Coin",
           icon: "cryptocurrency-color:usdc",
@@ -124,27 +108,11 @@ export function TokenSelectionModal({
           chain: "bsc",
         },
         {
-          symbol: "BNB",
-          name: "Binance Coin",
-          icon: "cryptocurrency-color:bnb",
-          price: "$625.34",
-          address: "0x0000000000000000000000000000000000000000",
-          chain: "bsc",
-        },
-        {
-          symbol: "BUSD",
-          name: "Binance USD",
-          icon: "cryptocurrency-color:busd",
+          symbol: "USDT",
+          name: "Tether",
+          icon: "cryptocurrency-color:usdt",
           price: "$1.00",
-          address: "0xe9e7cea3dedca5984780bafc599bd69add087d56",
-          chain: "bsc",
-        },
-        {
-          symbol: "CAKE",
-          name: "PancakeSwap",
-          icon: "cryptocurrency-color:cake",
-          price: "$2.85",
-          address: "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82",
+          address: "0x55d398326f99059fF775485246999027B3197955",
           chain: "bsc",
         },
       ],
@@ -163,38 +131,14 @@ export function TokenSelectionModal({
           address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
           chain: "arbitrum",
         },
-        // {
-        //   symbol: "USDC.e",
-        //   name: "USD Coin (Bridged)",
-        //   icon: "cryptocurrency-color:usdc",
-        //   price: "$1.00",
-        //   address: "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
-        //   chain: "arbitrum",
-        // },
-        // {
-        //   symbol: "KM",
-        //   name: "KOSAN AN",
-        //   icon: "mdi:home-city-outline",
-        //   price: "$0.001",
-        //   address: "0xAe771AC9292c84ed2A6625Ae92380DedCF9A5076",
-        //   chain: "arbitrum",
-        // },
-        // {
-        //   symbol: "WETH",
-        //   name: "Wrapped Ethereum",
-        //   icon: "cryptocurrency-color:eth",
-        //   price: "$2,850.00",
-        //   address: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
-        //   chain: "arbitrum",
-        // },
-        // {
-        //   symbol: "ARB",
-        //   name: "Arbitrum",
-        //   icon: "cryptocurrency-color:arb",
-        //   price: "$0.85",
-        //   address: "0x912CE59144191C1204E64559FE8253a0e49E6548",
-        //   chain: "arbitrum",
-        // },
+        {
+          symbol: "USDT",
+          name: "Tether",
+          icon: "cryptocurrency-color:usdt",
+          price: "$1.00",
+          address: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+          chain: "arbitrum",
+        },
       ],
     },
     {
@@ -266,38 +210,6 @@ export function TokenSelectionModal({
           price: "$3,500.00",
           address: "0x7ceb23fd6d09a2696d4f6b3e8e3cf5ad9b83e5c6",
           chain: "polygon",
-        },
-      ],
-    },
-    {
-      id: "arbitrum",
-      symbol: "ARB",
-      name: "Arbitrum",
-      icon: "simple-icons:arbitrum",
-      tokens: [
-        {
-          symbol: "ARB",
-          name: "Arbitrum",
-          icon: "simple-icons:arbitrum",
-          price: "$1.25",
-          address: "0x912ce59144191c1204e64559fe8253a0e49e6548",
-          chain: "arbitrum",
-        },
-        {
-          symbol: "ETH",
-          name: "Ethereum",
-          icon: "cryptocurrency-color:eth",
-          price: "$3,500.00",
-          address: "0x0000000000000000000000000000000000000000",
-          chain: "arbitrum",
-        },
-        {
-          symbol: "USDC",
-          name: "USD Coin",
-          icon: "cryptocurrency-color:usdc",
-          price: "$1.00",
-          address: "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
-          chain: "arbitrum",
         },
       ],
     },
@@ -427,6 +339,25 @@ export function TokenSelectionModal({
     // Filter out disabled token if specified
     if (disabledToken) {
       filtered = filtered.filter((token) => token.symbol !== disabledToken);
+    }
+
+    // Jika filterByChain adalah "arbitrum" atau "binance", hanya tampilkan USDT dan USDC
+    if (filterByChain) {
+      const chainMapping: { [key: string]: string } = {
+        binance: "bsc",
+        ethereum: "ethereum",
+        polygon: "polygon",
+        arbitrum: "arbitrum",
+        avalanche: "avalanche",
+      };
+      const mappedChain = chainMapping[filterByChain] || filterByChain;
+
+      // Hanya filter untuk Arbitrum dan BSC
+      if (mappedChain === "arbitrum" || mappedChain === "bsc") {
+        filtered = filtered.filter(
+          (token) => token.symbol === "USDT" || token.symbol === "USDC"
+        );
+      }
     }
 
     return filtered;
