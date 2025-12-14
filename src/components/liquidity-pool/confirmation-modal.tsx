@@ -85,7 +85,9 @@ export function ConfirmationModal({
 
     // Format USD value untuk display (max 8 decimal places untuk DISPLAY SAJA)
     // PENTING: Ini hanya untuk tampilan, tidak mempengaruhi payload ke API
-    const formattedUSD = usdValue.decimalPlaces(8, BigNumber.ROUND_DOWN).toFixed();
+    const formattedUSD = usdValue
+      .decimalPlaces(8, BigNumber.ROUND_DOWN)
+      .toFixed();
     return `US$${formattedUSD}`;
   },
   calculateTotalPoolValue = () => "US$0",
@@ -902,14 +904,19 @@ export function ConfirmationModal({
         // CRITICAL FIX: Format amounts to match token decimals before sending to SDK
         // ethers.parseUnits cannot handle values with too many decimal places
         // Format to match token decimals to prevent "too many decimals" error
-        const formatAmountForSDK = (amount: string, decimals: number): string => {
+        const formatAmountForSDK = (
+          amount: string,
+          decimals: number
+        ): string => {
           const amountBN = new BigNumber(amount || "0");
           if (amountBN.isZero() || amountBN.isNaN()) return "0";
-          
+
           // Limit decimal places to token decimals (max 18 for most tokens)
           // This prevents "too many decimals" error in ethers.parseUnits
           const maxDecimals = Math.min(decimals, 18);
-          return amountBN.decimalPlaces(maxDecimals, BigNumber.ROUND_DOWN).toFixed();
+          return amountBN
+            .decimalPlaces(maxDecimals, BigNumber.ROUND_DOWN)
+            .toFixed();
         };
 
         // Get token decimals (default to 18 if not available)
@@ -917,8 +924,14 @@ export function ConfirmationModal({
         const tokenBDecimals = tokenBSDK.decimals || 18;
 
         // Format amounts to match token decimals
-        const finalAmount0 = formatAmountForSDK(tokenAAmount.toString(), tokenADecimals);
-        const finalAmount1 = formatAmountForSDK(tokenBAmount.toString(), tokenBDecimals);
+        const finalAmount0 = formatAmountForSDK(
+          tokenAAmount.toString(),
+          tokenADecimals
+        );
+        const finalAmount1 = formatAmountForSDK(
+          tokenBAmount.toString(),
+          tokenBDecimals
+        );
 
         // Use fresh SDK service with validated parameters
         const params = {
@@ -949,7 +962,11 @@ export function ConfirmationModal({
         });
 
         // Validate transaction hash
-        if (!result.hash || result.hash.length !== 66 || !result.hash.startsWith("0x")) {
+        if (
+          !result.hash ||
+          result.hash.length !== 66 ||
+          !result.hash.startsWith("0x")
+        ) {
           console.error("❌ Invalid transaction hash:", result.hash);
           throw new Error("Invalid transaction hash received from SDK");
         }
@@ -981,12 +998,19 @@ export function ConfirmationModal({
               console.warn(
                 "⚠️ Transaction not yet indexed by block explorer. This is normal for new transactions."
               );
-              toast.warning("Transaction may take a few moments to appear on BSCScan", {
-                description: "Please wait a few seconds and refresh BSCScan, or check your MetaMask activity.",
-                duration: 8000,
-              });
+              toast.warning(
+                "Transaction may take a few moments to appear on BSCScan",
+                {
+                  description:
+                    "Please wait a few seconds and refresh BSCScan, or check your MetaMask activity.",
+                  duration: 8000,
+                }
+              );
             } else if (verifyReceipt.status !== 1) {
-              console.error("❌ Transaction failed on blockchain:", verifyReceipt.status);
+              console.error(
+                "❌ Transaction failed on blockchain:",
+                verifyReceipt.status
+              );
               toast.error("Transaction failed on blockchain", {
                 description: `Status: ${verifyReceipt.status}. Please check BSCScan for details.`,
                 duration: 10000,
@@ -1003,7 +1027,10 @@ export function ConfirmationModal({
               });
             }
           } catch (verifyError: any) {
-            console.warn("⚠️ Could not verify transaction:", verifyError.message);
+            console.warn(
+              "⚠️ Could not verify transaction:",
+              verifyError.message
+            );
             // Don't show error to user, transaction might still be processing
           }
         }, 5000); // Wait 5 seconds before verification
@@ -1096,23 +1123,23 @@ export function ConfirmationModal({
   };
 
   // Helper function untuk format USD tanpa pembulatan menggunakan BigNumber
-  const formatUSDWithoutRounding = (value: number | BigNumber | undefined) => {
-    // Handle undefined, null values
-    if (value == null) return "0";
+  // const formatUSDWithoutRounding = (value: number | BigNumber | undefined) => {
+  //   // Handle undefined, null values
+  //   if (value == null) return "0";
 
-    const valueBN = value instanceof BigNumber ? value : new BigNumber(value);
+  //   const valueBN = value instanceof BigNumber ? value : new BigNumber(value);
 
-    if (valueBN.isZero() || valueBN.isNaN()) return "0";
+  //   if (valueBN.isZero() || valueBN.isNaN()) return "0";
 
-    // Smart formatting untuk dunia crypto sesuai requirement user
-    if (valueBN.gte(1)) {
-      // Untuk angka >= 1, batasi ke 2 decimal places
-      return valueBN.decimalPlaces(2).toFixed();
-    } else {
-      // Untuk angka < 1, tampilkan full precision
-      return valueBN.toFixed();
-    }
-  };
+  //   // Smart formatting untuk dunia crypto sesuai requirement user
+  //   if (valueBN.gte(1)) {
+  //     // Untuk angka >= 1, batasi ke 2 decimal places
+  //     return valueBN.decimalPlaces(2).toFixed();
+  //   } else {
+  //     // Untuk angka < 1, tampilkan full precision
+  //     return valueBN.toFixed();
+  //   }
+  // };
 
   // Format token amount untuk display (max 8 decimal places untuk DISPLAY SAJA)
   // PENTING: Ini hanya untuk tampilan, tidak mempengaruhi payload ke API
@@ -1294,7 +1321,8 @@ export function ConfirmationModal({
                     <Icon name={tokenAData.icon} className="w-6 h-6" />
                     <div>
                       <div className="font-mono text-lg">
-                        {formatTokenAmountForDisplay(tokenAAmount || "0")} {tokenAData.symbol}
+                        {formatTokenAmountForDisplay(tokenAAmount || "0")}{" "}
+                        {tokenAData.symbol}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {calculateUSDValue(
@@ -1310,7 +1338,8 @@ export function ConfirmationModal({
                     <Icon name={tokenBData.icon} className="w-6 h-6" />
                     <div>
                       <div className="font-mono text-lg">
-                        {formatTokenAmountForDisplay(tokenBAmount || "0")} {tokenBData.symbol}
+                        {formatTokenAmountForDisplay(tokenBAmount || "0")}{" "}
+                        {tokenBData.symbol}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {calculateUSDValue(
@@ -1344,12 +1373,16 @@ export function ConfirmationModal({
               <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                 <div className="flex items-center gap-2 text-green-700">
                   <Icon name="mdi:check-circle" className="w-4 h-4" />
-                  <span className="text-sm font-medium">Position berhasil dibuat!</span>
+                  <span className="text-sm font-medium">
+                    Position berhasil dibuat!
+                  </span>
                 </div>
                 {transactionHash && (
                   <div className="mt-2 space-y-2">
                     <div className="space-y-1">
-                      <div className="text-xs font-semibold text-green-800">Transaction Hash:</div>
+                      <div className="text-xs font-semibold text-green-800">
+                        Transaction Hash:
+                      </div>
                       <div className="text-xs text-green-600 font-mono break-all bg-green-100 p-2 rounded">
                         {transactionHash}
                       </div>
@@ -1379,19 +1412,28 @@ export function ConfirmationModal({
                           toast.success("Transaction hash copied to clipboard");
                         }}
                       >
-                        <Icon name="mdi:content-copy" className="w-3 h-3 mr-1" />
+                        <Icon
+                          name="mdi:content-copy"
+                          className="w-3 h-3 mr-1"
+                        />
                         Copy Hash
                       </Button>
                     </div>
                     <div className="text-xs text-green-600 bg-green-100 p-2 rounded">
                       <div className="font-semibold mb-1">💡 Note:</div>
-                      <div>If transaction doesn't appear on BSCScan immediately, wait 10-30 seconds and refresh. Transactions may take time to be indexed by block explorers.</div>
+                      <div>
+                        If transaction doesn&apos;t appear on BSCScan
+                        immediately, wait 10-30 seconds and refresh.
+                        Transactions may take time to be indexed by block
+                        explorers.
+                      </div>
                     </div>
                   </div>
                 )}
                 {nftTokenId && (
                   <div className="mt-2 text-xs text-green-600">
-                    <span className="font-semibold">NFT Token ID:</span> {nftTokenId}
+                    <span className="font-semibold">NFT Token ID:</span>{" "}
+                    {nftTokenId}
                   </div>
                 )}
               </div>

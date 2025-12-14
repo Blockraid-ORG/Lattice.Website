@@ -885,7 +885,7 @@ export function ModalLiquidity({
         const price = sqrtPrice.pow(2);
 
         // Determine which token is token0 and token1 in the pool
-        const [token0, token1] = UniswapPoolService.sortTokens(
+        const [token0] = UniswapPoolService.sortTokens(
           tokenAAddress.toLowerCase(),
           tokenBAddress.toLowerCase()
         );
