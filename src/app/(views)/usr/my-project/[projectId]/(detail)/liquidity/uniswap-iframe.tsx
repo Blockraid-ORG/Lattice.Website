@@ -19,8 +19,8 @@ export default function ActionsLiquidity() {
   const [modalData, setModalData] = useState<any>(null);
 
   const handleOpen = () => {
-    const chain = project?.chains[0].chain.name.split(" ")[0].toLowerCase();
-    if (chain === "bnb") {
+    // const chain = project?.chains[0].chain.name.split(" ")[0].toLowerCase();
+    if (false) {
       handleOpenBuiltInModal();
     } else {
       handleOpenWithRedirect();
