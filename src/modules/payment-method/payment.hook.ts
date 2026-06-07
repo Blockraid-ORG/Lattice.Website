@@ -3,14 +3,14 @@ import PaymentAbi from '@/lib/abis/payment.abi.json';
 import TokenAbi from '@/lib/abis/erc20.abi.json';
 import { useCallback } from 'react';
 import { TProject } from '@/types/project';
-import { useAccount, useWalletClient } from 'wagmi';
-import { BrowserProvider, Contract, ethers } from 'ethers';
+import { useAccount } from 'wagmi';
+import { Contract, ethers } from 'ethers';
 import { TMasterPayment } from '@/types/payment';
 import { toast } from 'sonner';
 import { useCreatePaymentFeeProject } from '../project/project.query';
+import { getSigner } from '@/lib/get-signer';
 export function usePaymentSC() {
   const { mutate: createPaymentFeeProject } = useCreatePaymentFeeProject()
-  const { data: walletClient } = useWalletClient()
   const { address } = useAccount()
   const payListingFee = useCallback(async (project: TProject, addressPool?: TMasterPayment) => {
     if (!addressPool) {
@@ -21,13 +21,10 @@ export function usePaymentSC() {
     }
     const paymentContract = addressPool.paymentSc;
     const usdAddress = addressPool.stableCoin.address;
-
     const amount = ethers.parseUnits(addressPool.listingFee, addressPool.decimal)
-    if (typeof window === 'undefined') return
-    if (!walletClient || !address) throw new Error('Wallet not connected')
+    if (!address) throw new Error('Wallet not connected')
 
-    const provider = new BrowserProvider(walletClient as any)
-    const signer = await provider.getSigner(address)
+    const signer = await getSigner()
     try {
       const stableContract = new Contract(
         usdAddress,
@@ -68,7 +65,7 @@ export function usePaymentSC() {
         description: `Payment failed!`
       })
     }
-  }, [address, createPaymentFeeProject, walletClient])
+  }, [address, createPaymentFeeProject])
 
   return {
     payListingFee

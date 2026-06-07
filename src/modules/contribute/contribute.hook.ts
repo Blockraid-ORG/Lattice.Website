@@ -3,12 +3,11 @@ import PresaleAbi from '@/lib/abis/presale.abi.json';
 import { TProject } from '@/types/project';
 import { BrowserProvider, ethers } from 'ethers';
 import { useCallback } from 'react';
-import { useAccount, useWalletClient } from 'wagmi';
+import { useAccount } from 'wagmi';
 // import {
 //   useCreateClaimedPresale
 // } from '../transaction-presale/transaction-presale.query';
 export function useContribute() {
-  const { data: walletClient } = useWalletClient()
   const { address } = useAccount()
   // const { mutate: contributeMutate } = useCreateContribute()
   // const { mutate: createClaimed } = useCreateClaimedPresale()
@@ -68,11 +67,11 @@ export function useContribute() {
   const getMyContribution = useCallback(async (project: TProject) => {
     console.log(project)
     try {
-      if (!walletClient || !address) throw new Error("Wallet not connected")
-      const provider = new BrowserProvider(walletClient as any)
+      if (!address) throw new Error("Wallet not connected")
+      const ethereum = (window as any).ethereum;
+      const provider = new BrowserProvider(ethereum)
       const presaleAddress = "project.presales.contractAddress"
       if (!presaleAddress) throw new Error("Presale address is not set")
-  
       const presaleFactory = new ethers.Contract(presaleAddress, PresaleAbi.abi, provider)
       const contribution = await presaleFactory.getContribution(address)
       return ethers.formatEther(contribution) // hasil dalam ETH
@@ -80,7 +79,7 @@ export function useContribute() {
       console.error("Error fetching contribution:", error)
       return "0"
     }
-  }, [address, walletClient])
+  }, [address])
 
   const claimPresale = useCallback(async (project: TProject) => {
     console.log(project)

@@ -4,20 +4,20 @@ import AirdropAbi from '@/lib/abis/airdrop.abi.json';
 import TokenAbi from '@/lib/abis/erc20.abi.json';
 import { TAdditionalReward, TAirdropItem } from '@/types/project';
 import dayjs from 'dayjs';
-import { BrowserProvider, ethers } from 'ethers';
+import { ethers } from 'ethers';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
-import { useAccount, useWalletClient } from 'wagmi';
+import { useAccount } from 'wagmi';
 import {
   useRemoveAllocations,
   useSetAllocations,
   useSetClaimedAirdrop
 } from '../additional-rewards/additional-reward.query';
+import { getSigner } from '@/lib/get-signer';
 export function useAirdrop() {
   const { mutate: createSetAllocations } = useSetAllocations()
   const { mutate: createRemoveAllocations } = useRemoveAllocations()
   const { mutate: setClaimedAirdrop } = useSetClaimedAirdrop()
-  const { data: walletClient } = useWalletClient()
   const { address } = useAccount()
 
   const deployAirdrop = useCallback(async (data: TAdditionalReward) => {
@@ -28,12 +28,8 @@ export function useAirdrop() {
         })
         return
       }
-
-      if (typeof window === 'undefined') return
-      if (!walletClient || !address) throw new Error('Wallet not connected')
-
-      const provider = new BrowserProvider(walletClient as any)
-      const signer = await provider.getSigner(address)
+      if (!address) throw new Error('Wallet not connected')
+      const signer = await getSigner()
       const amount = ethers.parseUnits(data.amount.toString(), data.project.decimals)
 
       const contract = new ethers.Contract(
@@ -57,17 +53,14 @@ export function useAirdrop() {
     } catch (error: any) {
       console.error("Deploy airdrop failed:", error.message)
     }
-  }, [address, walletClient])
+  }, [address])
 
   const setAllocations = useCallback(async (
     values: MultipleRecipientsFormValues,
     data: TAdditionalReward
   ) => {
-    if (typeof window === 'undefined') return
-    if (!walletClient || !address) throw new Error('Wallet not connected')
-    const provider = new BrowserProvider(walletClient as any)
-    const signer = await provider.getSigner(address)
-
+    if (!address) throw new Error('Wallet not connected')
+    const signer = await getSigner()
     const d = values.items.map(item => {
       return {
         ...item,
@@ -84,17 +77,13 @@ export function useAirdrop() {
     const tx = await airdropContract.setAllocations(data.scheduleId, users, amounts);
     await tx.wait();
     createSetAllocations(d)
-  }, [address, createSetAllocations, walletClient])
+  }, [address, createSetAllocations])
 
   const clearAllocations = useCallback(async (
     values: string[],
     data: TAdditionalReward
   ) => {
-    if (typeof window === 'undefined') return
-    if (!walletClient || !address) throw new Error('Wallet not connected')
-    const provider = new BrowserProvider(walletClient as any)
-    const signer = await provider.getSigner(address)
-
+    const signer = await getSigner()
     const airdropContract = new ethers.Contract(
       data.contactAddress,
       AirdropAbi.abi,
@@ -109,17 +98,13 @@ export function useAirdrop() {
     })
     await tx.wait();
     createRemoveAllocations(d);
-  }, [address, createRemoveAllocations, walletClient])
+  }, [createRemoveAllocations])
 
   const claimMyAirdrop = useCallback(async (
     data: TAirdropItem,
     contractAddress: string
   ) => {
-    if (typeof window === 'undefined') return
-    if (!walletClient || !address) throw new Error('Wallet not connected')
-    const provider = new BrowserProvider(walletClient as any)
-    const signer = await provider.getSigner(address)
-
+    const signer = await getSigner()
     const airdropContract = new ethers.Contract(
       contractAddress,
       AirdropAbi.abi,
@@ -137,7 +122,7 @@ export function useAirdrop() {
         description: error?.sortMessage || "Failed claim airdrop!"
       });
     }
-  }, [address, setClaimedAirdrop, walletClient])
+  }, [setClaimedAirdrop])
   return {
     deployAirdrop,
     setAllocations,

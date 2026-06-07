@@ -1,10 +1,10 @@
 /* eslint-disable @next/next/no-img-element */
-import LaunchAppButton from '@/components/launch-app-button'
 import Image from 'next/image'
 import { ChainHero } from './chain-hero'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/icon'
+import LaunchAppButton from '@/components/launch-app-button'
 export default function NewHero() {
   return (
     <div className='aspect-auto md:aspect-[1440/712] relative'>

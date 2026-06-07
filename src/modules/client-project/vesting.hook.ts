@@ -1,22 +1,18 @@
 'use client'
 import lockerAbi from '@/lib/abis/locker.abi.json'
+import { getSigner } from '@/lib/get-signer'
 import { TMyVetsing } from "@/types/project"
-import { BrowserProvider, Contract } from "ethers"
+import {Contract } from "ethers"
 import { useCallback } from "react"
 import { toast } from "sonner"
-import { useAccount, useWalletClient } from "wagmi"
+import { useAccount } from "wagmi"
 
 export function useVestingHook() {
-  const { data: walletClient } = useWalletClient()
   const { address } = useAccount()
   const claim = useCallback(async (
     locker: TMyVetsing
   ) => {
-    if (typeof window === 'undefined') return
-    if (!walletClient || !address) throw new Error('Wallet not connected')
-
-    const provider = new BrowserProvider(walletClient as any)
-    const signer = await provider.getSigner(address)
+    const signer = await getSigner()
     try {
       if (!locker.contractAddress) {
         toast.error('Error', {
@@ -38,9 +34,8 @@ export function useVestingHook() {
         description: `claim vesting failed!`
       })
     }
-  }, [address, walletClient])
+  }, [address])
   return {
     claim
   }
-
 }

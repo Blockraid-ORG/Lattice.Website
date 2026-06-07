@@ -1,15 +1,16 @@
 'use client'
 import lockerAbi from '@/lib/abis/locker.abi.json'
 import { TAddressAmount, TAllocation, TProject } from "@/types/project"
-import { BrowserProvider, Contract } from "ethers"
+import { Contract } from "ethers"
 import { useCallback } from "react"
 import { toast } from "sonner"
-import { useAccount, useWalletClient } from "wagmi"
+import { useAccount } from "wagmi"
 import {
   useCreateProjectAllocationAddress,
   useDeleteIdsProjectAllocationAddress,
   useFinalizeProjectAllocation
 } from '../project/project.query'
+import { getSigner } from '@/lib/get-signer'
 
 export function convertToAllocations(data: TAddressAmount[]) {
   const total = data.reduce((sum, b) => sum + Number(b.amount), 0);
@@ -27,18 +28,14 @@ export function useManageLocker() {
   const { mutate: createProjectAllocationAddress } = useCreateProjectAllocationAddress()
   const { mutate: finalizeProjectAllocation } = useFinalizeProjectAllocation()
   const { mutate: deleteByIdsProjectAllocationAddress } = useDeleteIdsProjectAllocationAddress()
-  const { data: walletClient } = useWalletClient()
   const { address } = useAccount()
   const setBeneficiaries = useCallback(async (
     data: TProject,
     values: TAddressAmount[],
     locker: TAllocation
   ) => {
-    if (typeof window === 'undefined') return
-    if (!walletClient || !address) throw new Error('Wallet not connected')
-
-    const provider = new BrowserProvider(walletClient as any)
-    const signer = await provider.getSigner(address)
+    if (!address) throw new Error('Wallet not connected')
+    const signer = await getSigner()
     try {
       if (!locker.contractAddress) {
         toast.error('Error', {
@@ -79,7 +76,7 @@ export function useManageLocker() {
         description: `Set Beneficiaries failed!`
       })
     }
-  }, [address, createProjectAllocationAddress, walletClient])
+  }, [address, createProjectAllocationAddress])
 
   const resetBeneficiaries = useCallback(async (
     ids: string[],
@@ -88,10 +85,8 @@ export function useManageLocker() {
     locker: TAllocation
   ) => {
     if (typeof window === 'undefined') return
-    if (!walletClient || !address) throw new Error('Wallet not connected')
-
-    const provider = new BrowserProvider(walletClient as any)
-    const signer = await provider.getSigner(address)
+    if (!address) throw new Error('Wallet not connected')
+    const signer = await getSigner()
     try {
       if (!locker.contractAddress) {
         toast.error('Error', {
@@ -133,18 +128,11 @@ export function useManageLocker() {
         description: `Set Beneficiaries failed!`
       })
     }
-  }, [
-    address,
-    createProjectAllocationAddress,
-    deleteByIdsProjectAllocationAddress,
-    walletClient])
+  }, [address, createProjectAllocationAddress, deleteByIdsProjectAllocationAddress])
 
   const finalizeAllocation = useCallback(async (data: TProject, locker: TAllocation) => {
-    if (typeof window === 'undefined') return
-    if (!walletClient || !address) throw new Error('Wallet not connected')
-
-    const provider = new BrowserProvider(walletClient as any)
-    const signer = await provider.getSigner(address)
+    if (!address) throw new Error('Wallet not connected')
+    const signer = await getSigner()
     try {
       if (!locker.contractAddress) {
         toast.error('Error', {
@@ -178,7 +166,7 @@ export function useManageLocker() {
         description: `Set finalize failed!`
       })
     }
-  }, [address, finalizeProjectAllocation, walletClient])
+  }, [address, finalizeProjectAllocation])
 
   return {
     setBeneficiaries,

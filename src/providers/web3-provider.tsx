@@ -26,8 +26,10 @@ createAppKit({
 
 export default function Web3Provider({
   children,
+  // cookies,
 }: {
-  children: ReactNode;
+    children: ReactNode;
+    // cookies: string | null
 }) {
   return (
     <WagmiProvider config={wagmiAdapter.wagmiConfig}>

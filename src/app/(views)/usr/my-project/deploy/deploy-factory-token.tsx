@@ -32,10 +32,9 @@ import { TProject } from "@/types/project";
 import { BrowserProvider, ethers } from "ethers";
 import Image from "next/image";
 import { useState } from "react";
-import { useAccount, useWalletClient } from "wagmi";
+import { useAccount } from "wagmi";
 
 export function DeployFactoryToken({ data }: { data: TProject }) {
-  const { data: walletClient } = useWalletClient()
   const { address } = useAccount()
   const { deployFactoryBasic } = useDeployToken()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -57,8 +56,11 @@ export function DeployFactoryToken({ data }: { data: TProject }) {
   async function handleDeployContract() {
     setIsSubmitting(true)
     if (typeof window === 'undefined') return
-    if (!walletClient || !address) throw new Error('Wallet not connected')
-    const provider = new BrowserProvider(walletClient as any)
+    if (!address) throw new Error("Wallet not connected");
+    const ethereum = (window as any).ethereum;
+    if (!ethereum) throw new Error("Ethereum provider not found");
+    const provider = new BrowserProvider(ethereum)
+
     const signer = await provider.getSigner(address)
     const message = JSON.stringify({
       name: data.name,

@@ -5,6 +5,9 @@ const nextConfig = {
       config.resolve.alias["@react-native-async-storage/async-storage"] = false;
     }
     config.resolve.alias["@react-native-async-storage/async-storage"] = false;
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+    };
     return config;
   },
   env: {
