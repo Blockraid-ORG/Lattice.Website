@@ -1,11 +1,16 @@
-import ReactQueryProvider from "@/providers/react-query-provider";
+// import ReactQueryProvider from "@/providers/react-query-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import type { Metadata } from "next";
 import { Open_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import NextTopLoader from 'nextjs-toploader';
-import { cookieToWeb3AuthState } from "@web3auth/modal";
+// import { cookieToWeb3AuthState } from "@web3auth/modal";
+// import { headers } from "next/headers";
+// import ContextProvider from "@/context";
+
+// import Web3Provider from "@/providers/web3-provider";
+import ContextProvider from "@/context";
 import { headers } from "next/headers";
 const openSans = Open_Sans({
   subsets: ['latin'],
@@ -23,9 +28,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
-  const headersList = await headers();
-  const web3authInitialState = cookieToWeb3AuthState(headersList.get('cookie'));
+  const headersObj = await headers()
+  const cookies = headersObj.get('cookie')
+  // const headersList = await headers();
+  // const web3authInitialState = cookieToWeb3AuthState(headersList.get('cookie'));
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -38,10 +44,13 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <ReactQueryProvider web3authInitialState={web3authInitialState}>
+          {/* <ReactQueryProvider web3authInitialState={web3authInitialState}>
             {children}
-          </ReactQueryProvider>
-
+          </ReactQueryProvider> */}
+          {/* <Web3Provider>{children}</Web3Provider> */}
+          <ContextProvider cookies={cookies}>
+            {children}
+          </ContextProvider>
           <Toaster
             expand={true}
             closeButton

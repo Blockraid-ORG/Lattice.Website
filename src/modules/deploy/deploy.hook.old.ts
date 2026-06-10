@@ -19,6 +19,7 @@ import {
 import { useDeployProject } from './deploy.query';
 import { TMasterPayment } from '@/types/payment';
 import { successMessage } from '@/lib/notification';
+import { getSigner } from '@/lib/get-signer';
 
 export function useDeployToken() {
   const { data: walletClient } = useWalletClient()
@@ -32,11 +33,8 @@ export function useDeployToken() {
   const { mutate: deployProject } = useDeployProject()
 
   const deployFactoryContractBasic = useCallback(async () => {
-    if (typeof window === 'undefined') return
-    if (!walletClient || !address) throw new Error('Wallet not connected')
-    const provider = new BrowserProvider(walletClient as any)
-    const signer = await provider.getSigner(address)
-
+    if (!address) throw new Error('Wallet not connected')
+    const signer = await getSigner()
     const factory = new ethers.ContractFactory(
       FactoryAbi.abi,
       FactoryAbi.bytecode,
@@ -46,14 +44,11 @@ export function useDeployToken() {
     const contract = await factory.deploy(await signer.getAddress());
     await contract.waitForDeployment();
     return contract;
-  }, [address, walletClient]);
+  }, [address]);
 
   const lockAndDistribute = useCallback(async (project: TProject) => {
-    if (typeof window === 'undefined') return
-    if (!walletClient || !address) throw new Error('Wallet not connected')
     const amounts = vestings.map(i => ethers.parseEther(i.supply.toString()));
-    const provider = new BrowserProvider(walletClient as any)
-    const signer = await provider.getSigner(address)
+    const signer = await getSigner()
     if (project.factoryAddress) {
       const factory = new ethers.Contract(
         project.factoryAddress,
@@ -72,7 +67,7 @@ export function useDeployToken() {
 
     }
 
-  }, [address, setDistributedLocker, vestings, walletClient])
+  }, [setDistributedLocker, vestings])
 
   const deployFactoryBasic = useCallback(async (project: TProject, addressPool: TMasterPayment) => {
     if (!addressPool) {
@@ -87,12 +82,9 @@ export function useDeployToken() {
     const _sweepDuration = project.sweepDuration ?? (60 * 60 * 24) * 30;
     const _whitelistDuration = project.whitelistDuration ? project.whitelistDuration * 60 * 60 * 24 : 0
     try {
-      if (typeof window === 'undefined') return
-      if (!walletClient || !address) throw new Error('Wallet not connected')
+      if (!address) throw new Error('Wallet not connected')
       const second = 24 * 60 * 60;
-      const provider = new BrowserProvider(walletClient as any)
-      const signer = await provider.getSigner(address)
-
+      const signer = await getSigner()
       const presaleFactory = new ethers.ContractFactory(
         PresaleAbi.abi,
         PresaleAbi.bytecode,
@@ -267,7 +259,7 @@ export function useDeployToken() {
       console.error({ error: error.message })
       toast.error('Something went wrong during deployment.');
     }
-  }, [walletClient, address, deployFactoryContractBasic, setAllocationDeploy, vestings, deployProject, updateAllocation, setRewardContractAddress])
+  }, [address, deployFactoryContractBasic, setAllocationDeploy, vestings, deployProject, updateAllocation, setRewardContractAddress])
 
   const setPauseAsset = useCallback(async (project: TProject) => {
     if (typeof window === 'undefined') return

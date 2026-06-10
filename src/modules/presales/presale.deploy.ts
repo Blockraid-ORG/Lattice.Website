@@ -3,10 +3,9 @@ import PresaleAbi from '@/lib/abis/presale.abi.json';
 import WhitelistAbi from '@/lib/abis/whitelist.abi.json';
 import { isUnitPresaleStable } from '@/lib/validationActionSc';
 import { FormProjectAddressWhitelist, TPresale, TProject } from "@/types/project";
-import { BrowserProvider, ethers, getAddress, parseUnits } from "ethers";
+import { ethers, getAddress, parseUnits } from "ethers";
 import { useCallback } from "react";
 import { toast } from "sonner";
-import { useAccount, useWalletClient } from "wagmi";
 import {
   useCreateClaimedPresale,
   useSetWithdrawPresale
@@ -18,11 +17,13 @@ import {
   useUpdateNewPresale
 } from "./presale.query";
 import presaleService from './presale.service';
+import { getSigner } from '@/lib/get-signer';
+import { useAccount } from 'wagmi';
 type TActivatePresale = { data: TProject, item: TPresale }
 export function useDeployPresaleSC() {
-
-  const { data: walletClient } = useWalletClient()
   const { address } = useAccount()
+
+  
   const { mutate: updatePresale } = useUpdateNewPresale()
   const { mutate: addProjectWhitelistAddress } = useAddProjectWhitelistAddress()
   const { mutate: removeProjectWhitelistAddress } = useRemoveProjectWhitelistAddress()
@@ -32,10 +33,7 @@ export function useDeployPresaleSC() {
   const activatePresale = useCallback(async ({ data, item }: TActivatePresale) => {
 
     const isUseStableCoin = isUnitPresaleStable(item.unit)
-    if (typeof window === 'undefined') return
-    if (!walletClient || !address) throw new Error('Wallet not connected')
-    const provider = new BrowserProvider(walletClient as any)
-    const signer = await provider.getSigner(address)
+    const signer = await getSigner()
     if (!data.presaleAddress) {
       toast.warning('Warning', {
         description: `Asset not deployed yet`
@@ -114,24 +112,21 @@ export function useDeployPresaleSC() {
       console.log(error)
     }
   },
-    [address, updatePresale, walletClient],
+    [updatePresale],
   )
 
   const addToWhitelist = useCallback(async (
     data: FormProjectAddressWhitelist[],
     whitelistAddress: string
   ) => {
-    if (typeof window === 'undefined') return
-    if (!walletClient || !address) throw new Error('Wallet not connected')
-    const provider = new BrowserProvider(walletClient as any)
-    const signer = await provider.getSigner(address)
+    const signer = await getSigner()
     const contract = new ethers.Contract(whitelistAddress, WhitelistAbi.abi, signer)
     const arrayAddress = data.map(i => i.walletAddress)
     const tx = await contract.addToWhitelist(arrayAddress)
     await tx.wait()
     addProjectWhitelistAddress(data)
   },
-    [addProjectWhitelistAddress, address, walletClient],
+    [addProjectWhitelistAddress],
   )
 
   const removeFromWhitelist = useCallback(async (
@@ -139,16 +134,13 @@ export function useDeployPresaleSC() {
     walletAddress: string[],
     whitelistAddress: string
   ) => {
-    if (typeof window === 'undefined') return
-    if (!walletClient || !address) throw new Error('Wallet not connected')
-    const provider = new BrowserProvider(walletClient as any)
-    const signer = await provider.getSigner(address)
+    const signer = await getSigner()
     const contract = new ethers.Contract(whitelistAddress, WhitelistAbi.abi, signer)
     const tx = await contract.removeFromWhitelist(walletAddress)
     await tx.wait()
     removeProjectWhitelistAddress(ids)
   },
-    [removeProjectWhitelistAddress, address, walletClient],
+    [removeProjectWhitelistAddress],
   )
 
   const contributePresale = useCallback(async (
@@ -160,12 +152,7 @@ export function useDeployPresaleSC() {
   ) => {
     try {
       const isUseStableCoin = isUnitPresaleStable(presale.unit)
-      if (typeof window === 'undefined') return
-      if (!walletClient || !address) throw new Error('Wallet not connected')
-      const provider = new BrowserProvider(walletClient as any)
-      const signer = await provider.getSigner(address)
-
-      // check unit
+      const signer = await getSigner()
       if (isUseStableCoin) {
         const stableCoinData = await presaleService.GetStableUsed({
           chainId: data.chains[0].chain.id,
@@ -212,15 +199,11 @@ export function useDeployPresaleSC() {
       })
     }
   },
-    [address, createContributePresale, walletClient],
+    [address, createContributePresale],
   )
 
   const getContribution = useCallback(async ({ data, item }: TActivatePresale) => {
-    if (typeof window === 'undefined') return
-    if (!walletClient || !address) throw new Error('Wallet not connected')
-    const provider = new BrowserProvider(walletClient as any)
-    const signer = await provider.getSigner(address)
-
+    const signer = await getSigner()
     try {
       const contract = new ethers.Contract(data.presaleAddress!, PresaleAbi.abi, signer)
       const tx = await contract.getContribution(item.presaleSCID, address)
@@ -232,13 +215,11 @@ export function useDeployPresaleSC() {
       })
     }
   },
-    [address, walletClient],
+    [address],
   )
 
   const claimPresale = useCallback(async ({ data, item }: TActivatePresale) => {
-    if (!walletClient || !address) throw new Error("Wallet not connected")
-    const provider = new BrowserProvider(walletClient as any)
-    const signer = await provider.getSigner(address)
+    const signer = await getSigner()
     const presaleAddress = data.presaleAddress
     if (!presaleAddress || !item.presaleSCID) throw new Error("Presale address is not set")
     try {
@@ -266,13 +247,11 @@ export function useDeployPresaleSC() {
       })
     }
   },
-    [address, createClaimed, walletClient],
+    [createClaimed],
   )
 
   const sweepUnclaimedTokens = useCallback(async ({ data, item }: TActivatePresale) => {
-    if (!walletClient || !address) throw new Error("Wallet not connected")
-    const provider = new BrowserProvider(walletClient as any)
-    const signer = await provider.getSigner(address)
+    const signer = await getSigner()
     const presaleAddress = data.presaleAddress
     if (!presaleAddress || !item.presaleSCID) throw new Error("Presale address is not set")
     try {
@@ -294,14 +273,11 @@ export function useDeployPresaleSC() {
         description: error.shortMessage
       })
     }
-  },
-    [address, walletClient],
-  )
+  }, [])
+  
   const withdrawContributionIfFailed = useCallback(async ({ data, item }: TActivatePresale) => {
     const isUseStableCoin = isUnitPresaleStable(item.unit)
-    if (!walletClient || !address) throw new Error("Wallet not connected")
-    const provider = new BrowserProvider(walletClient as any)
-    const signer = await provider.getSigner(address)
+    const signer = await getSigner()
     const presaleAddress = data.presaleAddress
     if (!presaleAddress || !item.presaleSCID) throw new Error("Presale address is not set")
     try {
@@ -332,7 +308,7 @@ export function useDeployPresaleSC() {
       })
     }
   },
-    [address, setWdPresale, walletClient],
+    [setWdPresale],
   )
 
   return {
