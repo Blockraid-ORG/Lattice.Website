@@ -10,17 +10,18 @@ import { wagmiAdapter, projectId, networks } from "@/lib/web3/config";
 const queryClient = new QueryClient();
 
 createAppKit({
-  adapters: [wagmiAdapter],
+  adapters: [wagmiAdapter] as any,
   projectId,
   networks: networks as any,
   metadata: {
-    name: "My App",
-    description: "My App Description",
-    url: "https://example.com",
-    icons: ["https://example.com/logo.png"],
+    name: "Terravest",
+    description: "Terravest Launchpad",
+    url: "https://alpha.terravest.capital",
+    icons: ["https://alpha.terravest.capital/logo/logo-dark.png"],
   },
   features: {
     analytics: true,
+    email: false
   },
 });
 
