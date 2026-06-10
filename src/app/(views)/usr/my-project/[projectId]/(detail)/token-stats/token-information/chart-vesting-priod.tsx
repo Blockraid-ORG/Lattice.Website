@@ -57,7 +57,8 @@ export default function ChartVestingPeriod({
     { stepDays }
   );
   const categories = timelineDates.map((d) => moment(d).format("MMM D, YYYY"));
-  const colors = data.map((item) => item.color);
+  // Ensure no undefined colors are passed to ApexCharts by providing a fallback
+  const colors = data.map((item) => item.color ?? "#8884d8");
 
   // Get current date for the vertical line
   const currentDate = moment().format("MMM D, YYYY");

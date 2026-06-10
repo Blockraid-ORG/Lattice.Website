@@ -23,13 +23,17 @@ const metadata = {
 
 // Create the modal
 createAppKit({
-  adapters: [wagmiAdapter],
+  adapters: [wagmiAdapter as unknown as any],
   projectId,
   networks: [mainnet, arbitrum, bscTestnet, bsc],
   defaultNetwork: mainnet,
   metadata: metadata,
   features: {
-    analytics: true
+    analytics: true,
+    email: false,
+    socials: false,
+    allWallets: false,
+    emailShowWallets: false,
   }
 })
 
