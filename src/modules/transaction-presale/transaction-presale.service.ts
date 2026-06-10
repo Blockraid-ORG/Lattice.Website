@@ -33,6 +33,17 @@ class TansactionPresaleService extends BaseService<
     });
     return response.data.data;
   }
+  async GET_ENDED(
+    params?: TQueryParam
+  ): Promise<TPagination<TResponsePresale>> {
+    const response = await axiosInstance({
+      method: "GET",
+      url: `${this.endpoint}/end-presale`,
+      params,
+    });
+    console.log("response ended presale", response.data);
+    return response.data.data;
+  }
   async GET_MY_CONTRIBUTION(params?: TQueryParam): Promise<any> {
     const response = await axiosInstance({
       method: "GET",
@@ -59,11 +70,11 @@ class TansactionPresaleService extends BaseService<
   }
   async SET_WD_PRESALE(id: string): Promise<any> {
     const response = await axiosInstance({
-      method: 'POST',
+      method: "POST",
       url: `${this.endpoint}/setWdPresale`,
-      data: { id }
-    })
-    return response.data.data
+      data: { id },
+    });
+    return response.data.data;
   }
 }
 
