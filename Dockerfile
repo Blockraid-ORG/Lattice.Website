@@ -1,5 +1,5 @@
 # Install dependencies
-FROM node:20-alpine AS deps
+FROM node:24-alpine AS deps
 
 WORKDIR /app
 
@@ -8,7 +8,7 @@ COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
 
 # Build
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
@@ -20,7 +20,7 @@ ENV NODE_ENV=production
 RUN yarn build
 
 # Runtime
-FROM node:20-alpine
+FROM node:24-alpine
 
 WORKDIR /app
 
