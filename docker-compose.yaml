@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  launchpad:
+    container_name: launchpad
+
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    networks:
+      - production
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.launchpad.rule=Host(`launchpad.terravest.capital`)"
+      - "traefik.http.routers.launchpad.entrypoints=websecure"
+      - "traefik.http.routers.launchpad.tls.certresolver=letsencrypt"
+      - "traefik.http.services.launchpad.loadbalancer.server.port=5000"
+
+networks:
+  production:
+    external: true
