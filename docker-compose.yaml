@@ -21,7 +21,7 @@ services:
       - "traefik.http.routers.launchpad.rule=Host(`launchpad.terravest.capital`)"
       - "traefik.http.routers.launchpad.entrypoints=websecure"
       - "traefik.http.routers.launchpad.tls.certresolver=letsencrypt"
-      - "traefik.http.services.launchpad.loadbalancer.server.port=5000"
+      - "traefik.http.services.launchpad.loadbalancer.server.port=3000"
 
 networks:
   production:
