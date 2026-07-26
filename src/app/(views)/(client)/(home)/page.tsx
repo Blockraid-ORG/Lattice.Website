@@ -1,12 +1,12 @@
 import FaqSection from "../_components/faq";
-import ActivePresale from "./active-presale";
+// import ActivePresale from "./active-presale";
 import Community from "./comnunity";
 import NewHero from "./new-hero";
-import OurProject from "./our-project";
+// import OurProject from "./our-project";
 // import OurProject from "./our-project";
 import SupporChain from "./suppor-chain";
 import ToolsIntegrated from "./tools-integrated";
-import UpcomingPresale from "./upcoming-presale";
+// import UpcomingPresale from "./upcoming-presale";
 
 export default function Home() {
   return (
@@ -45,9 +45,9 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <UpcomingPresale />
+      {/* <UpcomingPresale />
       <ActivePresale />
-      <OurProject />
+      <OurProject /> */}
       <SupporChain />
       <FaqSection />
       <Community />
